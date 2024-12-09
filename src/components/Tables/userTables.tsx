@@ -93,16 +93,16 @@ const TraineePage: React.FC = () => {
 
   // Column Definitions for AgGridReact
   const colDefs: ColDef[] = [
-    { headerName: "First Name", field: "firstName" },
-    { headerName: "Last Name", field: "lastName" },
-    { headerName: "Email", field: "email" },
-    { headerName: "Role", field: "role" },
-    { headerName: "DOB", field: "dob" },
-    { headerName: "Phone", field: "phone" },
-    { headerName: "Qualification", field: "qualification" },
-    { headerName: "Date of Joining", field: "dateOfJoining" },
-    { headerName: "Account Status", field: "accountStatus" },
-    { headerName: "Last Login", field: "lastLogin" },
+    { headerName: "First Name", field: "firstName", editable: false },
+    { headerName: "Last Name", field: "lastName", editable: false },
+    { headerName: "Email", field: "email", editable: false },
+    { headerName: "Role", field: "role", editable: false },
+    { headerName: "DOB", field: "dob", editable: false },
+    { headerName: "Phone", field: "phone", editable: false },
+    { headerName: "Qualification", field: "qualification", editable: false },
+    { headerName: "Date of Joining", field: "dateOfJoining", editable: false },
+    { headerName: "Account Status", field: "accountStatus", editable: false },
+    { headerName: "Last Login", field: "lastLogin", editable: false },
     {
       headerName: "Actions",
       editable: false,

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie'; // Import js-cookie
 import LoginImg from '../../images/login&signup.png';
 
 interface LoginProps {
   setIsAuthenticated: (value: boolean) => void;
   setUserName: (name: string) => void;
 }
+
 const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,28 +16,29 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     try {
       const response = await axios.post('/auth/login', { email, password });
-  
+
       // Log response for debugging
       console.log('Login successful:', response.data);
-  
+
       // Extract token and user details
       const { accessToken, user } = response.data;
       const fullName = `${user.firstName} ${user.lastName}`;
       const userId = user.id; // Assuming `id` is the property for the user ID
-  
-      console.log('accesstoken', accessToken);
-  
-      // Store token and user ID in cookies
-      Cookies.set('authToken', accessToken);
-      Cookies.set('userId', userId);
-  
+
+      console.log('Access token:', accessToken);
+
+      // Store token and user details in localStorage
+      localStorage.setItem('authToken', accessToken);
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('userName', fullName);
+
       // Update authentication state and user name
       setIsAuthenticated(true);
       setUserName(fullName);
-  
+
       // Redirect to home route
       navigate('/');
     } catch (err) {
@@ -45,7 +46,6 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
       setError('Login failed. Please check your email and password.');
     }
   };
-  
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 h-screen bg-gradient-to-r from-purple-200 to-blue-200">

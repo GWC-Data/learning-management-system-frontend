@@ -65,7 +65,7 @@ const AllUsers: React.FC = () => {
           icon={<DollarSign />}
           label="Finance"
           to="/allUsers/finance"
-          gradient="bg-gradient-to-r from-green-400 via-green-500 to-green-600"
+          gradient="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"
           onClick={() => handleButtonClick("/allUsers/finance")}
         />
         <SidebarButton
@@ -79,7 +79,7 @@ const AllUsers: React.FC = () => {
           icon={<UserCheck />}
           label="Trainees"
           to="/allUsers/trainees"
-          gradient="bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600"
+          gradient="bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600"
           onClick={() => handleButtonClick("/allUsers/trainees")}
         />
       </div>

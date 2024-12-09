@@ -60,12 +60,12 @@ const AdminPage = () => {
 
   // Column Definitions for AgGridReact
   const colDefs = [
-    { headerName: "First Name", field: "firstName" },
-    { headerName: "Last Name", field: "lastName" },
-    { headerName: "Email", field: "email" },
-    { headerName: "Role", field: "role" },
-    { headerName: "Account Status", field: "accountStatus" },
-    { headerName: "Last Login", field: "lastLogin" },
+    { headerName: "First Name", field: "firstName", editable: false },
+    { headerName: "Last Name", field: "lastName", editable: false },
+    { headerName: "Email", field: "email", editable: false },
+    { headerName: "Role", field: "role", editable: false },
+    { headerName: "Account Status", field: "accountStatus", editable: false },
+    { headerName: "Last Login", field: "lastLogin", editable: false },
     {
       headerName: "Actions",
       field: "actions",

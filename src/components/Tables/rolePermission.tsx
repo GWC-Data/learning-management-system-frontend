@@ -15,7 +15,7 @@ interface RolePermission {
   };
 }
 
-const initialRoles = ["Admin", "Finance", "Trainer", "Trainee"];
+const initialRoles = ["Admin", "Sales", "Trainer", "Trainee"];
 const initialGroups = [
   {
     groupName: "User Management",

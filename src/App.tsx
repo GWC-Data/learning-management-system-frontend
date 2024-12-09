@@ -10,7 +10,7 @@ import Nav from './components/Navbar/Nav';
 import CourseTable from './components/Tables/courseTables';
 import UserTable from './components/Tables/userTables';
 import AdminTable from './components/Tables/adminTables';
-import FinanceTable from './components/Tables/financeTables';
+import SalesTable from './components/Tables/salesTable';
 import TrainerTable from './components/Tables/trainerTables';
 import AddUser from './components/Tables/addUser';
 
@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const [userName, setUserName] = useState<string>(() => localStorage.getItem('userName') || '');
   const [loading, setLoading] = useState<boolean>(true);
 
-  const [userDetails, setUserDetails] = useState<string>(()=> localStorage.getItem('userDetails') || '');
+  const [userDetails, setUserDetails] = useState<string>(()=> localStorage.getItem('user') || '');
 
   useEffect(() => {
     const authenticateWithToken = async () => {
@@ -41,7 +41,7 @@ const App: React.FC = () => {
 
       if (token && userId) {
         try {
-          const response = await axios.get(`/auth/userDetails/${userId}`, {
+          const response = await axios.get(`/users/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
 
@@ -49,8 +49,8 @@ const App: React.FC = () => {
           console.log('API Response:', response);
 
           // Check if the response contains the user data
-          if (response.data && response.data.userDetails) {
-            const user = response.data.userDetails;
+          if (response.data && response.data.user) {
+            const user = response.data.user;
             const fullName = `${user.firstName} ${user.lastName}`;
 
             setIsAuthenticated(true);
@@ -107,7 +107,7 @@ const App: React.FC = () => {
             <Route path="allUsers/" element={<AllUsers />}>
               <Route path="trainees" element={<UserTable />} />
               <Route path="admin" element={<AdminTable />} />
-              <Route path="finance" element={<FinanceTable />} />
+              <Route path="sales" element={<SalesTable />} />
               <Route path="trainers" element={<TrainerTable />} />
               <Route path="add-user" element={<AddUser />} />
             </Route>

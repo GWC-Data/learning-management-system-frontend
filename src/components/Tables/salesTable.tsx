@@ -27,7 +27,7 @@ interface User {
   }
   
 
-const TraineePage: React.FC = () => {
+const SalesPage: React.FC = () => {
   const [userData, setUserData] = useState<User[]>([]);
 
   const getToken = () => localStorage.getItem("authToken");
@@ -41,12 +41,16 @@ const TraineePage: React.FC = () => {
     }
   
     try {
+
       const response = await axios.get("/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
   
+      console.log("API Response:", response);
+  
       if (response.data && Array.isArray(response.data.Users)) {
-        const trainees = response.data.Users.filter((user: { roleId: number; }) => user.roleId === 5);
+        // Filter only 'trainee' role users (assume roleId for trainee is known, e.g., 3)
+        const trainees = response.data.Users.filter((user: { roleId: number; }) => user.roleId === 3);
         setUserData(trainees); // Set only trainee data
         console.log("Filtered trainee data:", trainees);
       } else {
@@ -54,6 +58,7 @@ const TraineePage: React.FC = () => {
         toast.error("Unexpected response format from the server.");
       }
     } catch (error: any) {
+      console.error("Error fetching users:", error);
       if (error.response) {
         console.error("Error Response Data:", error.response.data);
         toast.error(error.response.data.message || "Failed to fetch users.");
@@ -177,6 +182,6 @@ const TraineePage: React.FC = () => {
   );
 };
 
-export default TraineePage;
+export default SalesPage;
 
 

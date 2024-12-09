@@ -46,7 +46,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
     }
 
     try {
-      const response = await axios.get(`/auth/roles`, {
+      const response = await axios.get(`/roles`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             }
@@ -84,7 +84,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
 
     const roleId = data.data.id;
     try {
-      await axios.delete(`/auth/roles/${roleId}`, {
+      await axios.delete(`/roles/${roleId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -132,7 +132,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
       }
 
       try {
-        const response = await axios.put(`/auth/roles/${newRole.id}`, newRole, {
+        const response = await axios.put(`/roles/${newRole.id}`, newRole, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -150,7 +150,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
       }
     } else {
       try {
-        const response = await axios.post(`/auth/roles`, newRole, {
+        const response = await axios.post(`/roles`, newRole, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -173,6 +173,28 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
     setColDefs([
       { headerName: "Role Name", field: "name", editable: false, width: 150 },
       { headerName: "Description", field: "description", editable: false, width: 500 },
+      {
+        headerName: "Permissions",
+        field: "permissions",
+        width: 500, // Adjust the width as needed
+        cellRenderer: (params: any) => {
+          const permissions = params.data.permissions || [];
+          return (
+            <div className="flex flex-wrap space-x-2">
+              {permissions.length === 0 ? (
+                <span className="text-gray-500">No Permissions</span>
+              ) : (
+                permissions.map((permission: { action: string; groupName: string }, index: number) => (
+                  <span key={index} className="bg-gray-300 text-gray-700 py-1 px-3 rounded-full text-sm">
+                    {permission.action}
+                  </span>
+                ))
+              )}
+            </div>
+          );
+        },
+        editable: false, // Don't allow editing
+      },
       {
         headerName: "Actions",
         field: "actions",
@@ -197,7 +219,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
       },
     ]);
   }, [roles]);
-
+  
   return (
     <div className="flex-1 p-4 mt-10 ml-10">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[850px]">

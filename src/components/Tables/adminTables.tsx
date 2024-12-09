@@ -1,159 +1,162 @@
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import { useState } from "react";
+import { ColDef } from "ag-grid-community";
 import { toast } from "react-toastify";
 import { Edit, Trash } from "lucide-react";
 import { Button } from "../../components/ui/button";
+import axios from "axios";
 
-// AdminPage component
-const AdminPage = () => {
-  const location = useLocation();
-  const user = location.state?.user; // Access the user data passed from UserTable
+// Define a type for the trainee user
+interface User {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    dateOfBirth?: string;
+    phoneNumber?: string;
+    password?: string;
+    address?: string;
+    qualification?: string;
+    profilePic?: string;
+    dateOfJoining?: string;
+    accountStatus: "active" | "suspended" | "inactive";
+    lastLogin?: string;
+    roleId: number; 
+  }
+  
 
-  // State for modal, editing, and new user data
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [newUser, setNewUser] = useState({
-    id: 0,
-    firstName: "",
-    lastName: "",
-    email: "",
-    dob: "",
-    phone: "",
-    qualification: "",
-    dateOfJoining: "",
-    accountStatus: "Active",
-    role: "Admin",
-    lastLogin: "",
-  });
+const AdminPage: React.FC = () => {
+  const [userData, setUserData] = useState<User[]>([]);
 
-  const [userData, setUserData] = useState([
-    {
-      id: 1,
-      firstName: "Alice",
-      lastName: "Johnson",
-      email: "alice.johnson@example.com",
-      role: "Admin",
-      accountStatus: "Active",
-      lastLogin: "2023-11-20",
-      dob: "1990-01-01",
-      phone: "1234567890",
-      qualification: "Bachelor's",
-      dateOfJoining: "2020-05-15",
-    },
-    {
-      id: 2,
-      firstName: "Bob",
-      lastName: "Smith",
-      email: "bob.smith@example.com",
-      role: "Admin",
-      accountStatus: "Inactive",
-      lastLogin: "2023-11-18",
-      dob: "1985-06-30",
-      phone: "0987654321",
-      qualification: "Master's",
-      dateOfJoining: "2018-08-20",
-    },
-  ]);
+  const getToken = () => localStorage.getItem("authToken");
+
+
+  const fetchUsers = async () => {
+    const token = getToken();
+    if (!token) {
+      toast.error("You must be logged in.");
+      return;
+    }
+  
+    try {
+
+      const response = await axios.get("/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      console.log("API Response:", response);
+  
+      if (response.data && Array.isArray(response.data.Users)) {
+        // Filter only 'trainee' role users (assume roleId for trainee is known, e.g., 3)
+        const trainees = response.data.Users.filter((user: { roleId: number; }) => user.roleId === 1);
+        setUserData(trainees); // Set only trainee data
+        console.log("Filtered trainee data:", trainees);
+      } else {
+        console.error("Unexpected data format:", response.data);
+        toast.error("Unexpected response format from the server.");
+      }
+    } catch (error: any) {
+      console.error("Error fetching users:", error);
+      if (error.response) {
+        console.error("Error Response Data:", error.response.data);
+        toast.error(error.response.data.message || "Failed to fetch users.");
+      } else {
+        toast.error("Unexpected error occurred.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+  
 
   // Column Definitions for AgGridReact
-  const colDefs = [
-    { headerName: "First Name", field: "firstName", editable: false },
-    { headerName: "Last Name", field: "lastName", editable: false },
-    { headerName: "Email", field: "email", editable: false },
-    { headerName: "Role", field: "role", editable: false },
-    { headerName: "Account Status", field: "accountStatus", editable: false },
-    { headerName: "Last Login", field: "lastLogin", editable: false },
+  const colDefs: ColDef[] = [
+      { headerName: "First Name", field: "firstName" },
+      { headerName: "Last Name", field: "lastName" },
+      { headerName: "Email", field: "email" },
+      { headerName: "Role", field: "roleId" }, 
+      { headerName: "Date of Birth", field: "dateOfBirth" },
+      { headerName: "Phone Number", field: "phoneNumber" },
+      { headerName: "Address", field: "address" },
+      { headerName: "Qualification", field: "qualification" },
+      { headerName: "Date of Joining", field: "dateOfJoining" },
+      { headerName: "Account Status", field: "accountStatus" },
+      { headerName: "Last Login", field: "lastLogin" },
+    
     {
       headerName: "Actions",
+      editable: false,
       field: "actions",
-      cellRenderer: (params: any) => (
-        <div className="flex space-x-2">
-          <Button
-            onClick={() => editUser(params)}
-            className="bg-blue-500 text-white p-2 rounded hover:hover:bg-blue-700"
-          >
-            <Edit className="h-5 w-5" />
-          </Button>
-          <Button
-            onClick={() => deleteUser(params)}
-            className="bg-red-500 text-white p-2 rounded hover:hover:bg-red-700"
-          >
-            <Trash className="h-5 w-5" />
-          </Button>
-        </div>
-      ),
+      cellRenderer: (params: { data: User }) => {
+        const { data } = params;
+        return (
+          <div className="flex space-x-2">
+            <Button
+              onClick={() => editUser(data)}
+              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
+            >
+              <Edit className="h-5 w-5" />
+            </Button>
+            <Button
+              onClick={() => deleteUser(data)}
+              className="bg-red-500 text-white p-2 rounded hover:bg-red-700"
+            >
+              <Trash className="h-5 w-5" />
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
-  // Append the user data to the dummy data if it's available
-  const rowData = user ? [...userData, user] : userData;
-
   // Edit User function
-  const editUser = (params: any) => {
-    const userToEdit = userData.find((user) => user.id === params.data.id);
-    if (userToEdit) {
-      setEditing(true);
-      setNewUser(userToEdit);
-      setIsModalOpen(true);
-    }
+  const editUser = (userToEdit: User) => {
+    const updatedUser = { ...userToEdit, firstName: "Updated Name" }; // Modify as necessary
+    axios
+      .put(`/users/${userToEdit.id}`, updatedUser)
+      .then((response) => {
+        console.log("User updated:", response.data); // Debugging: Log updated user
+        setUserData((prevData) =>
+          prevData.map((user) =>
+            user.id === userToEdit.id ? { ...user, ...updatedUser } : user
+          )
+        );
+        toast.success("User updated successfully!");
+      })
+      .catch((error) => {
+        console.error("Error updating user:", error);
+        toast.error("Failed to update user.");
+      });
   };
 
   // Delete User function
-  const deleteUser = (params: any) => {
-    setUserData((prev) => prev.filter((user) => user.id !== params.data.id));
-    toast.success("User deleted successfully!");
-  };
-
-  // Modal Close Handler
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setNewUser({
-      id: 0,
-      firstName: "",
-      lastName: "",
-      email: "",
-      dob: "",
-      phone: "",
-      qualification: "",
-      dateOfJoining: "",
-      accountStatus: "Active",
-      role: "Admin",
-      lastLogin: "",
-    });
-  };
-
-  // Form Submit Handler
-  const handleFormSubmit = () => {
-    if (editing) {
-      // Update existing user
-      setUserData((prev) =>
-        prev.map((user) => (user.id === newUser.id ? newUser : user))
-      );
-      toast.success("User updated successfully!");
-    } else {
-      // Add new user
-      setUserData((prev) => [
-        ...prev,
-        { ...newUser, id: Date.now() },
-      ]);
-      toast.success("User added successfully!");
-    }
-
-    handleModalClose();
+  const deleteUser = (userToDelete: User) => {
+    axios
+      .delete(`/users/${userToDelete.id}`)
+      .then(() => {
+        setUserData((prev) => prev.filter((user) => user.id !== userToDelete.id));
+        toast.success("User deleted successfully!");
+      })
+      .catch((error) => {
+        console.error("Error deleting user:", error);
+        toast.error("Failed to delete user.");
+      });
   };
 
   return (
     <div className="flex-1 p-4 mt-5 ml-7 w-[1200px]">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6">
         <div className="flex flex-col">
-          <h2 className="text-2xl font-bold tracking-wide">Admin Management</h2>
-          <p className="text-sm font-light">Easily manage admin users. Add, update, or delete admin records with ease.</p>
+          <h2 className="text-2xl font-bold tracking-wide">Trainee Management</h2>
+          <p className="text-sm font-light">
+            Easily manage your trainees. Edit, or delete trainee records with ease.
+          </p>
         </div>
       </div>
-
 
       <div
         className="ag-theme-quartz text-left"
@@ -163,137 +166,22 @@ const AdminPage = () => {
           rowSelection="multiple"
           suppressRowClickSelection
           suppressMovableColumns
-          loading={false}
+          loading={userData.length === 0}
           columnDefs={colDefs}
-          rowData={rowData}
-          defaultColDef={{ editable: true, sortable: true, filter: true, resizable: true }}
+          rowData={userData}
+          defaultColDef={{
+            editable: false,
+            sortable: true,
+            filter: true,
+            resizable: true,
+          }}
           animateRows
         />
       </div>
-
-      {/* Modal for Editing or Adding User */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
-            <h2 className="text-xl font-bold mb-4">
-              {editing ? "Edit User" : "Add New User"}
-            </h2>
-            <form>
-              <div className="grid grid-cols-2 gap-4">
-                {/* Form Fields */}
-                <div>
-                  <label className="block font-medium">First Name</label>
-                  <input
-                    type="text"
-                    className="w-full border rounded p-2"
-                    value={newUser.firstName}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, firstName: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Last Name</label>
-                  <input
-                    type="text"
-                    className="w-full border rounded p-2"
-                    value={newUser.lastName}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, lastName: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Email</label>
-                  <input
-                    type="email"
-                    className="w-full border rounded p-2"
-                    value={newUser.email}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, email: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">DOB</label>
-                  <input
-                    type="date"
-                    className="w-full border rounded p-2"
-                    value={newUser.dob}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, dob: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Phone</label>
-                  <input
-                    type="tel"
-                    className="w-full border rounded p-2"
-                    value={newUser.phone}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, phone: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Qualification</label>
-                  <input
-                    type="text"
-                    className="w-full border rounded p-2"
-                    value={newUser.qualification}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, qualification: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Date of Joining</label>
-                  <input
-                    type="date"
-                    className="w-full border rounded p-2"
-                    value={newUser.dateOfJoining}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, dateOfJoining: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block font-medium">Account Status</label>
-                  <select
-                    className="w-full border rounded p-2"
-                    value={newUser.accountStatus}
-                    onChange={(e) =>
-                      setNewUser({ ...newUser, accountStatus: e.target.value })
-                    }
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-                <div className="col-span-2 text-center mt-4">
-                  <button
-                    type="button"
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    onClick={handleFormSubmit}
-                  >
-                    {editing ? "Update User" : "Add User"}
-                  </button>
-                  <button
-                    type="button"
-                    className="ml-2 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
-                    onClick={handleModalClose}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 export default AdminPage;
+
+

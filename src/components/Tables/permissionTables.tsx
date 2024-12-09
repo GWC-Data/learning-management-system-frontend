@@ -48,7 +48,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
     }
 
     try {
-      const response = await axios.get(`/auth/permissions`, {
+      const response = await axios.get(`/permissions`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -85,14 +85,14 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
       return;
     }
 
-    const permissionId = data.data.id;
+    const permissionaction = data.data.action;
     try {
-      await axios.delete(`/auth/permissions/${permissionId}`, {
+      await axios.delete(`/permissions/${permissionaction}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setPermissions((prev) => prev.filter((permission) => permission.id !== permissionId));
+      setPermissions((prev) => prev.filter((permission) => permission.action !== permissionaction));
       toast.success("Permission deleted successfully!");
     } catch (error) {
       console.error("Failed to delete permission", error);
@@ -101,7 +101,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
   };
 
   const editPermission = (data: any) => {
-    const permissionToEdit = permissions.find((permission) => permission.id === data.data.id);
+    const permissionToEdit = permissions.find((permission) => permission.action === data.data.action);
     console.log("Permission to edit:", permissionToEdit);
     if (permissionToEdit) {
       setEditing(true);
@@ -129,23 +129,24 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
     }
 
     if (editing) {
-      if (!newPermission.id) {
+      if (!newPermission.action) {
         console.error("Permission ID is missing for update.");
         toast.error("Permission ID is missing.");
         return;
       }
 
       try {
-        const response = await axios.put(`/auth/permissions/${newPermission.id}`, newPermission, {
+        const response = await axios.put(`/permissions/${newPermission.action}`, newPermission, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        const updatedPermission = response.data;
+        const updatedPermission = response.data
+        console.log("updatePermission:", updatedPermission)
         setPermissions((prev) =>
           prev.map((permission) =>
-            permission.id === newPermission.id ? updatedPermission : permission
+            permission.action === newPermission.action ? updatedPermission : permission
           )
         );
 
@@ -156,7 +157,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
       }
     } else {
       try {
-        const response = await axios.post(`/auth/permissions`, newPermission, {
+        const response = await axios.post(`/permissions`, newPermission, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -206,8 +207,8 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
   }, [permissions]);
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-10">
-      <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[850px]">
+    <div className="flex-1 p-4 mt-10 ml-32">
+      <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[952px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-bold tracking-wide">Permissions</h2>
           <p className="text-sm font-light">Manage permissions easily.</p>

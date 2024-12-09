@@ -63,10 +63,10 @@ const AllUsers: React.FC = () => {
         />
         <SidebarButton
           icon={<DollarSign />}
-          label="Finance"
-          to="/allUsers/finance"
+          label="Sales"
+          to="/allUsers/Sales"
           gradient="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"
-          onClick={() => handleButtonClick("/allUsers/finance")}
+          onClick={() => handleButtonClick("/allUsers/Sales")}
         />
         <SidebarButton
           icon={<Users />}

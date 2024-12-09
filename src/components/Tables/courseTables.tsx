@@ -51,7 +51,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     }
 
     try {
-      const response = await axios.get(`/getallcourse`);
+      const response = await axios.get(`/course`);
       console.log("Fetched courses:", response.data);
       setCourseData(response.data.course || []);
     } catch (error) {
@@ -65,7 +65,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
   // Fetch categories
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("/getcategory");
+      const response = await axios.get("/coursecategory");
       console.log('respp', response.data);
       setCategories(response.data.categories || []);
     } catch (error) {
@@ -100,7 +100,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
 
     const courseId = data.data.id;
     try {
-      await axios.delete(`/deletecourse/${courseId}`, {
+      await axios.delete(`/course/${courseId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -151,7 +151,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
       }
 
       try {
-        const response = await axios.put(`/updatecourse/${newCourse.id}`, newCourse, {
+        const response = await axios.put(`/course/${newCourse.id}`, newCourse, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -170,14 +170,20 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         toast.error("Failed to update the course. Please try again later.");
       }
     } else {
+
+      if (!newCourse.courseName || !newCourse.courseDesc || newCourse.courseCategoryId === 0 || newCourse.courseInstructorId === 0) {
+        toast.error("Please fill in all the required fields.");
+        return;
+      }
+      
       try {
-        const response = await axios.post(`/createcourse`, newCourse, {
+        const response = await axios.post(`/course`, newCourse, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        console.log('response', response);
+        console.log('response', response.data);
         const newCourseData = response.data;
         setCourseData((prev) => [...prev, newCourseData]);
         toast.success("Course added successfully!");

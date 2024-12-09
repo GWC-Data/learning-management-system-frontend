@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Edit, Trash } from "lucide-react";
 import axios from "axios";
+import { ColDef } from "ag-grid-community";
 
 
 // TypeScript types for the component props
@@ -21,12 +22,8 @@ interface CourseCategoryData {
   courseCategoryImg: string;
 }
 
-// Column definitions type from AG-Grid
-import { ColDef } from "ag-grid-community";
-
 // Helper to get token
 const getToken = () => localStorage.getItem("authToken");
-
 
 
 const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
@@ -51,9 +48,9 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     }
 
     try {
-      const response = await axios.get(`/getcategory`);
+      const response = await axios.get(`/coursecategory`);
       console.log("Get course Categories", response.data);
-      setCategoryData(response.data.categories || []);
+      setCategoryData(response.data.category || []);
     } catch (error) {
       console.error("Failed to fetch course categories", error);
       toast.error("Failed to fetch course categories. Please try again later.");
@@ -86,7 +83,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
 
     const categoryId = data.data.id;
     try {
-      await axios.delete(`/deletecategory/${categoryId}`, {
+      await axios.delete(`/coursecategory/${categoryId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -130,6 +127,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   
     // Logging the current state of newCategory before the request
     console.log("Submitting Category: ", newCategory);
+
   
     if (editing) {
       // Check if the newCategory.id is correctly set
@@ -140,14 +138,13 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
       }
   
       try {
-        const response = await axios.put(`/updatecategory/${newCategory.id}`, newCategory, {
+        const response = await axios.put(`/coursecategory/${newCategory.id}`, newCategory, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-         // Assuming the backend returns the updated category data
-        const updatedCategory = response.data; // assuming the response contains the updated category
+        const updatedCategory = response.data; 
         console.log('updatedCategory',updatedCategory);
   
         // Assuming the backend returns the updated category data
@@ -164,7 +161,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
       }
     } else {
       try {
-        const response = await axios.post(`/createcourse-category`, newCategory, {
+        const response = await axios.post(`/coursecategory`, newCategory, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

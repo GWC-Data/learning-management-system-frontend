@@ -11,18 +11,18 @@ interface NavProps {
 }
 
 const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated, userName }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  // const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
+  // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSearchQuery(e.target.value);
+  // };
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Search for: ${searchQuery}`);
-  };
+  // const handleSearchSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   alert(`Search for: ${searchQuery}`);
+  // };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -46,24 +46,6 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated, userName
           {/* <span className="text-yellow-400">✮✮</span> LMS Admin <span className="text-yellow-400">✮✮</span> */}
         </Link>
 
-        {/* Centered Search Bar */}
-        <div className="hidden md:flex items-center">
-          <form onSubmit={handleSearchSubmit} className="relative w-[450px]">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              placeholder="Search..."
-              className="w-full px-4 py-2 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-yellow-400 hover:text-yellow-600"
-            >
-              <FaSearch />
-            </button>
-          </form>
-        </div>
 
         {/* Desktop Navigation Buttons */}
         <div className="hidden md:flex items-center space-x-6">
@@ -123,3 +105,28 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated, userName
 };
 
 export default Nav;
+
+
+
+
+
+
+
+        // {/* Centered Search Bar */}
+        // <div className="hidden md:flex items-center">
+        //   <form onSubmit={handleSearchSubmit} className="relative w-[450px]">
+        //     <input
+        //       type="text"
+        //       value={searchQuery}
+        //       onChange={handleSearchChange}
+        //       placeholder="Search..."
+        //       className="w-full px-4 py-2 rounded-full text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        //     />
+        //     <button
+        //       type="submit"
+        //       className="absolute right-2 top-1/2 transform -translate-y-1/2 text-yellow-400 hover:text-yellow-600"
+        //     >
+        //       <FaSearch />
+        //     </button>
+        //   </form>
+        // </div>

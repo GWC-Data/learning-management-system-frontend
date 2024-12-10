@@ -228,7 +228,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
   }, [courseData]);
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-10">
+    <div className="flex-1 p-4 mt-10 ml-24">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1115px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-bold tracking-wide">Courses</h2>
@@ -242,7 +242,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         </Button>
       </div>
 
-      <div className="ag-theme-quartz text-left" style={{ height: "calc(100vh - 180px)", width: "89%" }}>
+      <div className="ag-theme-quartz text-left" style={{ height: "calc(100vh - 180px)", width: "86%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection
@@ -273,7 +273,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                 <label className="block font-medium">Description</label>
                 <input
                   type="text"
-                  className="w-full border rounded p-2"
+                  className="w-72 border rounded p-2"
                   value={newCourse.courseDesc}
                   onChange={(e) => setNewCourse({ ...newCourse, courseDesc: e.target.value })}
                 />

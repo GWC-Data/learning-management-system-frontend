@@ -45,9 +45,6 @@ const App: React.FC = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
 
-          // Check the full structure of the response
-          console.log('API Response:', response);
-
           // Check if the response contains the user data
           if (response.data && response.data.user) {
             const user = response.data.user;
@@ -55,9 +52,6 @@ const App: React.FC = () => {
 
             setIsAuthenticated(true);
             setUserName(fullName);
-
-            // localStorage.setItem('isAuthenticated', 'true');
-            // localStorage.setItem('userName', fullName);
           }
           
         } catch (error) {
@@ -105,10 +99,10 @@ const App: React.FC = () => {
             <Route path="manage-permissions" element={<PermissionRoles/>}/>
             <Route path="manage-role-permission" element={<RolePermission/>}/>
             <Route path="allUsers/" element={<AllUsers />}>
-              <Route path="trainees" element={<UserTable />} />
+              <Route path="trainee" element={<UserTable />} />
               <Route path="admin" element={<AdminTable />} />
               <Route path="sales" element={<SalesTable />} />
-              <Route path="trainers" element={<TrainerTable />} />
+              <Route path="trainer" element={<TrainerTable />} />
               <Route path="add-user" element={<AddUser />} />
             </Route>
           </Route>

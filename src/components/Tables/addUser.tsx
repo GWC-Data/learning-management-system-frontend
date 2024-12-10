@@ -20,6 +20,7 @@ const AddUser = () => {
     roleId: "", 
   });
   const [roles, setRoles] = useState<Role[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   // Get auth token from localStorage
@@ -47,10 +48,32 @@ const AddUser = () => {
     fetchRoles();
   }, []);
 
+  const validateFields = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!newUser.firstName) newErrors.firstName = "First name is required.";
+    if (!newUser.lastName) newErrors.lastName = "Last name is required.";
+    if (!newUser.email) newErrors.email = "Email is required.";
+    if (!newUser.phoneNumber) newErrors.phoneNumber = "Phone number is required.";
+    if (!newUser.password) newErrors.password = "Password is required.";
+    if (!newUser.dateOfJoining) newErrors.dateOfJoining = "Date of joining is required.";
+    if (!newUser.roleId) newErrors.roleId = "Role is required.";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0; // Return true if no errors
+  };
+
   // Handle form submission
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getToken();
+    const validate = validateFields();
+
+    if (!validate) {
+      toast.error("Please fill in all required fields.");
+    }
+
     if (!token) {
       toast.error("You must be logged in to add a user.");
       return;
@@ -76,9 +99,9 @@ const AddUser = () => {
       } else if (createdUser.role && createdUser.role.name === "Sales") {
         navigate("/allUsers/sales", { state: { user: createdUser } });
       } else if (createdUser.role && createdUser.role.name === "Trainer") {
-        navigate("/allUsers/trainers", { state: { user: createdUser } });
+        navigate("/allUsers/trainer", { state: { user: createdUser } });
       } else {
-        navigate("/allUsers/trainees", { state: { user: createdUser } });
+        navigate("/allUsers/trainee", { state: { user: createdUser } });
       }
     } catch (error) {
       console.error("Error creating user:", error);

@@ -180,7 +180,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
     setColDefs([
       { headerName: "Action", field: "action", editable: false, width: 150 },
       { headerName: "Description", field: "description", editable: false, width: 500 },
-      { headerName: "Group Name", field: "groupName", editable: false, width: 200 },
+      { headerName: "Group Name", field: "groupName", editable: false, width: 150 },
       {
         headerName: "Actions",
         field: "actions",
@@ -207,7 +207,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
   }, [permissions]);
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-32">
+    <div className="flex-1 p-4 mt-10 ml-24">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[952px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-bold tracking-wide">Permissions</h2>
@@ -221,7 +221,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
         </Button>
       </div>
 
-      <div className="ag-theme-quartz text-left" style={{ height: "calc(100vh - 180px)", width: "68%" }}>
+      <div className="ag-theme-quartz text-left" style={{ height: "calc(100vh - 180px)", width: "73%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection

@@ -50,7 +50,11 @@ const TraineePage: React.FC = () => {
       });
   
       if (response.data && Array.isArray(response.data.Users)) {
-        const trainees = response.data.Users.filter((user: { roleId: number; }) => user.roleId === 5);
+        const trainees = response.data.Users.filter(
+          (user: {
+            role: any; roleName: string 
+}) => user.role.name.toLowerCase() === "trainee"
+        );
         setUserData(trainees); // Set only trainee data
         console.log("Filtered trainee data:", trainees);
       } else {

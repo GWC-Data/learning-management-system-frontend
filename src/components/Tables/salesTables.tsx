@@ -8,7 +8,7 @@ import { Edit, Trash } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { format } from "date-fns";
 import axios from "axios";
-
+ 
 // Define a type for the trainee user
 interface User {
     id: number;
@@ -24,36 +24,36 @@ interface User {
     dateOfJoining?: string;
     accountStatus: "active" | "suspended" | "inactive";
     lastLogin?: string;
-    roleId: number; 
+    roleId: number;
     roleName: string;
   }
-  
-
-const TrainerPage: React.FC = () => {
+ 
+ 
+const SalesPage: React.FC = () => {
   const [userData, setUserData] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null); // State to hold the selected user for editing
   const [formData, setFormData] = useState<User | null>(null); // State to hold form data
-
+ 
   const getToken = () => localStorage.getItem("authToken");
-
-
+ 
+ 
   const fetchUsers = async () => {
     const token = getToken();
     if (!token) {
       toast.error("You must be logged in.");
       return;
     }
-  
+ 
     try {
       const response = await axios.get("/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
-  
+ 
       if (response.data && Array.isArray(response.data.Users)) {
         const trainees = response.data.Users.filter(
           (user: {
-            role: any; roleName: string 
-}) => user.role.name.toLowerCase() === "trainer"
+            role: any; roleName: string
+}) => user.role.name.toLowerCase() === "sales"
         );
         setUserData(trainees); // Set only trainee data
         console.log("Filtered trainee data:", trainees);
@@ -70,18 +70,18 @@ const TrainerPage: React.FC = () => {
       }
     }
   };
-
+ 
   useEffect(() => {
     fetchUsers();
   }, []);
-  
-
+ 
+ 
   // Column Definitions for AgGridReact
   const colDefs: ColDef[] = [
       { headerName: "First Name", field: "firstName" },
       { headerName: "Last Name", field: "lastName" },
       { headerName: "Email", field: "email" },
-      { headerName: "Role", field: "role.name" }, 
+      { headerName: "Role", field: "role.name" },
       {
         headerName: "Date of Birth",
         field: "dateOfBirth",
@@ -99,7 +99,7 @@ const TrainerPage: React.FC = () => {
       },
       { headerName: "Account Status", field: "accountStatus" },
       { headerName: "Last Login", field: "lastLogin" },
-    
+   
     {
       headerName: "Actions",
       editable: false,
@@ -125,29 +125,29 @@ const TrainerPage: React.FC = () => {
       },
     },
   ];
-
+ 
     const handleEditClick = (user: User) => {
       setSelectedUser(user);
-      setFormData(user); 
+      setFormData(user);
     };
     // Handle form field changes
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData((prev) => prev ? { ...prev, [name]: value } : null);
     };
-
+ 
   //edit user
   const editUser = (userToEdit: User) => {
     if (!formData) {
       toast.error("Form data is missing!");
       return;
     }
-  
+ 
     // Prepare updated user data with the formData
     const updatedUser = {
       ...userToEdit,
-      lastName: formData?.lastName || userToEdit.lastName, 
-      firstName: formData?.firstName || userToEdit.firstName, 
+      lastName: formData?.lastName || userToEdit.lastName,
+      firstName: formData?.firstName || userToEdit.firstName,
       email: formData?.email || userToEdit.email,
       dateOfBirth: formData?.dateOfBirth,
       phoneNumber: formData?.phoneNumber,
@@ -158,16 +158,16 @@ const TrainerPage: React.FC = () => {
         ? format(new Date(formData.dateOfJoining), "yyyy-MM-dd")
         : userToEdit.dateOfJoining,
     };
-
-  
+ 
+ 
     const token = getToken();
     if (!token) {
       toast.error("Authorization token not found!");
       return;
     }
-  
+ 
     console.log("Updating user with data:", updatedUser);
-  
+ 
     axios
       .put(`/users/${userToEdit.id}`, updatedUser, {
         headers: {
@@ -175,7 +175,7 @@ const TrainerPage: React.FC = () => {
         },
       })
       .then((response) => {
-        console.log("User updated:", response.data); 
+        console.log("User updated:", response.data);
         setUserData((prevData) =>
           prevData.map((user) =>
             user.id === userToEdit.id ? { ...user, ...updatedUser } : user
@@ -189,17 +189,17 @@ const TrainerPage: React.FC = () => {
         toast.error(error.response?.data?.message || "Failed to update user.");
       });
   };
-
-  
+ 
+ 
   // Delete User function with Authorization
   const deleteUser = (userToDelete: User) => {
     const token = localStorage.getItem("authToken");
-  
+ 
     if (!token) {
       toast.error("Authorization token not found!");
       return;
     }
-  
+ 
     axios
       .delete(`/users/${userToDelete.id}`, {
         headers: {
@@ -215,18 +215,18 @@ const TrainerPage: React.FC = () => {
         toast.error("Failed to delete user.");
       });
   };
-  
+ 
   return (
     <div className="flex-1 p-4 mt-5 ml-20 w-[1200px]">
       <div className="flex items-center justify-between bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg mb-6">
         <div className="flex flex-col">
-          <h2 className="text-2xl font-bold tracking-wide">Trainer Management</h2>
+          <h2 className="text-2xl font-bold tracking-wide">Sales Management</h2>
           <p className="text-sm font-light">
-            Easily manage your trainers. Edit, or delete trainers records with ease.
+            Easily manage your Sales Users. Edit, or delete Sales Users records with ease.
           </p>
         </div>
       </div>
-
+ 
        {/* Edit Form - Conditional Rendering */}
        {selectedUser && (
         <div className="bg-white p-4 rounded shadow-md mb-6">
@@ -335,7 +335,7 @@ const TrainerPage: React.FC = () => {
           </form>
         </div>
       )}
-
+ 
       <div
         className="ag-theme-quartz text-left"
         style={{ height: "calc(100vh - 180px)", width: "100%" }}
@@ -359,5 +359,5 @@ const TrainerPage: React.FC = () => {
     </div>
   );
 };
-
-export default TrainerPage;
+ 
+export default SalesPage;

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaBars, FaSearch } from "react-icons/fa";
-import Cookies from "js-cookie"; // Import js-cookie
+import GWClogoLight from '../../images/gwc_light.svg'
 
 interface NavProps {
   isAuthenticated: boolean;
@@ -28,19 +28,21 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated, userName
   };
 
   const handleLogout = () => {
-    Cookies.remove('authToken'); // Clear the authentication token
-    Cookies.remove('userId'); // Clear the user ID
+    // Clear the authentication data from localStorage
+    // localStorage.removeItem('authToken');
+    localStorage.clear()
+    // localStorage.removeItem('userId');
     setIsAuthenticated(false); // Update authentication state
     navigate('/login'); // Redirect to login
   };
-  
-
+  // bg-gradient-to-r from-green-600 to-blue-600
   return (
-    <div className="bg-gray-900 p-4 shadow-lg">
+    <div className="bg-purple-900 p-4 shadow-lg">
       <div className="flex justify-between items-center max-w-screen-xxl">
         {/* Logo and Branding */}
         <Link to="/" className="text-white text-2xl font-bold">
-          <span className="text-yellow-400">✮✮</span> LMS Admin <span className="text-yellow-400">✮✮</span>
+          <img src={GWClogoLight} alt="GWC Logo" className="w-[190px] " />
+          {/* <span className="text-yellow-400">✮✮</span> LMS Admin <span className="text-yellow-400">✮✮</span> */}
         </Link>
 
         {/* Centered Search Bar */}
@@ -67,10 +69,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated, userName
           {!isAuthenticated ? (
             <Link
               to="/login"
-              className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-md hover:bg-blue-700 transition duration-300"
-            >
-              Login
-            </Link>
+            />
           ) : (
             <>
               <span className="text-white font-medium">{`Welcome, ${userName}`}</span>

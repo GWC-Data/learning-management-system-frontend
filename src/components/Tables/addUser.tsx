@@ -1,57 +1,150 @@
 import { Button } from "../../components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
+
+interface Role {
+  id: number;
+  name: string;
+}
 
 const AddUser = () => {
   const [newUser, setNewUser] = useState({
-    id: Date.now(),
     firstName: "",
     lastName: "",
     email: "",
-    dob: "",
-    phone: "",
+    phoneNumber: "",
     password: "",
-    address: "",
-    qualification: "",
     dateOfJoining: "",
-    skills: "",
-    enrolledCourses: "",
-    role: "Trainee", // default role
-    accountStatus: "Active", // default status
-    lastLogin: "",
+    roleId: "",
   });
-
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleFormSubmit = () => {
-    // Handle user addition
-    const userData = { ...newUser, id: Date.now() }; // Create a new user with unique ID
+  // Get auth token from localStorage
+  const getToken = () => localStorage.getItem("authToken");
 
-    toast.success("User added successfully!");
+  // Fetch roles on component mount
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const token = getToken();
+      if (!token) {
+        toast.error("You must be logged in to add a user.");
+        return;
+      }
+      try {
+        const response = await axios.get("/roles", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }); // Endpoint to fetch roles
+        setRoles(response.data); // Store the roles
+      } catch (error) {
+        toast.error("Failed to load roles.");
+      }
+    };
+    fetchRoles();
+  }, []);
 
-    if (newUser.role === "Admin") {
-      navigate("/allUsers/admin", { state: { user: userData } });
-    } else if (newUser.role === "Finance") {
-      navigate("/allUsers//finance", { state: { user: userData } });
-    } else if (newUser.role === "Trainer") {
-      navigate("/allUsers/trainers", { state: { user: userData } });
+  const validateFields = () => {
+    const newErrors: Record<string, string> = {};
+    // Basic field validations
+    if (!newUser.firstName) newErrors.firstName = "First name is required.";
+    if (!newUser.lastName) newErrors.lastName = "Last name is required.";
+    if (!newUser.email) newErrors.email = "Email is required.";
+    if (!newUser.phoneNumber)
+      newErrors.phoneNumber = "Phone number is required.";
+    if (!newUser.dateOfJoining)
+      newErrors.dateOfJoining = "Date of joining is required.";
+    if (!newUser.roleId) newErrors.roleId = "Role is required.";
+    // Password validation
+    if (!newUser.password) {
+      newErrors.password = "Password is required.";
     } else {
-      // Handle role-based navigation here, or just close the modal
-      navigate("/allUsers/trainees", { state: { user: userData } });
+      const password = newUser.password;
+      const hasMinLength = password.length >= 8;
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumber = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      if (!hasMinLength) {
+        newErrors.password = "Password must be at least 8 characters long.";
+      } else if (!hasUpperCase) {
+        newErrors.password =
+          "Password must contain at least one uppercase letter.";
+      } else if (!hasLowerCase) {
+        newErrors.password =
+          "Password must contain at least one lowercase letter.";
+      } else if (!hasNumber) {
+        newErrors.password = "Password must contain at least one number.";
+      } else if (!hasSpecialChar) {
+        newErrors.password =
+          "Password must contain at least one special character.";
+      }
+    }
+
+    setErrors(newErrors);
+    // Show errors in toast notifications
+    Object.entries(newErrors).forEach(([field, message]) => {
+      toast.error(`${field}: ${message}`);
+    });
+    return newErrors;
+  };
+
+  // Handle form submission
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = getToken();
+    if (!token) {
+      toast.error("You must be logged in to add a user.");
+      return;
+    }
+    const validationErrors = validateFields();
+    // Check if there are any validation errors
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error("Please resolve all validation errors before submitting.");
+      return; // Stop further execution if errors exist
+    }
+    const userData = { ...newUser };
+    try {
+      const response = await axios.post("/users", userData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const createdUser = response.data.newUser;
+      toast.success("User added successfully!");
+      console.log(createdUser);
+      // Redirect based on the user's role
+      if (createdUser.role && createdUser.role.name === "Admin") {
+        navigate("/admin/allUsers/admin", { state: { user: createdUser } });
+      } else if (createdUser.role && createdUser.role.name === "Sales") {
+        navigate("/admin/allUsers/sales", { state: { user: createdUser } });
+      } else if (createdUser.role && createdUser.role.name === "Trainer") {
+        navigate("/admin/allUsers/trainer", { state: { user: createdUser } });
+      } else {
+        navigate("/admin/allUsers/trainee", { state: { user: createdUser } });
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+      toast.error("Failed to create user. Please try again later.");
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  // Handle input changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setNewUser(prevState => ({
+    setNewUser((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
-
-  const roleOptions = ["Trainee", "Trainer", "Admin", "Finance"];
-  const accountStatusOptions = ["Active", "Inactive", "Suspended"];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -90,34 +183,35 @@ const AddUser = () => {
               />
             </div>
             <div>
-              <label className="block font-medium">DOB</label>
-              <input
-                type="date"
-                name="dob"
-                className="w-full border rounded p-2"
-                value={newUser.dob}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <label className="block font-medium">Phone</label>
+              <label className="block font-medium">Phone Number</label>
               <input
                 type="tel"
-                name="phone"
+                name="phoneNumber"
                 className="w-full border rounded p-2"
-                value={newUser.phone}
+                value={newUser.phoneNumber}
                 onChange={handleInputChange}
               />
             </div>
-            <div>
-              <label className="block font-medium">Qualification</label>
+            <div className="relative">
+              <label className="block font-medium">Password</label>
               <input
-                type="text"
-                name="qualification"
+                type={showPassword ? "text" : "password"}
+                name="password"
                 className="w-full border rounded p-2"
-                value={newUser.qualification}
+                value={newUser.password}
                 onChange={handleInputChange}
               />
+              <button
+                type="button"
+                className="absolute right-2 top-9"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <IoMdEye className="h-5 w-5 text-gray-600" />
+                ) : (
+                  <IoMdEyeOff className="h-5 w-5 text-gray-600" />
+                )}
+              </button>
             </div>
             <div>
               <label className="block font-medium">Date of Joining</label>
@@ -130,61 +224,34 @@ const AddUser = () => {
               />
             </div>
             <div>
-              <label className="block font-medium">Skills</label>
-              <input
-                type="text"
-                name="skills"
-                className="w-full border rounded p-2"
-                value={newUser.skills}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
-              <label className="block font-medium">Enrolled Courses</label>
-              <input
-                type="text"
-                name="enrolledCourses"
-                className="w-full border rounded p-2"
-                value={newUser.enrolledCourses}
-                onChange={handleInputChange}
-              />
-            </div>
-            <div>
               <label className="block font-medium">Role</label>
               <select
-                name="role"
+                name="roleId"
                 className="w-full border rounded p-2"
-                value={newUser.role}
+                value={newUser.roleId}
                 onChange={handleInputChange}
               >
-                {roleOptions.map(option => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block font-medium">Account Status</label>
-              <select
-                name="accountStatus"
-                className="w-full border rounded p-2"
-                value={newUser.accountStatus}
-                onChange={handleInputChange}
-              >
-                {accountStatusOptions.map(option => (
-                  <option key={option} value={option}>
-                    {option}
+                <option>Select Role</option>
+                {roles.map((role) => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
                   </option>
                 ))}
               </select>
             </div>
           </div>
           <div className="flex justify-end space-x-2 mt-4">
-            <Button onClick={() => navigate("/allUsers")} className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <Button
+              onClick={() => navigate("/admin/allUsers")}
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-700"
+            >
               Cancel
             </Button>
-            <Button onClick={handleFormSubmit} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <Button
+              type="button"
+              onClick={handleFormSubmit}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
               Submit
             </Button>
           </div>

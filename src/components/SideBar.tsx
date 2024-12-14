@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Grid, Shield, ChevronDown, ChevronUp, Layers } from "lucide-react";
+import { Users, Grid, Shield, ChevronDown, ChevronUp, Layers, Key, MountainSnow } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Sidebar: React.FC = () => {
@@ -7,8 +7,8 @@ const Sidebar: React.FC = () => {
   const location = useLocation(); // To determine the current active route
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-200">
-      <div className="flex flex-col w-64 bg-gray-800 shadow-lg">
+    <div className="flex h-screen text-gray-200">
+      <div className="flex flex-col w-64 bg-slate-500 shadow-lg">
         <nav className="flex-1 p-4 space-y-2">
           {/* Admin Section with collapsible menu */}
           <button
@@ -55,24 +55,45 @@ const Sidebar: React.FC = () => {
               <SidebarButton
                 icon={<Grid />}
                 label="Courses"
-                to="/courses"
-                isActive={location.pathname === "/courses"}
+                to="/admin/courses"
+                isActive={location.pathname === "/admin/courses"}
               />
 
               <SidebarButton
                 icon={<Users />}
                 label="Users"
-                to="/allUsers"
-                isActive={location.pathname === "/allUsers"}
+                to="/admin/allUsers"
+                isActive={location.pathname === "/admin/allUsers"}
               />
 
-              {/* New Sidebar Button for Course Category */}
               <SidebarButton
                 icon={<Layers />}
                 label="Course Category"
-                to="/course-category"
-                isActive={location.pathname === "/course-category"}
+                to="/admin/course-category"
+                isActive={location.pathname === "/admin/course-category"}
               />
+
+              {/* New Sidebar Button for Manage Roles */}
+              <SidebarButton
+                icon={<Key />}
+                label="Manage Roles & Permissions"
+                to="/admin/manage-roles-and-permissions"
+                isActive={location.pathname === "/admin/manage-roles-and-permissions"}
+              />
+
+              <SidebarButton
+                  icon={<MountainSnow/>}
+                  label="Manage Permissions"
+                  to="/admin/manage-permissions"
+                  isActive={location.pathname === "/admin/manage-permissions"}
+              />
+
+              {/* <SidebarButton
+                  icon={<Ribbon/>}
+                  label="Manage RolePermissions"
+                  to="/manage-role-permission"
+                  isActive={location.pathname === "/manage-role-permission"}
+              /> */}
 
             </div>
           )}

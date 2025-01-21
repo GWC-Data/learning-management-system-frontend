@@ -1,8 +1,20 @@
 import React, { useState } from "react";
 import Overview from "./overView";
 
-const Mainbar: React.FC = () => {
+// Define the type for the course prop
+interface MainbarProps {
+  course: {
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    course: string;
+  };
+}
+
+
+const Mainbar: React.FC<MainbarProps>= ({ course  }) => {
   const [activeTab, setActiveTab] = useState<string>("");
+  
   const renderContent = () => {
     switch (activeTab) {
       case "overview":

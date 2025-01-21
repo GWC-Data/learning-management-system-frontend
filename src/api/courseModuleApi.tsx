@@ -23,6 +23,17 @@ export const fetchCourseModuleApi = async () => {
   }
 };
 
+export const fetchCourseModulebyCourseIdApi = async (courseId: number) => {
+  try {
+    const response = await apiClient.get(`/coursemodule/${courseId}`);
+    console.log('response', response.data.modules);
+    return response.data.modules || [];
+  } catch (error) {
+    console.error('Failed to fetch course module', error);
+    throw error;
+  }
+};
+
 // Update an existing course category
 export const updateCourseModuleApi = async (id: number, updatedCourseModule: any) => {
   try {

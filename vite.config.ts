@@ -26,6 +26,10 @@ export default defineConfig({
 
       "/users": "http://localhost:5050",
 
+      "/batchTrainee": "http://localhost:5050",
+
+      "/coursemodule": "http://localhost:5050",
+
       "/submissions": "https://api.judge0.com"
       
     },

@@ -29,9 +29,12 @@ import TraineeHome from "./components/Trainee/traineeHome";
 import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
 import CoursePage from "./components/Trainee/ProfilePage/EnrolledCourses/CoursePage/coursePage";
 import TraineeDashboard from "./components/Trainee/ProfilePage/Dashboard/DashboardPage/dashboardPage";
+import CodeExecutor from "./components/Trainee/ProfilePage/CodeChallenges/codeExecutor";
+import CalendarManagement from "./components/Trainee/ProfilePage/CalenderManagement/calenderManagement";
+import EnrolledCourses from "./components/Trainee/ProfilePage/EnrolledCourses/enrolledCourses";
+import CourseAssignments from "./components/Trainee/ProfilePage/CourseAssignments/courseAssignments";
 
 import TrainerHelloWorld from "./components/Trainer/TrainerHelloWorld";
-import CodeExecutor from "./components/Trainee/ProfilePage/CodeChallenges/codeExecutor";
 
 interface AppRouterProps {
   isAuthenticated: boolean;
@@ -82,18 +85,23 @@ const AppRouter: React.FC<AppRouterProps> = ({
           </Route>
         </Route>
 
-        {/* Trainee Protected Routes */}
-        <Route
-          path="/trainee/*"
-          element={
-            <ProtectedRoute allowedRoles={["trainee"]}>
-              <TraineeHome isAuthenticated={isAuthenticated} />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="courses" element={<CoursePage />} />
+          {/* Trainee Protected Routes */}
+          <Route
+            path="/trainee/*"
+            element={
+              <ProtectedRoute allowedRoles={["trainee"]}>
+                <TraineeHome isAuthenticated={isAuthenticated} />
+              </ProtectedRoute>
+            }
+          >
+          <Route path="enrolledCourses" element={<EnrolledCourses />}>
+            <Route path=":courseDetails" element={<CoursePage />} />
+          </Route>
+          {/* <Route path="courses" element={<CoursePage />} /> */}
           <Route path="dashboard" element={<TraineeDashboard />} />
-          <Route path="code-challenges" element={<CodeExecutor/>}/>
+          <Route path="code-challenges" element={<CodeExecutor />} />
+          <Route path="calendar-management" element={<CalendarManagement />} />
+          <Route path="course-assignments" element={<CourseAssignments/>}/>
           <Route path="settings" element={<UserSettings />} />
         </Route>
 

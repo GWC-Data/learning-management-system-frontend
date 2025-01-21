@@ -124,12 +124,12 @@ const Sidebar: React.FC = () => {
                 isActive={location.pathname === "/admin/manage-batch-schedules"}
               />
 
-              <SidebarButton
+              {/* <SidebarButton
                 icon={<GraduationCap />} // You can replace this with a different icon
                 label="Enrolled Courses"
                 to="/admin/enrolled-courses"
                 isActive={location.pathname === "/admin/enrolled-courses"}
-                />
+                /> */}
 
             </div>
           )}

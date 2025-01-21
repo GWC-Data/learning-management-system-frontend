@@ -1,13 +1,25 @@
 import React, { useState } from "react";
 
-const CourseHeader: React.FC = () => {
+// Define the type for the course prop
+interface CourseHeaderProps {
+  course: {
+    name: string;
+    startDate: Date;
+    endDate: Date;
+    course: string;
+    courseId: number;
+  };
+}
+
+
+const CourseHeader: React.FC<CourseHeaderProps> = ({ course }) => {
   return (
     <>
       <div className="w-full bg-white p-4 h-40 mb-[20px] rounded-lg">
         <div className="flex flex-row">
-          <h1 className="text-2xl font-semibold">Figma from A-Z</h1>
+          <h1 className="text-2xl font-semibold">{course.name}</h1>
           <div className="ml-5 border border-stone-300 rounded-2xl p-2">
-            <p>UI/UX Design</p>
+            <p>{course.course}</p>
           </div>
         </div>
         <div className="ml-8 flex flex-row gap-2 mt-3">

@@ -15,8 +15,8 @@ export const createBatchApi = async (newBatch: any) => {
 export const fetchBatchApi = async () => {
   try {
     const response = await apiClient.get('/batch');
-    console.log("read all batches", response.data.Batches);
-    return response.data.Batches;
+    console.log("read all batches", response.data);
+    return response.data;
   } catch (error) {
     console.error('Failed to fetch Batches', error);
     throw error;
@@ -26,7 +26,7 @@ export const fetchBatchApi = async () => {
 export const fetchBatchByIdApi = async (batchId: number) => {
   try {
     const response = await apiClient.get(`/batch/${batchId}`);
-    return response.data.Batches || [];
+    return response.data.batch || [];
   } catch (error) {
     console.error('Failed to fetch batch by id', error);
     throw error;

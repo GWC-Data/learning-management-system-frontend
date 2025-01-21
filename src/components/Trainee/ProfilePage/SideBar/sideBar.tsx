@@ -5,9 +5,15 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
 
   // Check if the current path matches the route
-  const isActiveCourses = location.pathname === "/trainee/courses";
+  const isActiveCourses = location.pathname === "/trainee/enrolledCourses";
   const isActiveDashboard = location.pathname === "/trainee/dashboard";
-  const isActiveCodeChallenge = location.pathname === "/trainee/code-challenges";
+  const isActiveCodeChallenge =
+    location.pathname === "/trainee/code-challenges";
+  const isActiveCalendarManagement =
+    location.pathname === "/trainee/calendar-management";
+
+  const isActiveAssignmentManagement =
+    location.pathname === "/trainee/course-assignments"
 
   return (
     <>
@@ -17,7 +23,7 @@ const Sidebar: React.FC = () => {
             <div
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveDashboard
-                  ? "bg-[#4e6db4] text-white" 
+                  ? "bg-[#4e6db4] text-white"
                   : "bg-white hover:bg-[#4e6db497] hover:text-white text-slate-600"
               }`}
             >
@@ -34,7 +40,7 @@ const Sidebar: React.FC = () => {
             </div>
           </Link>
 
-          <Link to="/trainee/courses">
+          <Link to="/trainee/enrolledCourses">
             <div
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveCourses
@@ -56,7 +62,8 @@ const Sidebar: React.FC = () => {
           </Link>
 
           <Link to="/trainee/code-challenges">
-            <div className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
+            <div
+              className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveCodeChallenge
                   ? "bg-[#4d78b8] text-white"
                   : "bg-white hover:bg-[#7598D0] hover:text-white text-slate-600"
@@ -67,11 +74,58 @@ const Sidebar: React.FC = () => {
                 height="24px"
                 viewBox="0 -960 960 960"
                 width="24px"
-                fill={isActiveCodeChallenge? "#fff":"#B7B7B7"}
+                fill={isActiveCodeChallenge ? "#fff" : "#B7B7B7"}
               >
                 <path d="M280-120v-80h160v-124q-49-11-87.5-41.5T296-442q-75-9-125.5-65.5T120-640v-40q0-33 23.5-56.5T200-760h80v-80h400v80h80q33 0 56.5 23.5T840-680v40q0 76-50.5 132.5T664-442q-18 46-56.5 76.5T520-324v124h160v80H280Zm0-408v-152h-80v40q0 38 22 68.5t58 43.5Zm200 128q50 0 85-35t35-85v-240H360v240q0 50 35 85t85 35Zm200-128q36-13 58-43.5t22-68.5v-40h-80v152Zm-200-52Z" />
               </svg>
               <li>Code Challenges</li>
+            </div>
+          </Link>
+
+          <Link to="/trainee/calendar-management">
+            <div
+              className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
+                isActiveCalendarManagement
+                  ? "bg-[#4d78b8] text-white"
+                  : "bg-white hover:bg-[#7598D0] hover:text-white text-slate-600"
+              }`}
+            >
+            
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill={isActiveCalendarManagement ? "#fff" : "#B7B7B7"}
+                >
+                  <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z" />
+                </svg>
+                
+              <li>Calendar Management</li>
+            </div>
+          </Link>
+
+
+          <Link to="/trainee/course-assignments">
+            <div
+              className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
+                isActiveAssignmentManagement
+                  ? "bg-[#4d78b8] text-white"
+                  : "bg-white hover:bg-[#7598D0] hover:text-white text-slate-600"
+              }`}
+            >
+          
+
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  height="24px" 
+                  viewBox="0 -960 960 960" 
+                  width="24px" 
+                  fill={isActiveAssignmentManagement ? "#fff" : "#B7B7B7"}
+                  >
+                    <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h168q13-36 43.5-58t68.5-22q38 0 68.5 22t43.5 58h168q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h280v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80Zm200-190q13 0 21.5-8.5T510-820q0-13-8.5-21.5T480-850q-13 0-21.5 8.5T450-820q0 13 8.5 21.5T480-790ZM200-200v-560 560Z"/>
+                </svg>
+              <li>Course Assignments</li>
             </div>
           </Link>
         </ul>

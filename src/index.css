@@ -202,3 +202,8 @@
     /* @apply bg-yellow-50; */
   }
 }
+
+*::-webkit-scrollbar {
+  display: none
+  }
+   

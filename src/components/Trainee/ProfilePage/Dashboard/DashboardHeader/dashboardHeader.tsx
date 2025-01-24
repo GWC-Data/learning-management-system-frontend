@@ -4,8 +4,6 @@ import CompletedCourse from "@/images/online-course.png"; // Completed course im
 
 import RemainingClasses from "@/images/hourglass.png";
 import Attendance from "@/images/time-management.png";
-
-import CalenderManage from "../CalenderManage/calenderManage";
 import UpcomingEvents from "../CalenderManage/upcomingEvents";
 
 const DashboardHeader: React.FC = () => {

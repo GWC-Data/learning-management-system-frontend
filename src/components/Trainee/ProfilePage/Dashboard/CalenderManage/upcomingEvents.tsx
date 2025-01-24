@@ -2,6 +2,7 @@ import React from "react";
 import { FaLink, FaCalendarAlt, FaClock } from "react-icons/fa";
 
 const UpcomingEvents: React.FC = () => {
+
   return (
     <div className="p-6 ml-44 bg-gray-100 rounded-lg shadow-lg max-w-4xl mr-5">
       {/* Upcoming Events Section */}

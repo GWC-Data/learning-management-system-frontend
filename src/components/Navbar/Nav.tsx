@@ -195,6 +195,8 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                         <hr />
 
                         {/* Profile Settings */}
+
+                        {role !== "admin" && (
                         <Link
                           to="/trainee/settings"
                           className="text-black bg-gray-100 py-2.5 px-4 rounded-lg text-center shadow-md transition duration-300 mt-5 hover:bg-slate-200"
@@ -209,6 +211,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                             <div>Profile Settings</div>
                           </div>
                         </Link>
+                        )}
 
                         {/* Logout */}
                         <button

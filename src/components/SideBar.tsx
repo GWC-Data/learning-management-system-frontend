@@ -11,133 +11,159 @@ import {
   ClipboardList,
   BookOpen,
   Calendar,
-  GraduationCap
+  File,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const Sidebar: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
   const location = useLocation(); // To determine the current active route
+  const isActiveUsers = location.pathname.startsWith(
+    "/admin/allUsers"
+  );
 
   return (
     <div className="flex h-full min-h-0 text-gray-700">
       <div className="flex flex-col w-80 bg-green-200 shadow-lg overflow-y-auto">
         <nav className="flex-1 p-4 space-y-2">
-          {/* Admin Section with collapsible menu */}
-          <button
-            onClick={() => setIsAdminOpen(!isAdminOpen)}
-            className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 border-b-2 border-gray-200 ${
-              isAdminOpen
-                ? "bg-gray-300 text-gray-800"
-                : "bg-gray-100 text-gray-800"
-            } hover:bg-gray-100 hover:shadow-md`}
-          >
-            {/* Icon */}
-            <div
-              className={`mr-3 text-blue-500 transition-transform duration-300 ${
-                isAdminOpen ? "rotate-12 scale-110" : ""
-              }`}
+          {/* Admin Section */}
+          <div>
+            <button
+              onClick={() => setIsAdminOpen(!isAdminOpen)}
+              className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 border-b-2 border-gray-200 ${
+                isAdminOpen
+                  ? "bg-gray-300 text-gray-800"
+                  : "bg-gray-100 text-gray-800"
+              } hover:bg-gray-100 hover:shadow-md`}
             >
-              <Shield />
-            </div>
+              <div
+                className={`mr-3 text-blue-500 transition-transform duration-300 ${
+                  isAdminOpen ? "rotate-12 scale-110" : ""
+                }`}
+              >
+                <Shield />
+              </div>
+              <span className="flex-1 text-lg font-semibold">Admin</span>
+              <div
+                className={`ml-auto transform transition-transform duration-300 ${
+                  isAdminOpen ? "rotate-180 text-blue-400" : "text-gray-500"
+                }`}
+              >
+                {isAdminOpen ? <ChevronUp /> : <ChevronDown />}
+              </div>
+            </button>
 
-            {/* Label */}
-            <span className="flex-1 flex flex-col">
-              <span className="text-lg font-semibold">Admin</span>
-            </span>
+            {isAdminOpen && (
+              <div className="space-y-2 mt-2 mr-7 ml-7">
+                <SidebarButton
+                  icon={<Users />}
+                  label="Users"
+                  to="/admin/allUsers"
+                  isActive={isActiveUsers}
+                />
 
-            {/* Chevron Icon */}
-            <div
-              className={`ml-auto transform transition-transform duration-300 ${
-                isAdminOpen ? "rotate-180 text-blue-400" : "text-gray-500"
-              }`}
+
+                <SidebarButton
+                  icon={<Grid />}
+                  label="Courses"
+                  to="/admin/courses"
+                  isActive={location.pathname === "/admin/courses"}
+                />
+
+                <SidebarButton
+                  icon={<Key />}
+                  label="Manage Roles & Permissions"
+                  to="/admin/manage-roles-and-permissions"
+                  isActive={
+                    location.pathname === "/admin/manage-roles-and-permissions"
+                  }
+                />
+                <SidebarButton
+                  icon={<File />}
+                  label="Course Assignment"
+                  to="/admin/file-uploader"
+                  isActive={location.pathname === "/admin/file-uploader"}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Master Data Section */}
+          <div>
+            <button
+              onClick={() => setIsMasterDataOpen(!isMasterDataOpen)}
+              className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 border-b-2 border-gray-200 ${
+                isMasterDataOpen
+                  ? "bg-gray-300 text-gray-800"
+                  : "bg-gray-100 text-gray-800"
+              } hover:bg-gray-100 hover:shadow-md`}
             >
-              {isAdminOpen ? <ChevronUp /> : <ChevronDown />}
-            </div>
+              <div
+                className={`mr-3 text-blue-500 transition-transform duration-300 ${
+                  isMasterDataOpen ? "rotate-12 scale-110" : ""
+                }`}
+              >
+                <Layers />
+              </div>
+              <span className="flex-1 text-lg font-semibold">Master Data</span>
+              <div
+                className={`ml-auto transform transition-transform duration-300 ${
+                  isMasterDataOpen
+                    ? "rotate-180 text-blue-400"
+                    : "text-gray-500"
+                }`}
+              >
+                {isMasterDataOpen ? <ChevronUp /> : <ChevronDown />}
+              </div>
+            </button>
 
-            {/* Glow Effect (Optional Decoration) */}
-            <div
-              className={`absolute inset-0 rounded-md bg-custom-gradient opacity-0 transition-opacity duration-300 ${
-                isAdminOpen ? "opacity-20" : ""
-              }`}
-            ></div>
-          </button>
+            {isMasterDataOpen && (
+              <div className="space-y-2 mt-2 mr-7 ml-7">
+                <SidebarButton
+                  icon={<Layers />}
+                  label="Course Category"
+                  to="/admin/course-category"
+                  isActive={location.pathname === "/admin/course-category"}
+                />
 
-          {isAdminOpen && (
-            <div className="space-y-2 transition-all duration-300">
-              <SidebarButton
-                icon={<Users />}
-                label="Users"
-                to="/admin/allUsers"
-                isActive={location.pathname === "/admin/allUsers"}
-              />
+                <SidebarButton
+                  icon={<BookOpen />}
+                  label="Course Module"
+                  to="/admin/course-module"
+                  isActive={location.pathname === "/admin/course-module"}
+                />
 
-              <SidebarButton
-                icon={<Grid />}
-                label="Courses"
-                to="/admin/courses"
-                isActive={location.pathname === "/admin/courses"}
-              />
+                <SidebarButton
+                  icon={<MountainSnow />}
+                  label="Permissions"
+                  to="/admin/manage-permissions"
+                  isActive={location.pathname === "/admin/manage-permissions"}
+                />
 
-              <SidebarButton
-                icon={<Layers />}
-                label="Course Category"
-                to="/admin/course-category"
-                isActive={location.pathname === "/admin/course-category"}
-              />
+                <SidebarButton
+                  icon={<ClipboardList />}
+                  label="Batch Management"
+                  to="/admin/batch-management"
+                  isActive={location.pathname === "/admin/batch-management"}
+                />
 
-              {/* New Sidebar Button for Manage Roles */}
-              <SidebarButton
-                icon={<Key />}
-                label="Manage Roles & Permissions"
-                to="/admin/manage-roles-and-permissions"
-                isActive={
-                  location.pathname === "/admin/manage-roles-and-permissions"
-                }
-              />
-
-              <SidebarButton
-                icon={<MountainSnow />}
-                label="Manage Permissions"
-                to="/admin/manage-permissions"
-                isActive={location.pathname === "/admin/manage-permissions"}
-              />
-
-              <SidebarButton
-                icon={<ClipboardList />}
-                label="Batch Management"
-                to="/admin/batch-management"
-                isActive={location.pathname === "/admin/batch-management"}
-              />
-
-              <SidebarButton
-                icon={<BookOpen />}
-                label="Course Module"
-                to="/admin/course-module"
-                isActive={location.pathname === "/admin/course-module"}
-              />
-
-              <SidebarButton
-                icon={<Calendar />} // You can replace this with a different icon
-                label="Batch Module Schedules"
-                to="/admin/manage-batch-schedules"
-                isActive={location.pathname === "/admin/manage-batch-schedules"}
-              />
-
-              {/* <SidebarButton
-                icon={<GraduationCap />} // You can replace this with a different icon
-                label="Enrolled Courses"
-                to="/admin/enrolled-courses"
-                isActive={location.pathname === "/admin/enrolled-courses"}
-                /> */}
-
-            </div>
-          )}
+                <SidebarButton
+                  icon={<Calendar />} // You can replace this with a different icon
+                  label="Batch Module Schedules"
+                  to="/admin/manage-batch-schedules"
+                  isActive={
+                    location.pathname === "/admin/manage-batch-schedules"
+                  }
+                />
+              </div>
+            )}
+          </div>
         </nav>
       </div>
     </div>
-  )
-}
+  );
+};
 
 type SidebarButtonProps = {
   icon: React.ReactNode;

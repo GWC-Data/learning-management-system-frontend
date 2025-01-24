@@ -117,7 +117,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
           <img
             src={Lms}
             className="object-cover max-w-[500px] hidden rounded-md md:block"
-            alt="Summer beach"
+            alt="Learning Management System"
           />
         </div>
       </div>

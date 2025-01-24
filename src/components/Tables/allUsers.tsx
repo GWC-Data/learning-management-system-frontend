@@ -23,7 +23,7 @@ const SidebarButton: React.FC<SidebarButtonProps> = ({
 }) => (
   <button
     onClick={onClick}
-    className={`relative flex items-center w-[280px] h-[100px] px-4 py-2 text-white font-medium ${gradient} hover:opacity-90 rounded-lg shadow-md transition-transform duration-300 transform hover:scale-105 overflow-hidden group`}
+    className={`relative flex items-center w-[280px] h-[100px] px-4 py-2 text-slate-600 font-semibold ${gradient} hover:opacity-90 rounded-lg shadow-md transition-transform duration-300 transform hover:scale-105 overflow-hidden group`}
   >
     <div className="absolute inset-0 flex justify-center items-center">
       <div className="w-0 h-0 bg-white rounded-full opacity-20 scale-0 group-hover:scale-150 transition-transform duration-500 ease-out"></div>
@@ -69,17 +69,18 @@ const AllUsers: React.FC = () => {
 
   const generateColorGradient = (index: number) => {
     const colors = [
-      ["from-red-400", "via-red-500", "to-red-600"],
-      ["from-green-400", "via-green-500", "to-green-600"],
-      ["from-blue-400", "via-blue-500", "to-blue-600"],
-      ["from-purple-400", "via-purple-500", "to-purple-600"],
-      ["from-yellow-400", "via-yellow-500", "to-yellow-600"],
-      ["from-pink-400", "via-pink-500", "to-pink-600"],
-      ["from-indigo-400", "via-indigo-500", "to-indigo-600"],
+      ["from-teal-200", "via-teal-300", "to-teal-400"], // Soft teal
+      ["from-sky-200", "via-sky-300", "to-sky-400"], // Light blue
+      ["from-purple-200", "via-purple-300", "to-purple-400"], // Soft purple
+      ["from-amber-200", "via-amber-300", "to-amber-400"], // Light yellow-orange
+      ["from-lime-200", "via-lime-300", "to-lime-400"], // Fresh lime green
+      ["from-cyan-200", "via-cyan-300", "to-cyan-400"], // Bright cyan
+      ["from-indigo-200", "via-indigo-300", "to-indigo-400"], // Light indigo
     ];
     const colorSet = colors[index % colors.length];
     return `bg-gradient-to-r ${colorSet.join(" ")}`;
   };
+  
 
   const roleIcons: Record<string, JSX.Element> = {
     Admin: <Shield />,
@@ -93,7 +94,7 @@ const AllUsers: React.FC = () => {
       <div className="flex justify-between items-center w-full max-w-[1170px] mb-4 mt-10">
         <h1 className="text-2xl font-bold text-gray-600">User Roles</h1>
         <button
-          className="flex items-center px-4 py-2 bg-slate-500 text-white border-2 font-metropolis font-semibold bg-custom-gradient-btn hover:opacity-90 rounded-lg shadow-md transition duration-200"
+          className="flex items-center px-4 py-2 text-white border-2 font-metropolis font-semibold bg-[#4e6db4] hover:opacity-90 rounded-lg shadow-md transition duration-200"
           onClick={() => navigate("/admin/allUsers/add-user")}
         >
           <PlusCircle className="mr-2" />
@@ -101,7 +102,7 @@ const AllUsers: React.FC = () => {
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-4 font-metropolis font-semibold">
+      <div className="grid grid-cols-4 gap-4 font-metropolis font-semibold">
         {roles.map((role, index) => (
           <SidebarButton
             key={role.name}

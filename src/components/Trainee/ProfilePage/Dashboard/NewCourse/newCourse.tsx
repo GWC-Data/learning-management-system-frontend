@@ -19,6 +19,7 @@ const NewCourse: React.FC = () => {
 
     try {
       const allCourses = await fetchCourseApi();
+      console.log("allCourses", allCourses);
       setallCourses(allCourses);
       setLoading(false);
     } catch (error) {
@@ -59,6 +60,7 @@ const NewCourse: React.FC = () => {
             >
               {/* Course Details */}
               <div className="flex-grow w-20">
+                <img src={course.courseImg} alt="courseImg" className="w-8 h-8"/>
                 <h2 className="text-lg font-bold text-gray-800 mb-1">
                   {course.courseName}
                 </h2>
@@ -67,8 +69,21 @@ const NewCourse: React.FC = () => {
 
               {/* Explore Button */}
               <div>
-                <button className="bg-[#4d78b8] rounded-full p-3 shadow hover:bg-[#3b5e8f] transition-all">
-                  <img src={RightArrow} alt="Explore Icon" className="w-6 h-6" />
+                <button
+                  className="bg-[#4d78b8] rounded-full p-3 shadow hover:bg-[#3b5e8f] transition-all"
+                  onClick={() => {
+                    if (course.courseLink) {
+                      window.open(course.courseLink, "_blank"); // Open the link in a new tab
+                    } else {
+                      toast.error("Course link is not available."); // Show error if no link
+                    }
+                  }}
+                >
+                  <img
+                    src={RightArrow}
+                    alt="Explore Icon"
+                    className="w-6 h-6"
+                  />
                 </button>
               </div>
             </div>

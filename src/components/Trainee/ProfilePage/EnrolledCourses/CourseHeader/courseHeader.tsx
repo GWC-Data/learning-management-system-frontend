@@ -1,27 +1,41 @@
-import React, { useState } from "react";
+import React from "react";
 
 // Define the type for the course prop
 interface CourseHeaderProps {
   course: {
-    name: string;
+    batchName: string;
     startDate: Date;
     endDate: Date;
     course: string;
     courseId: number;
+    courseImg: string;
+    courseLink: string;
   };
 }
-
 
 const CourseHeader: React.FC<CourseHeaderProps> = ({ course }) => {
   return (
     <>
-      <div className="w-full bg-white p-4 h-40 mb-[20px] rounded-lg">
-        <div className="flex flex-row">
-          <h1 className="text-2xl font-semibold">{course.name}</h1>
-          <div className="ml-5 border border-stone-300 rounded-2xl p-2">
-            <p>{course.course}</p>
+      <div className="w-full bg-white p-4 h-40 rounded-lg">
+        <div className="flex flex-row items-center space-x-4">
+          {/* Course Image */}
+          <img
+            src={course.courseImg}
+            alt="Course Image"
+            className="w-20 h-20 rounded-lg object-cover"
+          />
+
+          {/* Batch Name */}
+          <h1 className="text-2xl font-semibold text-gray-800">
+            {course.batchName}
+          </h1>
+
+          {/* Course Info */}
+          <div className="ml-5 border border-stone-300 rounded-2xl p-2 bg-gray-50">
+            <p className="text-sm text-gray-600">{course.course}</p>
           </div>
         </div>
+
         <div className="ml-8 flex flex-row gap-2 mt-3">
           <div className="flex flex-row mr-4 gap-1">
             <svg
@@ -62,7 +76,6 @@ const CourseHeader: React.FC<CourseHeaderProps> = ({ course }) => {
             <p>4.5(126 reviews)</p>
           </div>
         </div>
-
       </div>
     </>
   );

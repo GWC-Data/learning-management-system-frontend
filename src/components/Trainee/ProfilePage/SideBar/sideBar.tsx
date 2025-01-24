@@ -5,7 +5,9 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
 
   // Check if the current path matches the route
-  const isActiveCourses = location.pathname === "/trainee/enrolledCourses";
+  const isActiveCourses = location.pathname.startsWith(
+    "/trainee/enrolledCourses"
+  );
   const isActiveDashboard = location.pathname === "/trainee/dashboard";
   const isActiveCodeChallenge =
     location.pathname === "/trainee/code-challenges";
@@ -13,7 +15,7 @@ const Sidebar: React.FC = () => {
     location.pathname === "/trainee/calendar-management";
 
   const isActiveAssignmentManagement =
-    location.pathname === "/trainee/course-assignments"
+    location.pathname === "/trainee/course-assignments";
 
   return (
     <>
@@ -61,7 +63,7 @@ const Sidebar: React.FC = () => {
             </div>
           </Link>
 
-          <Link to="/trainee/code-challenges">
+          {/* <Link to="/trainee/code-challenges">
             <div
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveCodeChallenge
@@ -80,7 +82,7 @@ const Sidebar: React.FC = () => {
               </svg>
               <li>Code Challenges</li>
             </div>
-          </Link>
+          </Link> */}
 
           <Link to="/trainee/calendar-management">
             <div
@@ -90,23 +92,21 @@ const Sidebar: React.FC = () => {
                   : "bg-white hover:bg-[#7598D0] hover:text-white text-slate-600"
               }`}
             >
-            
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="24px"
-                  viewBox="0 -960 960 960"
-                  width="24px"
-                  fill={isActiveCalendarManagement ? "#fff" : "#B7B7B7"}
-                >
-                  <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z" />
-                </svg>
-                
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill={isActiveCalendarManagement ? "#fff" : "#B7B7B7"}
+              >
+                <path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-160 0q-17 0-28.5-11.5T280-440q0-17 11.5-28.5T320-480q17 0 28.5 11.5T360-440q0 17-11.5 28.5T320-400Zm320 0q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-160 0q-17 0-28.5-11.5T280-280q0-17 11.5-28.5T320-320q17 0 28.5 11.5T360-280q0 17-11.5 28.5T320-240Zm320 0q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z" />
+              </svg>
+
               <li>Calendar Management</li>
             </div>
           </Link>
 
-
-          <Link to="/trainee/course-assignments">
+          {/* <Link to="/trainee/course-assignments">
             <div
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveAssignmentManagement
@@ -114,20 +114,18 @@ const Sidebar: React.FC = () => {
                   : "bg-white hover:bg-[#7598D0] hover:text-white text-slate-600"
               }`}
             >
-          
-
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  height="24px" 
-                  viewBox="0 -960 960 960" 
-                  width="24px" 
-                  fill={isActiveAssignmentManagement ? "#fff" : "#B7B7B7"}
-                  >
-                    <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h168q13-36 43.5-58t68.5-22q38 0 68.5 22t43.5 58h168q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h280v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80Zm200-190q13 0 21.5-8.5T510-820q0-13-8.5-21.5T480-850q-13 0-21.5 8.5T450-820q0 13 8.5 21.5T480-790ZM200-200v-560 560Z"/>
-                </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill={isActiveAssignmentManagement ? "#fff" : "#B7B7B7"}
+              >
+                <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h168q13-36 43.5-58t68.5-22q38 0 68.5 22t43.5 58h168q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm80-80h280v-80H280v80Zm0-160h400v-80H280v80Zm0-160h400v-80H280v80Zm200-190q13 0 21.5-8.5T510-820q0-13-8.5-21.5T480-850q-13 0-21.5 8.5T450-820q0 13 8.5 21.5T480-790ZM200-200v-560 560Z" />
+              </svg>
               <li>Course Assignments</li>
             </div>
-          </Link>
+          </Link> */}
         </ul>
       </nav>
     </>

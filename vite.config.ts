@@ -30,6 +30,8 @@ export default defineConfig({
 
       "/coursemodule": "http://localhost:5050",
 
+      "/courseAssignmentRecords":"http://localhost:5050",
+
       "/submissions": "https://api.judge0.com"
       
     },

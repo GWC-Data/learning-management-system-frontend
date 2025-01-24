@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Animation from "../../../../../images/animated_8.gif"; // Course image
 import { toast } from "react-toastify"; // Assuming you're using react-toastify for error handling
 import { fetchBatchByTraineeIdApi } from "@/api/batchTrainee";
 import { fetchBatchByIdApi } from "@/api/batchApi";
@@ -30,6 +29,7 @@ const MyCourses: React.FC = () => {
         console.log(`Details for Batch ${id}:`, data);
         courseDetails.push(data); // Collect the course data
       }
+      console.log('course Details', courseDetails);
 
       setCourses(courseDetails); // Set the fetched course details in the state
       setLoading(false); // Set loading to false after fetching data
@@ -55,6 +55,19 @@ const MyCourses: React.FC = () => {
     // Return formatted date as dd-mm-yyyy
     return `${day}-${month}-${year}`;
   }
+
+  function calculateProgress(startDate: string, endDate: string): number {
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    const now = new Date().getTime();
+  
+    if (now < start) return 0; // Before the course starts
+    if (now > end) return 100; // After the course ends
+  
+    // Calculate progress percentage
+    const progress = ((now - start) / (end - start)) * 100;
+    return Math.round(progress); // Round to the nearest integer
+  }
   
   // Example usage
   const formattedDate = formatDateToDDMMYYYY("2025-02-01T09:00:00.000Z");
@@ -74,9 +87,10 @@ const MyCourses: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md">
           <div className="grid grid-cols-4 gap-4 p-4 border-b">
             <div className="font-semibold text-gray-700">Course Name</div>
-            <div className="font-semibold text-gray-700">Batch Name</div>
+         
             <div className="font-semibold text-gray-700">Start</div>
             <div className="font-semibold text-gray-700">End</div>
+            <div className="font-semibold text-gray-700">Progress</div>
           </div>
 
           {/* Courses */}
@@ -96,11 +110,15 @@ const MyCourses: React.FC = () => {
                   <p className="font-semibold text-gray-800">{course.course.courseName}</p>
                 </div>
               </div>
-              <div className="text-gray-700">{course.name}</div>
+             
               {/* Start Column */}
               <div className="text-gray-700">{formatDateToDDMMYYYY(course.startDate)}</div>
               {/* End Column */}
               <div className="text-gray-700">{formatDateToDDMMYYYY(course.endDate)}</div>
+              {/* Progress Column */}
+            <div className="text-gray-700">
+              {calculateProgress(course.startDate, course.endDate)}%
+            </div>
             </div>
           ))}
         </div>

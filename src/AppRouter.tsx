@@ -24,6 +24,7 @@ import PermissionRoles from "./components/Tables/permissionTables";
 import BatchTable from "./components/Tables/batchTable";
 import CourseModuleTable from "./components/Tables/courseModule";
 import BatchModuleScheduleTable from "./components/Tables/manageBatchScheduleModule";
+import AdminCourseAssignments from "./components/Tables/courseAssignment";
 
 import TraineeHome from "./components/Trainee/traineeHome";
 import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
@@ -73,6 +74,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
             element={<ManageRoles />}
           />
           <Route path="manage-permissions" element={<PermissionRoles />} />
+          <Route path="file-uploader" element={<AdminCourseAssignments/>}/>
           <Route path="batch-management" element={<BatchTable />} />
           <Route path="course-module" element={<CourseModuleTable />} />
           <Route
@@ -83,6 +85,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
             <Route path=":roleName" element={<UserManagement />} />
             <Route path="add-user" element={<AddUser />} />
           </Route>
+          
         </Route>
 
           {/* Trainee Protected Routes */}

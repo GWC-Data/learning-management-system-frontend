@@ -6,11 +6,13 @@ import { fetchBatchByIdApi } from "@/api/batchApi";
 
 interface EnrolledCourses {
   id: number;
-  name: string;
+  batchName: string;
   startDate: Date;
   endDate: Date;
   course: string;
   courseId: number;
+  courseImg: string;
+  courseLink: string;
 }
 
 const EnrolledCourses: React.FC = () => {
@@ -23,19 +25,24 @@ const EnrolledCourses: React.FC = () => {
     try {
       const userId = parseInt(localStorage.getItem("userId") || "0", 10);
       const BatchIds = await fetchBatchByTraineeIdApi(userId);
+      
       const enrolledCourses: EnrolledCourses[] = [];
 
       for (const id of BatchIds) {
         const data = await fetchBatchByIdApi(id);
+        console.log('data', data);
         enrolledCourses.push({
           id: id,
-          name: data.name,
+          batchName: data.batchName,
           startDate: new Date(data.startDate),
           endDate: new Date(data.endDate),
           course: data.course.courseName,
           courseId: data.course.id,
+          courseImg: data.course.courseImg,
+          courseLink: data.course.courseLink
         });
       }
+
 
       setCourses(enrolledCourses);
     } catch (error) {
@@ -74,13 +81,13 @@ const EnrolledCourses: React.FC = () => {
                   key={course.id}
                   className="relative bg-gradient-to-r from-green-100 via-green-50 to-green-200 border border-gray-300 rounded-xl shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105 duration-300 ease-in-out p-6 cursor-pointer"
                   onClick={() =>
-                    navigate(`${course.name.toLowerCase()}`, {
+                    navigate(`${course.batchName.toLowerCase()}`, {
                       state: course,
                     })
                   }
                 >
                   <div className="text-2xl font-semibold text-gray-800 mb-4">
-                    {course.name}
+                    {course.batchName}
                   </div>
                   <div className="text-sm text-gray-700">
                     <span className="font-medium">Start:</span>{" "}
@@ -103,9 +110,9 @@ const EnrolledCourses: React.FC = () => {
 
       {isChildRoute && (
         <div>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          {/* <h2 className="text-2xl font-semibold text-gray-800 mb-4">
             Course Details
-          </h2>
+          </h2> */}
           <Outlet />
         </div>
       )}

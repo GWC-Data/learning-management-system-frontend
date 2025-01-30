@@ -13,7 +13,7 @@ import {
 import { fetchCourseCategoryApi } from "@/api/courseCategoryApi";
 
 interface CourseTableProps {
-  onCourseSelect: (courseName: string) => void;
+  // onCourseSelect: (courseName: string) => void;
 }
 
 interface CourseData {
@@ -33,7 +33,7 @@ interface courseCategoryOptions {
 
 const getToken = () => localStorage.getItem("authToken");
 
-const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
+const CourseTable = ({}: CourseTableProps) => {
   const [courseData, setCourseData] = useState<CourseData[]>([]);
   const [courseCategory, setCourseCategory] = useState<courseCategoryOptions[]>(
     []
@@ -59,7 +59,7 @@ const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
   {
     /* pagination */
   }
-  const recordsPerPage = 10;
+  const recordsPerPage = 5;
   const totalPages = Math.ceil(courseData.length / recordsPerPage);
   const startIndex = (currentPage - 1) * recordsPerPage;
   const currentData = courseData.slice(startIndex, startIndex + recordsPerPage);
@@ -160,12 +160,25 @@ const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
       courseImg: "",
       courseLink: "",
     });
+    setUploadedFile(null);
     setIsModalOpen(true);
   };
+
+  // const editCourse = (course: CourseData) => {
+  //   setEditing(true);
+  //   setNewCourse(course);
+  //   setUploadedFile(
+  //     course.courseImg
+  //       ? new File([], "Uploaded Image", { type: "image/*" }) // Placeholder file object
+  //       : null
+  //   );
+  //   setIsModalOpen(true);
+  // };
 
   const editCourse = (course: CourseData) => {
     setEditing(true);
     setNewCourse(course);
+    setUploadedFile(null); // Reset file state
     setIsModalOpen(true);
   };
 
@@ -278,7 +291,7 @@ const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
                 //   setIsDropdownOpen(false);
                 // }}
                 onClick={() => {
-                  onCourseSelect(course.courseName);
+                  // onCourseSelect(course.courseName);
                   setSelectedCourse(course.courseName);
                   setIsDropdownOpen(false);
                 }}
@@ -452,13 +465,19 @@ const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
                 <div
                   {...getRootProps()}
                   className={`border-2 border-dashed rounded p-4 mt-2 h-28 text-center cursor-pointer
-                ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
+  ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
                 >
                   <input {...getInputProps()} />
                   {uploadedFile ? (
                     <p className="text-green-600 font-metropolis font-semibold mt-6">
                       {uploadedFile.name}
                     </p>
+                  ) : newCourse.courseImg ? (
+                    <img
+                      src={newCourse.courseImg}
+                      alt="Course"
+                      className="h-20 w-20 object-cover rounded"
+                    />
                   ) : (
                     <p className="text-gray-400 font-semibold">
                       Drag & drop a file here, or click to select one
@@ -467,7 +486,9 @@ const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">CourseLink</label>
+                <label className="block font-metropolis font-medium">
+                  CourseLink
+                </label>
                 <input
                   type="text"
                   className="w-full border rounded p-2 font-metropolis text-gray-700"
@@ -476,7 +497,6 @@ const CourseTable = ({ onCourseSelect }: CourseTableProps) => {
                     setNewCourse({ ...newCourse, courseLink: e.target.value })
                   }
                 />
-
               </div>
               <div className="flex space-x-4">
                 <Button

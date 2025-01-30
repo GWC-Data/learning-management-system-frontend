@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 
 import CompletedCourse from "@/images/online-course.png"; // Completed course image
+import Modules from "@/images/cubes.png";
 
 import RemainingClasses from "@/images/hourglass.png";
 import Attendance from "@/images/time-management.png";
-import UpcomingEvents from "../CalenderManage/upcomingEvents";
+import UpcomingEvents from "../UpcomingEvents/upcomingEvents";
 
 const DashboardHeader: React.FC = () => {
   const [name, setName] = useState<string | null>(
@@ -25,7 +26,7 @@ const DashboardHeader: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-4">
               {/* Completed Courses Section */}
               <OverviewCard
-                imgSrc={CompletedCourse}
+                imgSrc={Modules}
                 title="Module Completed"
                 value="2"
               />

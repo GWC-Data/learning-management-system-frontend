@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify"; // Assuming you're using react-toastify for error handling
-import { fetchBatchByTraineeIdApi } from "@/api/batchTrainee";
+import { fetchBatchIdByTraineeIdApi } from "@/api/batchTrainee";
 import { fetchBatchByIdApi } from "@/api/batchApi";
 
 
@@ -20,7 +20,7 @@ const MyCourses: React.FC = () => {
     }
 
     try {
-      const BatchId = await fetchBatchByTraineeIdApi(Number(userId));
+      const BatchId = await fetchBatchIdByTraineeIdApi(Number(userId));
       console.log("Enrolled Batches", BatchId);
 
       const courseDetails = [];

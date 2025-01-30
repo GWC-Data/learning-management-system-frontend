@@ -32,6 +32,12 @@ export default defineConfig({
 
       "/courseAssignmentRecords":"http://localhost:5050",
 
+      "/assignment-completion":"http://localhost:5050",
+
+      "/batchModuleSchedulebybatch": "http://localhost:5050",
+
+      "/job-board": "http://localhost:5050",
+
       "/submissions": "https://api.judge0.com"
       
     },

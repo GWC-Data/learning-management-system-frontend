@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { fetchBatchByTraineeIdApi } from "@/api/batchTrainee";
+import { fetchBatchIdByTraineeIdApi } from "@/api/batchTrainee";
 import { fetchBatchByIdApi } from "@/api/batchApi";
 
 interface EnrolledCourses {
@@ -24,13 +24,13 @@ const EnrolledCourses: React.FC = () => {
   const fetchBatchesData = async () => {
     try {
       const userId = parseInt(localStorage.getItem("userId") || "0", 10);
-      const BatchIds = await fetchBatchByTraineeIdApi(userId);
-      
+      const BatchIds = await fetchBatchIdByTraineeIdApi(userId);
+
       const enrolledCourses: EnrolledCourses[] = [];
 
       for (const id of BatchIds) {
         const data = await fetchBatchByIdApi(id);
-        console.log('data', data);
+        console.log("data", data);
         enrolledCourses.push({
           id: id,
           batchName: data.batchName,
@@ -39,10 +39,9 @@ const EnrolledCourses: React.FC = () => {
           course: data.course.courseName,
           courseId: data.course.id,
           courseImg: data.course.courseImg,
-          courseLink: data.course.courseLink
+          courseLink: data.course.courseLink,
         });
       }
-
 
       setCourses(enrolledCourses);
     } catch (error) {
@@ -57,7 +56,9 @@ const EnrolledCourses: React.FC = () => {
   }, []);
 
   const isParentRoute = location.pathname === "/trainee/enrolledCourses";
-  const isChildRoute = location.pathname.startsWith("/trainee/enrolledCourses/");
+  const isChildRoute = location.pathname.startsWith(
+    "/trainee/enrolledCourses/"
+  );
 
   return (
     <div className="p-6 max-w-7xl mx-auto overflow-x-hidden">
@@ -105,7 +106,6 @@ const EnrolledCourses: React.FC = () => {
             </div>
           )}
         </>
-
       )}
 
       {isChildRoute && (

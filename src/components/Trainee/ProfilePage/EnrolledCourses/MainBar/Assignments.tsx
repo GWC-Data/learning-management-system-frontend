@@ -3,41 +3,43 @@ import { fetchCourseAssignmentbybatchIdApi } from "@/api/courseAssignmentApi";
 import { useLocation } from "react-router-dom";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { fetchUsersbyIdApi } from "@/api/userApi";
+import { createAssignmentCompletionsApi } from "@/api/assignmentCompletionsApi";
 
 interface Assignment {
   courseAssignmentQuestionFile: string;
   courseAssignmentQuestionName: string;
   trainerId: number;
+  id: number; // Add id field to each assignment
 }
 
 const Assignments: React.FC = () => {
+  const userId = Number(localStorage.getItem("userId"));
   const location = useLocation();
   const course = location.state;
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(null);
   const [trainerNames, setTrainerNames] = useState<Record<number, string>>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
 
   // Fetch assignments on component mount
   const fetchCourseAssignments = async () => {
     try {
       const data = await fetchCourseAssignmentbybatchIdApi(course.id);
+      console.log("data", data);
       setAssignments(data);
 
       // Fetch trainer names for each assignment
       const trainerIds = data.map(
         (assignment: Assignment) => assignment.trainerId
       );
-      console.log("trainerIds", trainerIds);
+
       await fetchTrainerNames(trainerIds);
     } catch (error) {
       console.error("Error fetching assignments:", error);
     }
   };
-
-  useEffect(() => {
-    fetchCourseAssignments();
-  }, [course.id]);
 
   // Fetch trainer names by IDs
   const fetchTrainerNames = async (trainerIds: number[]) => {
@@ -65,22 +67,83 @@ const Assignments: React.FC = () => {
     setIsPdfModalOpen(false);
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      const file = event.target.files[0];
+      setSelectedFile(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        console.log("Base64 String:", base64String);
+      };
+      reader.onerror = (error) => {
+        console.error("Error converting file to Base64:", error);
+      };
+
+      reader.readAsDataURL(file); // Converts the file to a Base64 string
+    }
+  };
+
+  const handleUpload = async (assignmentId: number) => {
+    if (!selectedFile) {
+      alert("Please select a file to upload.");
+      return;
+    }
+
+    setSelectedAssignmentId(assignmentId); // Automatically select the assignment when upload is clicked
+
+    const reader = new FileReader();
+
+    reader.onloadend = async () => {
+      const base64String = reader.result as string;
+
+      const payload = {
+        traineeId: userId || "", // Send userId as string or empty string if null
+        courseAssignId: Number(assignmentId), // Send as number
+        courseAssignmentAnswerFile: base64String, // Send base64 string
+        obtainedMarks: 0, // Default to 0
+      };
+      console.log("Payload:", payload);
+
+      try {
+        await createAssignmentCompletionsApi(payload); // Update the API to handle JSON payload
+        alert("File uploaded successfully!");
+        setSelectedFile(null);
+        setSelectedAssignmentId(null);
+      } catch (error) {
+        console.error("Error uploading file:", error);
+        alert("Failed to upload file. Please try again.");
+      }
+    };
+
+    reader.onerror = (error) => {
+      console.error("Error converting file to Base64:", error);
+    };
+
+    reader.readAsDataURL(selectedFile); // Converts the file to a Base64 string
+  };
+
+  useEffect(() => {
+    fetchCourseAssignments();
+  }, [course.id]);
+
   return (
     <div className="p-6 bg-gradient-to-r from-blue-50 to-blue-100 max-w-[1550px] mx-auto mt-10">
       {/* Header Section */}
       <div className="mb-6">
         <p className="text-gray-600">
-          Enhance your knowledge on Hooks! Download the assignment questions and
-          upload your solutions to showcase your skills.
+          Enhance your knowledge on the modules! Download the assignment
+          questions and upload your solutions to showcase your skills.
         </p>
       </div>
 
       {/* Assignments List */}
       <div className="space-y-6">
         {assignments.length > 0 ? (
-          assignments.map((assignment, index) => (
+          assignments.map((assignment) => (
             <div
-              key={index}
+              key={assignment.id} // Use the assignment ID as the key
               className="p-4 bg-white rounded-lg shadow-md flex justify-between items-center"
             >
               {/* Assignment Details */}
@@ -89,74 +152,55 @@ const Assignments: React.FC = () => {
                   {assignment.courseAssignmentQuestionName}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Trainer Name:{" "}
-                  {trainerNames[assignment.trainerId] || "Loading..."}
+                  Trainer Name: {trainerNames[assignment.trainerId] || "Loading..."}
                 </p>
               </div>
 
               {/* Action Buttons */}
               <div className="flex gap-4 items-center">
                 {/* Download Section */}
-                <div className="flex gap-2 items-center">
-                  <button
-                    onClick={() =>
-                      handleViewFile(assignment.courseAssignmentQuestionFile)
-                    }
-                    className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition-all"
+                <button
+                  onClick={() => handleViewFile(assignment.courseAssignmentQuestionFile)}
+                  className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition-all"
+                >
+                  View Questions
+                </button>
+                <a
+                  href={assignment.courseAssignmentQuestionFile}
+                  download
+                  className="bg-gray-200 py-2 px-4 rounded-lg text-blue-500 hover:text-blue-700 flex items-center"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 -960 960 960"
+                    width="24px"
+                    fill="#3B82F6"
                   >
-                    View Questions
-                  </button>
-                  <a
-                    href={assignment.courseAssignmentQuestionFile}
-                    download
-                    className="bg-gray-200 py-2 px-4 rounded-lg text-blue-500 hover:text-blue-700 flex items-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#3B82F6"
-                    >
-                      <path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z" />
-                    </svg>
-                  </a>
-                </div>
+                    <path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z" />
+                  </svg>
+                </a>
+              </div>
 
-                {/* Upload Section */}
-                <div className="flex gap-2 items-center">
-                  <button
-                    onClick={() =>
-                      console.log("Upload answers functionality goes here")
-                    }
-                    className="bg-green-500 text-white py-2 px-4 rounded-lg shadow hover:bg-green-600 transition-all"
-                  >
-                    Upload Answers
-                  </button>
-                  <button
-                    onClick={() =>
-                      console.log("View uploaded answers functionality")
-                    }
-                    className="bg-gray-200 py-2 px-4 rounded-lg text-green-500 hover:text-green-700 flex items-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      height="24px"
-                      viewBox="0 -960 960 960"
-                      width="24px"
-                      fill="#22c55e"
-                    >
-                      <path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-146 0-266-81.5T40-500q54-137 174-218.5T480-800q146 0 266 81.5T920-500q-54 137-174 218.5T480-200Zm0-300Zm0 220q113 0 207.5-59.5T832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280Z" />
-                    </svg>
-                  </button>
-                </div>
+              {/* Upload Section */}
+              <div className="flex gap-2 items-center">
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileChange}
+                  className="mb-4"
+                />
+                <button
+                  onClick={() => handleUpload(assignment.id)} // Automatically select assignment when clicked
+                  className="bg-green-500 text-white py-2 px-4 rounded-lg shadow hover:bg-green-600 transition-all"
+                >
+                  Upload Answers
+                </button>
               </div>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">
-            No assignments available at the moment.
-          </p>
+          <p className="text-center text-gray-500">No assignments available at the moment.</p>
         )}
       </div>
 
@@ -178,20 +222,6 @@ const Assignments: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Decorative Divider */}
-      {/* <div className="mt-8 border-t border-gray-200">
-        <p className="text-sm text-gray-500 text-center mt-4">
-          For any issues, please contact your instructor or email us at{" "}
-          <a
-            href="mailto:support@teqcertify.com"
-            className="text-blue-500 underline hover:text-blue-600"
-          >
-            support@teqcertify.com
-          </a>
-          .
-        </p>
-      </div> */}
     </div>
   );
 };

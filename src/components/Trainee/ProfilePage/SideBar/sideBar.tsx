@@ -9,13 +9,17 @@ const Sidebar: React.FC = () => {
     "/trainee/enrolledCourses"
   );
   const isActiveDashboard = location.pathname === "/trainee/dashboard";
-  const isActiveCodeChallenge =
-    location.pathname === "/trainee/code-challenges";
+
   const isActiveCalendarManagement =
     location.pathname === "/trainee/calendar-management";
 
-  const isActiveAssignmentManagement =
-    location.pathname === "/trainee/course-assignments";
+  const isActiveJobBoards = location.pathname === "/trainee/job-boards";
+
+  // const isActiveAssignmentManagement =
+  //   location.pathname === "/trainee/course-assignments";
+
+  // const isActiveCodeChallenge =
+  //   location.pathname === "/trainee/code-challenges";
 
   return (
     <>
@@ -60,6 +64,27 @@ const Sidebar: React.FC = () => {
                 <path d="M640-400q-50 0-85-35t-35-85q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35ZM400-160v-76q0-21 10-40t28-30q45-27 95.5-40.5T640-360q56 0 106.5 13.5T842-306q18 11 28 30t10 40v76H400Zm86-80h308q-35-20-74-30t-80-10q-41 0-80 10t-74 30Zm154-240q17 0 28.5-11.5T680-520q0-17-11.5-28.5T640-560q-17 0-28.5 11.5T600-520q0 17 11.5 28.5T640-480Zm0-40Zm0 280ZM120-400v-80h320v80H120Zm0-320v-80h480v80H120Zm324 160H120v-80h360q-14 17-22.5 37T444-560Z" />
               </svg>
               <li>Enrolled Courses</li>
+            </div>
+          </Link>
+
+          <Link to="/trainee/job-boards">
+            <div
+              className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
+                isActiveJobBoards
+                  ? "bg-[#4d78b8] text-white"
+                  : "bg-white hover:bg-[#7598D0] hover:text-white text-slate-600"
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill={isActiveJobBoards ? "#fff" : "#B7B7B7"}
+              >
+                <path d="M160-120q-33 0-56.5-23.5T80-200v-440q0-33 23.5-56.5T160-720h160v-80q0-33 23.5-56.5T400-880h160q33 0 56.5 23.5T640-800v80h160q33 0 56.5 23.5T880-640v440q0 33-23.5 56.5T800-120H160Zm0-80h640v-440H160v440Zm240-520h160v-80H400v80ZM160-200v-440 440Z" />
+              </svg>
+              <li>Job Boards</li>
             </div>
           </Link>
 

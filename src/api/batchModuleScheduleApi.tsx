@@ -23,6 +23,19 @@ export const fetchBatchModuleScheduleApi = async () => {
   }
 };
 
+//Read all batch module schedules by batch id
+export const fetchBatchModuleScheduleByBatchIdApi = async (id: number) => {
+  try {
+    console.log("Fetching schedule for batch ID:", id);
+    const response = await apiClient.get(`/batchModuleSchedulebybatch/${id}`);
+    console.log('response', response.data.batchModuleSchedule);
+    return response.data.batchModuleSchedule || [];
+  } catch (error) {
+    console.error('Failed to fetch batch module schedule by batch id', error);
+    throw error;
+  }
+}
+
 // Read a batch module schedule by id
 export const fetchBatchModuleScheduleByIdApi = async (id: number) => {
   try {

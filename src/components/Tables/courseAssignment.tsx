@@ -261,7 +261,7 @@ const CourseAssignmentsTable: React.FC = () => {
         }}
         className="mb-4 px-4 py-2 bg-[#4e6db4] font-semibold text-white rounded-lg"
       >
-        Add Assignment
+        +Add Assignment
       </button>
 
       <table className="table-auto w-full border-collapse border border-gray-200">

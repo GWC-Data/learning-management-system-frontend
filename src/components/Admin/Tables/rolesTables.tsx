@@ -1,4 +1,4 @@
-import { Button } from "../../components/ui/button";
+import { Button } from "../../ui/button";
 import { Badge } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
@@ -7,11 +7,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Edit, Trash } from "lucide-react";
 import axios from "axios";
-import { 
-  createRoleApi, 
-  deleteRoleApi, 
-  updateRoleApi 
-} from "@/api/roleApi";
+import { createRoleApi, deleteRoleApi, updateRoleApi } from "@/api/roleApi";
 
 // TypeScript interfaces
 interface Permission {
@@ -52,10 +48,12 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
 
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
-    
-    if (!newRole.name) newErrors.name = 'RoleName is required.';
-    if (!newRole.description) newErrors.description = 'description is required.';
-    if (!newRole.permissions) newErrors.permissions = 'Atleast choose any one Permission';
+
+    if (!newRole.name) newErrors.name = "RoleName is required.";
+    if (!newRole.description)
+      newErrors.description = "description is required.";
+    if (!newRole.permissions)
+      newErrors.permissions = "Atleast choose any one Permission";
 
     setErrors(newErrors);
 
@@ -64,7 +62,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
     });
 
     return newErrors;
-  }
+  };
 
   const [availablePermissions, setAvailablePermissions] = useState<
     Permission[]
@@ -369,7 +367,9 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
             </h2>
             <form>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Role Name</label>
+                <label className="block font-metropolis font-medium">
+                  Role Name
+                </label>
                 <input
                   type="text"
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
@@ -380,7 +380,9 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Description</label>
+                <label className="block font-metropolis font-medium">
+                  Description
+                </label>
                 <input
                   type="text"
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
@@ -391,7 +393,9 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Permissions</label>
+                <label className="block font-metropolis font-medium">
+                  Permissions
+                </label>
                 <select
                   multiple
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
@@ -465,18 +469,19 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         </div>
       )}
 
-      {isDeleteModalOpen && roleToDelete &&(
+      {isDeleteModalOpen && roleToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
-            <h2 className="text-xl font-metropolis font-semibold mb-4">Confirm Delete</h2>
+            <h2 className="text-xl font-metropolis font-semibold mb-4">
+              Confirm Delete
+            </h2>
             <p className="font-metropolis font-medium">
-              Are you sure you want to delete the Role 
+              Are you sure you want to delete the Role
               <strong>
-              {roleToDelete?.name?.charAt(0).toUpperCase() + 
-              roleToDelete?.name?.slice(1).toLowerCase() || 'this role'}
-                </strong>
-                ?
-                
+                {roleToDelete?.name?.charAt(0).toUpperCase() +
+                  roleToDelete?.name?.slice(1).toLowerCase() || "this role"}
+              </strong>
+              ?
             </p>
             <div className="flex justify-end space-x-2 mt-4">
               <Button

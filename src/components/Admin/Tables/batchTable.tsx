@@ -1,10 +1,10 @@
 import { useState, useEffect, SetStateAction } from "react";
-import { Button } from "../../components/ui/button";
+import { Button } from "../../ui/button";
 import "react-day-picker/dist/style.css";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ChevronDown, Pencil } from "lucide-react";
- 
+
 import {
   fetchBatchApi,
   createBatchApi,
@@ -13,12 +13,11 @@ import {
 } from "@/api/batchApi";
 import { fetchUsersApi } from "@/api/userApi";
 import { fetchCourseApi } from "@/api/courseApi";
- 
- 
+
 interface BatchTableProps {
   editable?: boolean;
 }
- 
+
 // TypeScript types for batch data
 interface BatchData {
   id: number;
@@ -30,18 +29,17 @@ interface BatchData {
   startDate: string;
   endDate: string;
 }
- 
+
 interface batchOptions {
   id: any;
   courseName: any;
   traineeName: any;
 }
- 
- 
+
 // Helper to get token
 const getToken = () => localStorage.getItem("authToken");
- 
-const ManageBatches = ({ }: BatchTableProps) => {
+
+const ManageBatches = ({}: BatchTableProps) => {
   const [batches, setBatches] = useState<BatchData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   // const [colDefs, setColDefs] = useState<ColDef[]>([]);
@@ -50,7 +48,7 @@ const ManageBatches = ({ }: BatchTableProps) => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedBatch, setSelectedBatch] = useState("");
   const [course, setCourse] = useState<batchOptions[]>([]);
-  const [traineeName, setTraineeName] = useState<batchOptions[]>([])
+  const [traineeName, setTraineeName] = useState<batchOptions[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [newBatch, setNewBatch] = useState<BatchData>({
     id: 0,
@@ -63,35 +61,37 @@ const ManageBatches = ({ }: BatchTableProps) => {
     endDate: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  {/* pagination */ }
+  {
+    /* pagination */
+  }
   const recordsPerPage = 15;
   const totalPages = Math.ceil(batches.length / recordsPerPage);
   const startIndex = (currentPage - 1) * recordsPerPage;
   const currentData = batches.slice(startIndex, startIndex + recordsPerPage);
- 
+
   const handlePageChange = (newPage: SetStateAction<number>) => {
     setCurrentPage(newPage);
   };
- 
+
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
- 
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
- 
+
   const filteredBatches = batches.filter((bat) =>
     bat.batchName.toLowerCase().includes(searchTerm.toLowerCase())
   );
- 
+
   const fetchBatchesData = async () => {
     const token = getToken();
     if (!token) {
       toast.error("You must be logged in to view batches.");
       return;
     }
- 
+
     try {
       const batchResponse = await fetchBatchApi();
       const batches = batchResponse.map((batch: any) => ({
@@ -101,23 +101,24 @@ const ManageBatches = ({ }: BatchTableProps) => {
         courseName: batch.course?.courseName || "Unknown", // Course Name
         traineeName: batch.trainees
           ? batch.trainees
-            .map((trainee: any) => `${trainee.firstName} ${trainee.lastName}`)
-            .join(", ")
+              .map((trainee: any) => `${trainee.firstName} ${trainee.lastName}`)
+              .join(", ")
           : "Unknown",
-        startDate: batch.startDate ? format(new Date(batch.startDate), "yyyy-MM-dd")
+        startDate: batch.startDate
+          ? format(new Date(batch.startDate), "yyyy-MM-dd")
           : "",
-        endDate: batch.endDate ? format(new Date(batch.endDate), "yyyy-MM-dd")
-          : ""
+        endDate: batch.endDate
+          ? format(new Date(batch.endDate), "yyyy-MM-dd")
+          : "",
       }));
- 
- 
+
       const responseCourse = await fetchCourseApi();
       const courses = responseCourse.map((course: any) => ({
         id: course.id,
         courseName: course.courseName,
       }));
       setCourse(courses);
- 
+
       const responseUser = await fetchUsersApi();
       const trainees = responseUser.Users.filter(
         (user: any) => user.role.name === "trainee"
@@ -134,12 +135,11 @@ const ManageBatches = ({ }: BatchTableProps) => {
       setLoading(false);
     }
   };
- 
- 
+
   useEffect(() => {
     fetchBatchesData();
   }, []);
- 
+
   const addNewBatch = () => {
     setEditing(false);
     setNewBatch({
@@ -154,13 +154,13 @@ const ManageBatches = ({ }: BatchTableProps) => {
     });
     setIsModalOpen(true);
   };
- 
+
   const editBatch = (batch: BatchData) => {
     setEditing(true);
     setNewBatch(batch);
     setIsModalOpen(true);
   };
- 
+
   const handleModalClose = () => {
     setIsModalOpen(false);
     setNewBatch({
@@ -174,16 +174,15 @@ const ManageBatches = ({ }: BatchTableProps) => {
       endDate: "",
     });
   };
- 
+
   const handleFormSubmit = async () => {
     const token = getToken();
     if (!token) {
       toast.error("You must be logged in to perform this action.");
       return;
     }
- 
+
     try {
- 
       if (editing) {
         await updateBatchApi(newBatch.id, {
           batchName: newBatch.batchName,
@@ -192,8 +191,9 @@ const ManageBatches = ({ }: BatchTableProps) => {
           startDate: newBatch.startDate
             ? format(new Date(newBatch.startDate), "yyyy-MM-dd")
             : "",
-          endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
-            : ""
+          endDate: newBatch.endDate
+            ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
+            : "",
         });
         toast.success("Batch updated successfully!");
       } else {
@@ -204,10 +204,11 @@ const ManageBatches = ({ }: BatchTableProps) => {
           startDate: newBatch.startDate
             ? format(new Date(newBatch.startDate), "yyyy-MM-dd")
             : "",
-          endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
-            : ""
+          endDate: newBatch.endDate
+            ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
+            : "",
         });
-        toast.success("Batch created successfully!")
+        toast.success("Batch created successfully!");
       }
       fetchBatchesData();
     } catch (error) {
@@ -216,25 +217,25 @@ const ManageBatches = ({ }: BatchTableProps) => {
       handleModalClose();
     }
   };
- 
+
   const handleDeleteBatch = async () => {
     const token = getToken();
     if (!token) {
       toast.error("You must be logged in to delete a course.");
       return;
     }
- 
+
     try {
       await deleteBatchApi(newBatch.id);
-      toast.success('Batch deleted successfully!');
+      toast.success("Batch deleted successfully!");
       fetchBatchesData();
-      setLoading(true)
+      setLoading(true);
       handleModalClose();
     } catch (error) {
-      toast.error('Failed to delete the batch. Please try again later.');
+      toast.error("Failed to delete the batch. Please try again later.");
     }
-  }
- 
+  };
+
   return (
     <div className="flex-1 p-6 mt-10 ml-16">
       <div className="relative bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-full">
@@ -246,7 +247,7 @@ const ManageBatches = ({ }: BatchTableProps) => {
           {selectedBatch ? selectedBatch : "Batch"}
           <ChevronDown className="ml-2 h-5 w-5" />
         </Button>
- 
+
         {/* Dropdown Menu */}
         {isDropdownOpen && (
           <ul className="absolute w-80 border bg-white z-10 mt-1 max-h-48 overflow-auto shadow-lg text-black">
@@ -263,14 +264,14 @@ const ManageBatches = ({ }: BatchTableProps) => {
             <li
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                addNewBatch()
-                setSelectedBatch("+New Batch")
+                addNewBatch();
+                setSelectedBatch("+New Batch");
                 setIsDropdownOpen(false);
               }}
             >
               + New Batch
             </li>
- 
+
             {/* Course List with Edit Icons */}
             {filteredBatches.map((batch) => (
               <li
@@ -286,7 +287,7 @@ const ManageBatches = ({ }: BatchTableProps) => {
                   className="h-4 w-4 text-blue-500 cursor-pointer"
                   onClick={(e) => {
                     editBatch(batch);
-                    setIsDropdownOpen(false)
+                    setIsDropdownOpen(false);
                     e.stopPropagation();
                   }}
                 />
@@ -309,11 +310,21 @@ const ManageBatches = ({ }: BatchTableProps) => {
         <tbody>
           {currentData.map((batch) => (
             <tr key={batch.id} className="hover:bg-gray-100">
-              <td className="border border-gray-300 px-4 py-2">{batch.batchName}</td>
-              <td className="border border-gray-300 px-4 py-2">{batch.courseName}</td>
-              <td className="border border-gray-300 px-4 py-2">{batch.traineeName}</td>
-              <td className="border border-gray-300 px-4 py-2">{batch.startDate}</td>
-              <td className="border border-gray-300 px-4 py-2">{batch.endDate}</td>
+              <td className="border border-gray-300 px-4 py-2">
+                {batch.batchName}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {batch.courseName}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {batch.traineeName}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {batch.startDate}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {batch.endDate}
+              </td>
               {/* <td className="border border-gray-300 px-4 py-2 flex space-x-2">
                 <button
                   onClick={() => editCourse(course)}
@@ -332,14 +343,15 @@ const ManageBatches = ({ }: BatchTableProps) => {
           ))}
         </tbody>
       </table>
- 
+
       {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-4">
         <button
           disabled={currentPage === 1}
           onClick={() => handlePageChange(currentPage - 1)}
-          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
-            }`}
+          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${
+            currentPage === 1 && "cursor-not-allowed opacity-50"
+          }`}
         >
           Previous
         </button>
@@ -349,29 +361,38 @@ const ManageBatches = ({ }: BatchTableProps) => {
         <button
           disabled={currentPage === totalPages}
           onClick={() => handlePageChange(currentPage + 1)}
-          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
-            }`}
+          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${
+            currentPage === totalPages && "cursor-not-allowed opacity-50"
+          }`}
         >
           Next
         </button>
       </div>
- 
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-metropolis font-semibold">{editing ? "Edit Batch" : "Add New Batch"}</h2>
+            <h2 className="text-xl font-metropolis font-semibold">
+              {editing ? "Edit Batch" : "Add New Batch"}
+            </h2>
             <form>
               <div className="mb-4 mt-4">
-                <label className="block font-metropolis font-medium">Batch Name</label>
+                <label className="block font-metropolis font-medium">
+                  Batch Name
+                </label>
                 <input
                   type="text"
                   className="w-full border rounded p-2 font-metropolis text-gray-700"
                   value={newBatch.batchName}
-                  onChange={(e) => setNewBatch({ ...newBatch, batchName: e.target.value })}
+                  onChange={(e) =>
+                    setNewBatch({ ...newBatch, batchName: e.target.value })
+                  }
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Courses</label>
+                <label className="block font-metropolis font-medium">
+                  Courses
+                </label>
                 <select
                   className="w-full border rounded p-2 font-metropolis text-gray-700"
                   value={newBatch.courseId}
@@ -399,10 +420,18 @@ const ManageBatches = ({ }: BatchTableProps) => {
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
                   value={(newBatch.traineeId || []).map((id) => id.toString())} // Guard against undefined
                   onChange={(e) => {
-                    const selectedOptions = Array.from(e.target.selectedOptions);
-                    const ids = selectedOptions.map((option) => parseInt(option.value)); // Convert back to number[]
+                    const selectedOptions = Array.from(
+                      e.target.selectedOptions
+                    );
+                    const ids = selectedOptions.map((option) =>
+                      parseInt(option.value)
+                    ); // Convert back to number[]
                     const names = selectedOptions.map((option) => option.text);
-                    setNewBatch({ ...newBatch, traineeId: ids, traineeName: names });
+                    setNewBatch({
+                      ...newBatch,
+                      traineeId: ids,
+                      traineeName: names,
+                    });
                   }}
                 >
                   <option value="">Select Trainees</option>
@@ -412,24 +441,31 @@ const ManageBatches = ({ }: BatchTableProps) => {
                     </option>
                   ))}
                 </select>
- 
               </div>
               <div className="mb-4 mt-4">
-                <label className="block font-metropolis font-medium">StartDate</label>
+                <label className="block font-metropolis font-medium">
+                  StartDate
+                </label>
                 <input
                   type="date"
                   className="w-full border rounded p-2 font-metropolis text-gray-700"
                   value={newBatch.startDate}
-                  onChange={(e) => setNewBatch({ ...newBatch, startDate: e.target.value })}
+                  onChange={(e) =>
+                    setNewBatch({ ...newBatch, startDate: e.target.value })
+                  }
                 />
               </div>
               <div className="mb-4 mt-4">
-                <label className="block font-metropolis font-medium">EndDate</label>
+                <label className="block font-metropolis font-medium">
+                  EndDate
+                </label>
                 <input
                   type="date"
                   className="w-full border rounded p-2 font-metropolis text-gray-700"
                   value={newBatch.endDate}
-                  onChange={(e) => setNewBatch({ ...newBatch, endDate: e.target.value })}
+                  onChange={(e) =>
+                    setNewBatch({ ...newBatch, endDate: e.target.value })
+                  }
                 />
               </div>
               <div className="flex space-x-4">
@@ -458,5 +494,5 @@ const ManageBatches = ({ }: BatchTableProps) => {
     </div>
   );
 };
- 
+
 export default ManageBatches;

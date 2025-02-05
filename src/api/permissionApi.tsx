@@ -1,12 +1,12 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 // Create a new permission
 export const createPermissionApi = async (newPermission: any) => {
   try {
-    const response = await apiClient.post('/permissions', newPermission);
+    const response = await apiClient.post("/permissions", newPermission);
     return response.data;
   } catch (error) {
-    console.error('Failed to add permission', error);
+    console.error("Failed to add permission", error);
     throw error;
   }
 };
@@ -14,22 +14,28 @@ export const createPermissionApi = async (newPermission: any) => {
 // Read all permissions
 export const fetchPermissionsApi = async () => {
   try {
-    const response = await apiClient.get('/permissions');
-    console.log('resp', response.data);
+    const response = await apiClient.get("/permissions");
+    console.log("resp", response.data);
     return response.data.permissions || [];
   } catch (error) {
-    console.error('Failed to fetch permissions', error);
+    console.error("Failed to fetch permissions", error);
     throw error;
   }
 };
 
 // Update an existing permission
-export const updatePermissionApi = async (action: string, updatedPermission: any) => {
+export const updatePermissionApi = async (
+  action: string,
+  updatedPermission: any
+) => {
   try {
-    const response = await apiClient.put(`/permissions/${action}`, updatedPermission);
+    const response = await apiClient.put(
+      `/permissions/${action}`,
+      updatedPermission
+    );
     return response.data;
   } catch (error) {
-    console.error('Failed to update permission', error);
+    console.error("Failed to update permission", error);
     throw error;
   }
 };
@@ -40,7 +46,7 @@ export const deletePermissionApi = async (action: string) => {
     const response = await apiClient.delete(`/permissions/${action}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to delete permission', error);
+    console.error("Failed to delete permission", error);
     throw error;
   }
 };

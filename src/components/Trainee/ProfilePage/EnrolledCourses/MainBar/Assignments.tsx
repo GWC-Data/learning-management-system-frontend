@@ -27,6 +27,7 @@ const Assignments: React.FC = () => {
   const fetchCourseAssignments = async () => {
     try {
       const data = await fetchCourseAssignmentbybatchIdApi(course.id);
+      console.log("course", course.id);
       console.log("data", data);
       setAssignments(data);
 

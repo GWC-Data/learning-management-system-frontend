@@ -1,24 +1,24 @@
 // src/api/courseApi.ts
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 // Create a new course
 export const createJobBoardApi = async (jobBoardData: any) => {
   try {
-    const response = await apiClient.post('/job-board', jobBoardData);
+    const response = await apiClient.post("/job-board", jobBoardData);
     return response.data;
   } catch (error) {
-    console.error('Error creating jobBoard', error);
+    console.error("Error creating jobBoard", error);
     throw error;
   }
 };
 
 // Read all courses
-export const fetchJobBoardApi = async (p0: string) => {
+export const fetchJobBoardApi = async () => {
   try {
-    const response = await apiClient.get('/job-board');
+    const response = await apiClient.get("/job-board");
     return response.data.jobBoard || [];
   } catch (error) {
-    console.error('Failed to fetch jobBoard', error);
+    console.error("Failed to fetch jobBoard", error);
     throw error;
   }
 };
@@ -30,18 +30,24 @@ export const fetchJobBoardByIdApi = async (jobBoardId: number) => {
     const response = await apiClient.get(`/job-board/${jobBoardId}`);
     return response || [];
   } catch (error) {
-    console.error('Failed to fetch jobBoard by id', error);
+    console.error("Failed to fetch jobBoard by id", error);
     throw error;
   }
 };
 
 // Update an existing course
-export const updateJobBoardApi = async (jobBoardId: number, jobBoardData: any) => {
+export const updateJobBoardApi = async (
+  jobBoardId: number,
+  jobBoardData: any
+) => {
   try {
-    const response = await apiClient.put(`/job-board/${jobBoardId}`, jobBoardData);
+    const response = await apiClient.put(
+      `/job-board/${jobBoardId}`,
+      jobBoardData
+    );
     return response.data;
   } catch (error) {
-    console.error('Error updating jobBoardData', error);
+    console.error("Error updating jobBoardData", error);
     throw error;
   }
 };
@@ -52,7 +58,7 @@ export const deleteJobBoardApi = async (jobBoardId: number) => {
     const response = await apiClient.delete(`/job-board/${jobBoardId}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to delete jobBoardData', error);
+    console.error("Failed to delete jobBoardData", error);
     throw error;
   }
 };

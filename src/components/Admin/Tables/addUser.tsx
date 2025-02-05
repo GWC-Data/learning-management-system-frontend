@@ -1,16 +1,16 @@
-import { Button } from "../../components/ui/button";
+import { Button } from "../../ui/button";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
-import { createUserApi  } from "@/api/userApi";
+import { createUserApi } from "@/api/userApi";
 import { fetchRolesApi } from "@/api/roleApi";
- 
+
 interface Role {
   id: number;
   name: string;
 }
- 
+
 const AddUser = () => {
   const [newUser, setNewUser] = useState({
     firstName: "",
@@ -25,10 +25,10 @@ const AddUser = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
- 
+
   // Get auth token from localStorage
   const getToken = () => localStorage.getItem("authToken");
- 
+
   // Fetch roles on component mount
   useEffect(() => {
     const fetchRoles = async () => {
@@ -47,7 +47,7 @@ const AddUser = () => {
     };
     fetchRoles();
   }, []);
- 
+
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
     // Basic field validations
@@ -84,7 +84,7 @@ const AddUser = () => {
           "Password must contain at least one special character.";
       }
     }
- 
+
     setErrors(newErrors);
     // Show errors in toast notifications
     Object.entries(newErrors).forEach(([field, message]) => {
@@ -92,7 +92,7 @@ const AddUser = () => {
     });
     return newErrors;
   };
- 
+
   // Handle form submission
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,9 +110,9 @@ const AddUser = () => {
     try {
       const response = await createUserApi(userData);
       console.log("Response for creating the new user", response);
- 
+
       const createdUser = response.newUser;
- 
+
       toast.success("User added successfully!");
       // Redirect based on the user's role
       if (createdUser.role && createdUser.role.name === "Admin") {
@@ -129,7 +129,7 @@ const AddUser = () => {
       toast.error("Failed to create user. Please try again later.");
     }
   };
- 
+
   // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -140,15 +140,19 @@ const AddUser = () => {
       [name]: value,
     }));
   };
- 
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
-        <h2 className="text-xl font-metropolis font-semibold mb-4">Add New User</h2>
+        <h2 className="text-xl font-metropolis font-semibold mb-4">
+          Add New User
+        </h2>
         <form>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block font-metropolis font-medium">First Name</label>
+              <label className="block font-metropolis font-medium">
+                First Name
+              </label>
               <input
                 type="text"
                 name="firstName"
@@ -158,7 +162,9 @@ const AddUser = () => {
               />
             </div>
             <div>
-              <label className="block font-metropolis font-medium">Last Name</label>
+              <label className="block font-metropolis font-medium">
+                Last Name
+              </label>
               <input
                 type="text"
                 name="lastName"
@@ -178,7 +184,9 @@ const AddUser = () => {
               />
             </div>
             <div>
-              <label className="block font-metropolis font-medium">Phone Number</label>
+              <label className="block font-metropolis font-medium">
+                Phone Number
+              </label>
               <input
                 type="tel"
                 name="phoneNumber"
@@ -188,7 +196,9 @@ const AddUser = () => {
               />
             </div>
             <div className="relative">
-              <label className="block font-metropolis font-medium">Password</label>
+              <label className="block font-metropolis font-medium">
+                Password
+              </label>
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -209,7 +219,9 @@ const AddUser = () => {
               </button>
             </div>
             <div>
-              <label className="block font-metropolis font-medium">Date of Joining</label>
+              <label className="block font-metropolis font-medium">
+                Date of Joining
+              </label>
               <input
                 type="date"
                 name="dateOfJoining"
@@ -258,5 +270,5 @@ const AddUser = () => {
     </div>
   );
 };
- 
+
 export default AddUser;

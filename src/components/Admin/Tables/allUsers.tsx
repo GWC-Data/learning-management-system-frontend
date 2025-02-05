@@ -80,7 +80,6 @@ const AllUsers: React.FC = () => {
     const colorSet = colors[index % colors.length];
     return `bg-gradient-to-r ${colorSet.join(" ")}`;
   };
-  
 
   const roleIcons: Record<string, JSX.Element> = {
     Admin: <Shield />,

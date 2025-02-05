@@ -45,11 +45,11 @@ const JobCard = () => {
       {jobDataList.map((jobData, index) => (
         <div key={index}>
           <div className="flex flex-col-2 gap-4">
-            <div className="border-2 border-gray-400 w-24 flex justify-center h-28">
+            <div className="border-2 border-gray-400 w-44 flex justify-center h-28">
               <img
                 src={jobData.companyInfo.companyImg}
                 alt="companyImg"
-                className="w-20 h-24"
+                className="w-32 h-20 mt-2"
               />
             </div>
             <div>

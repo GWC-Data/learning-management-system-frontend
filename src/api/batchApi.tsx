@@ -1,12 +1,12 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 // Create a new Batch
 export const createBatchApi = async (newBatch: any) => {
   try {
-    const response = await apiClient.post('/batch', newBatch);
+    const response = await apiClient.post("/batch", newBatch);
     return response.data;
   } catch (error) {
-    console.error('Error creating batch', error);
+    console.error("Error creating batch", error);
     throw error;
   }
 };
@@ -14,11 +14,11 @@ export const createBatchApi = async (newBatch: any) => {
 // Read all Batches
 export const fetchBatchApi = async () => {
   try {
-    const response = await apiClient.get('/batch');
+    const response = await apiClient.get("/batch");
     console.log("read all batches", response.data);
     return response.data;
   } catch (error) {
-    console.error('Failed to fetch Batches', error);
+    console.error("Failed to fetch Batches", error);
     throw error;
   }
 };
@@ -28,7 +28,7 @@ export const fetchBatchByIdApi = async (batchId: number) => {
     const response = await apiClient.get(`/batch/${batchId}`);
     return response.data.batch || [];
   } catch (error) {
-    console.error('Failed to fetch batch by id', error);
+    console.error("Failed to fetch batch by id", error);
     throw error;
   }
 };
@@ -40,7 +40,7 @@ export const updateBatchApi = async (id: number, updatedBatch: any) => {
     console.log("update batch", response.data);
     return response.data;
   } catch (error) {
-    console.error('Error updating Batch', error);
+    console.error("Error updating Batch", error);
     throw error;
   }
 };
@@ -51,7 +51,7 @@ export const deleteBatchApi = async (id: number) => {
     const response = await apiClient.delete(`/batch/${id}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to delete batch', error);
+    console.error("Failed to delete batch", error);
     throw error;
   }
 };

@@ -1,13 +1,13 @@
 // src/api/courseApi.ts
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 // Create a new course
 export const createCourseApi = async (courseData: any) => {
   try {
-    const response = await apiClient.post('/course', courseData);
+    const response = await apiClient.post("/course", courseData);
     return response.data;
   } catch (error) {
-    console.error('Error creating course', error);
+    console.error("Error creating course", error);
     throw error;
   }
 };
@@ -15,10 +15,10 @@ export const createCourseApi = async (courseData: any) => {
 // Read all courses
 export const fetchCourseApi = async () => {
   try {
-    const response = await apiClient.get('/course');
+    const response = await apiClient.get("/course");
     return response.data.course || [];
   } catch (error) {
-    console.error('Failed to fetch courses', error);
+    console.error("Failed to fetch courses", error);
     throw error;
   }
 };
@@ -30,7 +30,7 @@ export const fetchCourseByIdApi = async (courseId: number) => {
     const response = await apiClient.get(`/course/${courseId}`);
     return response || [];
   } catch (error) {
-    console.error('Failed to fetch course by id', error);
+    console.error("Failed to fetch course by id", error);
     throw error;
   }
 };
@@ -41,7 +41,7 @@ export const updateCourseApi = async (courseId: number, courseData: any) => {
     const response = await apiClient.put(`/course/${courseId}`, courseData);
     return response.data;
   } catch (error) {
-    console.error('Error updating course data', error);
+    console.error("Error updating course data", error);
     throw error;
   }
 };
@@ -52,7 +52,7 @@ export const deleteCourseApi = async (courseId: number) => {
     const response = await apiClient.delete(`/course/${courseId}`);
     return response.data;
   } catch (error) {
-    console.error('Failed to delete course', error);
+    console.error("Failed to delete course", error);
     throw error;
   }
 };

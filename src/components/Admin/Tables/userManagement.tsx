@@ -5,16 +5,12 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef } from "ag-grid-community";
 import { toast } from "react-toastify";
 import { Edit, Trash } from "lucide-react";
-import { Button } from "../../components/ui/button";
+import { Button } from "../../ui/button";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
-import {
-  fetchUsersApi,
-  updateUserApi,
-  deleteUserApi,
-} from "@/api/userApi";
+import { fetchUsersApi, updateUserApi, deleteUserApi } from "@/api/userApi";
 
 import { fetchRolesApi } from "@/api/roleApi";
 
@@ -88,10 +84,10 @@ const UserManagement: React.FC = () => {
   };
 
   useEffect(() => {
-  setSelectedUser(null);
-  setFormData(null);
-  setIsModalOpen(false);
-  
+    setSelectedUser(null);
+    setFormData(null);
+    setIsModalOpen(false);
+
     if (roleName) {
       fetchUsersAndRoles(roleName); // Fetch filtered users for the role
     }
@@ -147,74 +143,77 @@ const UserManagement: React.FC = () => {
   ];
 
   const handleEditClick = (user: User) => {
-          setSelectedUser(user);
-          setFormData({
-            ...user,
-            dateOfBirth: user.dateOfBirth ? format(new Date(user.dateOfBirth), 'yyyy-MM-dd') : '',
-          });
-          setIsModalOpen(true);
-        };
-        // Handle form field changes
-        const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-          const { name, value } = e.target;
-          setFormData((prev) => prev ? { ...prev, [name]: value } : null);
-        };
-     
-      //edit user
-      const editUser = (userToEdit: User) => {
-        if (!formData) {
-          toast.error("Form data is missing!");
-          return;
-        }
+    setSelectedUser(user);
+    setFormData({
+      ...user,
+      dateOfBirth: user.dateOfBirth
+        ? format(new Date(user.dateOfBirth), "yyyy-MM-dd")
+        : "",
+    });
+    setIsModalOpen(true);
+  };
+  // Handle form field changes
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
+  };
 
-        console.log('formdata', formData)
-        // Prepare updated user data with the formData
-        const updatedUser = {
-          ...userToEdit,
-          lastName: formData?.lastName || userToEdit.lastName,
-          firstName: formData?.firstName || userToEdit.firstName,
-          email: formData?.email || userToEdit.email,
-          dateOfBirth: formData?.dateOfBirth,
-          phoneNumber: formData?.phoneNumber,
-          address: formData?.address,
-          qualification: formData?.qualification,
-          accountStatus: formData?.accountStatus,
-          dateOfJoining: formData?.dateOfJoining
-            ? format(new Date(formData?.dateOfJoining), "yyyy-MM-dd")
-            : userToEdit.dateOfJoining,
-        };
-     
-     
-        const token = getToken();
-        if (!token) {
-          toast.error("Authorization token not found!");
-          return;
-        }
-     
-        console.log("Updating user with data:", updatedUser);
-     
-        axios
-          .put(`/users/${userToEdit.id}`, updatedUser, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          })
-          .then((response) => {
-            console.log("User updated:", response.data);
-            toast.success("User updated successfully!");
-            setUserData((prevData) =>
-              prevData.map((user) =>
-                user.id === userToEdit.id ? { ...user, ...updatedUser } : user
-              )
-            );
-            setSelectedUser(null);
-            setIsModalOpen(false); // Optionally close the edit form here
-          })
-          .catch((error) => {
-            console.error("Error updating user:", error);
-            toast.error(error.response?.data?.message || "Failed to update user.");
-          });
-      };
+  //edit user
+  const editUser = (userToEdit: User) => {
+    if (!formData) {
+      toast.error("Form data is missing!");
+      return;
+    }
+
+    console.log("formdata", formData);
+    // Prepare updated user data with the formData
+    const updatedUser = {
+      ...userToEdit,
+      lastName: formData?.lastName || userToEdit.lastName,
+      firstName: formData?.firstName || userToEdit.firstName,
+      email: formData?.email || userToEdit.email,
+      dateOfBirth: formData?.dateOfBirth,
+      phoneNumber: formData?.phoneNumber,
+      address: formData?.address,
+      qualification: formData?.qualification,
+      accountStatus: formData?.accountStatus,
+      dateOfJoining: formData?.dateOfJoining
+        ? format(new Date(formData?.dateOfJoining), "yyyy-MM-dd")
+        : userToEdit.dateOfJoining,
+    };
+
+    const token = getToken();
+    if (!token) {
+      toast.error("Authorization token not found!");
+      return;
+    }
+
+    console.log("Updating user with data:", updatedUser);
+
+    axios
+      .put(`/users/${userToEdit.id}`, updatedUser, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        console.log("User updated:", response.data);
+        toast.success("User updated successfully!");
+        setUserData((prevData) =>
+          prevData.map((user) =>
+            user.id === userToEdit.id ? { ...user, ...updatedUser } : user
+          )
+        );
+        setSelectedUser(null);
+        setIsModalOpen(false); // Optionally close the edit form here
+      })
+      .catch((error) => {
+        console.error("Error updating user:", error);
+        toast.error(error.response?.data?.message || "Failed to update user.");
+      });
+  };
 
   // Function to open the delete confirmation modal
   const confirmDeleteUser = (data: User) => {
@@ -275,7 +274,9 @@ const UserManagement: React.FC = () => {
       {/* Edit Form - Conditional Rendering */}
       {selectedUser && (
         <div className="bg-white p-4 rounded shadow-md mb-6">
-          <h3 className="text-xl font-metropolis font-semibold mb-4">Edit User</h3>
+          <h3 className="text-xl font-metropolis font-semibold mb-4">
+            Edit User
+          </h3>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -283,7 +284,9 @@ const UserManagement: React.FC = () => {
             }}
           >
             <div className="mb-4">
-              <label className="block font-metropolis font-medium">First Name</label>
+              <label className="block font-metropolis font-medium">
+                First Name
+              </label>
               <input
                 type="text"
                 name="firstName"
@@ -293,7 +296,9 @@ const UserManagement: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block font-metropolis font-medium">Last Name</label>
+              <label className="block font-metropolis font-medium">
+                Last Name
+              </label>
               <input
                 type="text"
                 name="lastName"
@@ -329,7 +334,9 @@ const UserManagement: React.FC = () => {
               </select>
             </div>
             <div className="mb-4">
-              <label className="block font-metropolis font-medium">Date of Birth</label>
+              <label className="block font-metropolis font-medium">
+                Date of Birth
+              </label>
               <input
                 type="date"
                 name="dateOfBirth"
@@ -339,7 +346,9 @@ const UserManagement: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block font-metropolis font-medium">PhoneNumber</label>
+              <label className="block font-metropolis font-medium">
+                PhoneNumber
+              </label>
               <input
                 type="number"
                 name="phoneNumber"
@@ -349,7 +358,9 @@ const UserManagement: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block font-metropolis font-medium">Address</label>
+              <label className="block font-metropolis font-medium">
+                Address
+              </label>
               <input
                 type="text"
                 name="address"
@@ -359,7 +370,9 @@ const UserManagement: React.FC = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block font-metropolis font-medium">Qualification</label>
+              <label className="block font-metropolis font-medium">
+                Qualification
+              </label>
               <input
                 type="text"
                 name="qualification"

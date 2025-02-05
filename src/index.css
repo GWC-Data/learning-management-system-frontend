@@ -207,4 +207,8 @@
 *::-webkit-scrollbar {
   display: none
   }
+
+* {
+  display: fixed;
+}
    

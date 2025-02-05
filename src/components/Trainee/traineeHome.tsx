@@ -1,7 +1,6 @@
 import React from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "./ProfilePage/SideBar/sideBar";
-import CoursePage from "./ProfilePage/EnrolledCourses/CoursePage/coursePage";
 
 interface TraineeProb {
   isAuthenticated: boolean;
@@ -15,7 +14,6 @@ const TraineeHome: React.FC<TraineeProb> = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
- 
       <div className="flex flex-1">
         {/* Sidebar only if not on settings page */}
         {!isSettingsPage && (
@@ -25,9 +23,10 @@ const TraineeHome: React.FC<TraineeProb> = () => {
         )}
 
         {/* Main Content Area */}
-        <main className={`flex-1 ${isSettingsPage ? "p-8 bg-green-100" : "p-4"}`}>
-          
-         <Outlet />
+        <main
+          className={`flex-1 ${isSettingsPage ? "p-8 bg-green-100" : "p-4"}`}
+        >
+          <Outlet />
         </main>
       </div>
     </div>
@@ -35,4 +34,3 @@ const TraineeHome: React.FC<TraineeProb> = () => {
 };
 
 export default TraineeHome;
-

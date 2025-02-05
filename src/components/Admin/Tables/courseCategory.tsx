@@ -1,4 +1,4 @@
-import { Button } from "../../components/ui/button";
+import { Button } from "../../ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
@@ -7,12 +7,15 @@ import { toast } from "sonner";
 import { Edit, Trash, Eye } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { ColDef } from "ag-grid-community";
+
+import { useDispatch, useSelector } from "react-redux";
+
 import {
-  fetchCourseCategoryApi,
-  deleteCourseCategoryApi,
-  createCourseCategoryApi,
-  updateCourseCategoryApi,
-} from "@/api/courseCategoryApi";
+  fetchCourseCategoryRequest,
+  deleteCourseCategoryRequest,
+  addCourseCategoryRequest,
+  updateCourseCategoryRequest,
+} from "@/store/courseCategory/action";
 
 // TypeScript types for the component props
 interface CourseCategoryTableProps {
@@ -27,11 +30,14 @@ interface CourseCategoryData {
   courseCategoryImg: string;
 }
 
-const getToken = () => localStorage.getItem("authToken");
-
 const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
-  const [categoryData, setCategoryData] = useState<CourseCategoryData[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const dispatch = useDispatch();
+  // Fetch data from Redux store
+  const categoryData = useSelector(
+    (state: any) => state.courseCategory.courseCategory
+  );
+  const loading = useSelector((state: any) => state.courseCategory.loading);
+
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -48,6 +54,10 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     description: "",
     courseCategoryImg: "",
   });
+
+  useEffect(() => {
+    dispatch(fetchCourseCategoryRequest()); // Dispatches correctly
+  }, [dispatch]);
 
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
@@ -68,6 +78,8 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     return newErrors;
   };
 
+  console.log("Category Data", categoryData);
+
   // Convert file to base64 with prefix
   const convertFileToBase64 = (file: File) => {
     const reader = new FileReader();
@@ -78,12 +90,11 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     });
   };
 
-  console.log(newCategory.courseCategoryImg);
-
   // When an image is dropped/uploaded
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]; // Handle single file upload
     setUploadedFile(file);
+    console.log("file", file);
 
     // Convert the file to base64
     convertFileToBase64(file).then((base64) => {
@@ -96,37 +107,6 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     accept: { "image/*": [] },
     multiple: false, // Single file upload
   });
-
-  const fetchCourseCategoryData = async () => {
-    try {
-      const courseCategoryData = await fetchCourseCategoryApi();
-      const imageUrls = courseCategoryData.map(
-        (category: { courseCategoryImg: string }) => {
-          if (category.courseCategoryImg) {
-            // No need to convert base64, it can be used directly
-            return category.courseCategoryImg;
-          }
-          return null; // Handle missing images
-        }
-      );
-
-      setCategoryData(
-        courseCategoryData.map((category: any, index: string | number) => ({
-          ...category,
-          courseCategoryImg: imageUrls[index] || null, // Assign base64 string
-        }))
-      );
-    } catch (error) {
-      console.error("Failed to fetch course categories", error);
-      toast.error("Failed to fetch course categories. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCourseCategoryData();
-  }, []);
 
   const addNewRow = () => {
     setEditing(false);
@@ -141,11 +121,8 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   };
 
   const confirmDeleteCategory = (data: CourseCategoryData) => {
-    const category = categoryData.find((category) => category.id === data.id);
-    if (category) {
-      setCategoryToDelete(category);
-      setIsDeleteModalOpen(true);
-    }
+    setCategoryToDelete(data);
+    setIsDeleteModalOpen(true);
   };
 
   // Function to handle viewing a row
@@ -155,21 +132,10 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     setIsModalOpen(false); // Close the modal
   };
 
-  const handleDeleteCategoryData = async () => {
+  const handleDeleteCategoryData = () => {
     if (!categoryToDelete) return;
-    try {
-      await deleteCourseCategoryApi(categoryToDelete.id);
-      setCategoryData((prev) =>
-        prev.filter((category) => category.id !== categoryToDelete.id)
-      );
-      toast.success("Category deleted successfully!");
-    } catch (error) {
-      console.error("Failed to delete category", error);
-      toast.error("Failed to delete the category. Please try again later.");
-    } finally {
-      setIsDeleteModalOpen(false);
-      setCategoryToDelete(null);
-    }
+    dispatch(deleteCourseCategoryRequest(categoryToDelete.id)); // Dispatch Redux action
+    setIsDeleteModalOpen(false);
   };
 
   const handleCancelDelete = () => {
@@ -178,15 +144,9 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   };
 
   const editCategory = (data: any) => {
-    const categoryToEdit = categoryData.find(
-      (category) => category.id === data.id
-    );
-    console.log("categoryToEdit", categoryToEdit);
-    if (categoryToEdit) {
-      setEditing(true);
-      setNewCategory(categoryToEdit);
-      setIsModalOpen(true);
-    }
+    setEditing(true);
+    setNewCategory(data);
+    setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
@@ -199,55 +159,20 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     });
   };
 
-  const handleFormSubmit = async () => {
-    const token = getToken();
-    if (!token) {
-      toast.error("You must be logged in to perform this action.");
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // Prevents form from reloading the page
+
+    const validationErrors = validateFields();
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
-    const validationErrors = validateFields();
-    // Check if there are any validation errors
-    if (Object.keys(validationErrors).length > 0) {
-      return; // Stop further execution if errors exist
-    }
-
     if (editing) {
-      // Check if the newCategory.id is correctly set
-      if (!newCategory.id) {
-        console.error("Category ID is missing for update");
-        toast.error("Category ID is missing.");
-        return;
-      }
-
-      try {
-        const updatedCategory = await updateCourseCategoryApi(
-          newCategory.id,
-          newCategory
-        );
-        setCategoryData((prev) =>
-          prev.map((category) =>
-            category.id === newCategory.id ? updatedCategory : category
-          )
-        );
-        toast.success("Category updated successfully!");
-      } catch (error) {
-        console.error("Failed to update category", error);
-        toast.error("Failed to update the category. Please try again later.");
-      }
+      dispatch(updateCourseCategoryRequest(newCategory));
     } else {
-      try {
-        const newCategoryData = await createCourseCategoryApi(newCategory);
-        setCategoryData((prev) => [...prev, newCategoryData]);
-        toast.success("Category added successfully!");
-      } catch (error) {
-        console.error("Failed to add category", error);
-        toast.error("Failed to add the category. Please try again later.");
-      }
+      dispatch(addCourseCategoryRequest(newCategory));
     }
 
-    // Refresh the component by fetching updated data
-    await fetchCourseCategoryData();
     handleModalClose();
   };
 
@@ -352,7 +277,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
           animateRows
         />
       </div>
-    
+
       {viewingCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -505,6 +430,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 </Button>
                 <Button
                   onClick={handleFormSubmit}
+                  type="submit"
                   className="bg-custom-gradient-btn text-white px-4 py-2 
                 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"

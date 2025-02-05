@@ -19,9 +19,7 @@ const Sidebar: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
   const location = useLocation(); // To determine the current active route
-  const isActiveUsers = location.pathname.startsWith(
-    "/admin/allUsers"
-  );
+  const isActiveUsers = location.pathname.startsWith("/admin/allUsers");
 
   return (
     <div className="flex h-full min-h-0 text-gray-700">
@@ -63,7 +61,6 @@ const Sidebar: React.FC = () => {
                   isActive={isActiveUsers}
                 />
 
-
                 <SidebarButton
                   icon={<Grid />}
                   label="Courses"
@@ -84,6 +81,13 @@ const Sidebar: React.FC = () => {
                   label="Course Assignment"
                   to="/admin/file-uploader"
                   isActive={location.pathname === "/admin/file-uploader"}
+                />
+
+                <SidebarButton
+                  icon={<File />}
+                  label="Excel File Uploader"
+                  to="/admin/excel-file-uploader"
+                  isActive={location.pathname === "/admin/excel-file-uploader"}
                 />
               </div>
             )}

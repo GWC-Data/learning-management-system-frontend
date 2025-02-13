@@ -17,14 +17,14 @@ const TraineeHome: React.FC<TraineeProb> = () => {
       <div className="flex flex-1">
         {/* Sidebar only if not on settings page */}
         {!isSettingsPage && (
-          <aside className="w-[320px] bg-[#8ce1bc] p-4 font-semibold">
+          <aside className="w-[320px] bg-[#ffff] p-4 font-semibold shadow-2xl">
             <Sidebar />
           </aside>
         )}
 
         {/* Main Content Area */}
         <main
-          className={`flex-1 ${isSettingsPage ? "p-8 bg-green-100" : "p-4"}`}
+          className={`flex-1 ${isSettingsPage ? "p-8 bg-[#d5afe3]" : "p-4"}`}
         >
           <Outlet />
         </main>

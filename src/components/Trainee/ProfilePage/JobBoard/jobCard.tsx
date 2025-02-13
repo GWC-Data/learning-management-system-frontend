@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { fetchJobBoardApi } from "@/api/jobBoardApi";
+import { fetchJobBoardsApi } from "@/helpers/api/jobBoardApi";
 import { useEffect, useState } from "react";
 
 interface JobData {
@@ -23,7 +23,7 @@ const JobCard = () => {
   // Fetch job data from API
   const jobBoard = async () => {
     try {
-      const response = await fetchJobBoardApi("/job-board");
+      const response = await fetchJobBoardsApi();
       console.log(response);
       setJobDataList(response); // Set the response data into the state
     } catch (error) {
@@ -57,7 +57,7 @@ const JobCard = () => {
                 <p className="text-green-700">{jobData.jobType}</p>
               </div>
 
-              <h2 className="text-2xl font-bold text-[#2a4d79]">
+              <h2 className="text-2xl font-bold text-[#130342]">
                 {jobData.jobRole}
               </h2>
               <p className="text-gray-600 text-xl">
@@ -101,7 +101,7 @@ const JobCard = () => {
                 href={jobData.jobLink}
                 target="_blank"
                 rel="noreferrer"
-                className=" bg-[#2a4d79] flex flex-col-2 gap-2 p-3 rounded-lg hover:underline"
+                className=" bg-[#130342] flex flex-col-2 gap-2 p-3 rounded-lg hover:underline"
               >
                 Apply Now
                 <svg

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify"; // Assuming you're using react-toastify for error handling
-import { fetchBatchIdByTraineeIdApi } from "@/api/batchTrainee";
-import { fetchBatchByIdApi } from "@/api/batchApi";
+import { fetchBatchIdByTraineeIdApi } from "@/helpers/api/batchTrainee";
+import { fetchBatchByIdApi } from "@/helpers/api/batchApi";
 
 
 const MyCourses: React.FC = () => {
@@ -79,8 +79,10 @@ const MyCourses: React.FC = () => {
   }
 
   return (
-    <div className="bg-gradient-to-r from-green-200 to-blue-200 p-6 rounded shadow w-[800px] mx-auto h-[auto] -mt-8">
-      <h2 className="text-xl font-bold">My Courses</h2>
+    <div className="bg-[#EADCF1] p-6 rounded-lg shadow-lg w-[800px] mx-auto h-[auto] -mt-8">
+      {/* Lavender Mist */}
+  
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">My Courses</h2>
       
       {/* Course Table */}
       <div className="overflow-y-auto mt-10 h-[350px] space-y-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">

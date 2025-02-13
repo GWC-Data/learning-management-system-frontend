@@ -9,8 +9,8 @@ import { Toaster } from "sonner";
 
 import Home from "./components/Admin/Home/Home";
 import Nav from "./components/Navbar/Nav";
-import Footer from "./components/Trainee/Footer/Footer";
-import Login from "./components/Navbar/Login";
+import Footer from "./components/Footer/Footer";
+import Login from "./components/Login/Login";
 import ProtectedRoute from "./components/protectedRoute";
 
 import Dashboard from "./components/Admin/Dashboard/Dashboard";
@@ -26,6 +26,7 @@ import CourseModuleTable from "./components/Admin/Tables/courseModule";
 import BatchModuleScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
 import AdminCourseAssignments from "./components/Admin/Tables/courseAssignment";
 import ExcelfileUploader from "./components/Admin/Tables/excelFileUploader";
+import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
 
 import TraineeHome from "./components/Trainee/traineeHome";
 import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
@@ -37,6 +38,7 @@ import EnrolledCourses from "./components/Trainee/ProfilePage/EnrolledCourses/en
 
 import TrainerHelloWorld from "./components/Trainer/TrainerHelloWorld";
 import JobBoard from "./components/Trainee/ProfilePage/JobBoard/jobBoard";
+
 
 interface AppRouterProps {
   isAuthenticated: boolean;
@@ -76,6 +78,8 @@ const AppRouter: React.FC<AppRouterProps> = ({
           />
           <Route path="manage-permissions" element={<PermissionRoles />} />
           <Route path="file-uploader" element={<AdminCourseAssignments/>}/>
+          <Route path="company-info" element={<CompanyInfoTable/>}/>
+      
           <Route path="excel-file-uploader" element={<ExcelfileUploader/>}/>
           <Route path="batch-management" element={<BatchTable />} />
           <Route path="course-module" element={<CourseModuleTable />} />

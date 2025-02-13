@@ -15,7 +15,7 @@ import {
   deleteCourseCategoryRequest,
   addCourseCategoryRequest,
   updateCourseCategoryRequest,
-} from "@/store/courseCategory/action";
+} from "@/store/courseCategory/actions";
 
 // TypeScript types for the component props
 interface CourseCategoryTableProps {
@@ -146,6 +146,12 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   const editCategory = (data: any) => {
     setEditing(true);
     setNewCategory(data);
+    setNewCategory({
+      id: data.id,
+      courseCategory: data.courseCategory,
+      description: data.description || "",
+      courseCategoryImg: data.courseCategoryImg
+    });
     setIsModalOpen(true);
   };
 
@@ -413,7 +419,14 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                     <p className="text-green-600 font-metropolis font-semibold mt-6">
                       {uploadedFile.name}
                     </p>
-                  ) : (
+                      ) : newCategory.courseCategoryImg ? (
+                        // Show the existing image when editing
+                        <img
+                          src={newCategory.courseCategoryImg}
+                          alt="Company"
+                          className="w-full h-24 object-cover rounded"
+                        />
+                      ) : (
                     <p className="text-gray-400 font-semibold">
                       Drag & drop a file here, or click to select one
                     </p>

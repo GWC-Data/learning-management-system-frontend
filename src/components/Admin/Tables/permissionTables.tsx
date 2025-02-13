@@ -11,7 +11,7 @@ import {
   createPermissionApi,
   updatePermissionApi,
   deletePermissionApi,
-} from "@/api/permissionApi";
+} from "@/helpers/api/permissionApi";
 
 // TypeScript types for the component props
 interface PermissionTableProps {

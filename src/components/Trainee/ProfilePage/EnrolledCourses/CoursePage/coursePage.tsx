@@ -1,48 +1,75 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
 import CourseHeader from "../CourseHeader/courseHeader";
 import Mainbar from "../MainBar/mainBar";
 import CourseContent from "../CourseContent/courseContent";
-import CourseAssignments from "../MainBar/courseAssignments";
+import { fetchBatchByNameRequest } from "@/store/batch/actions";
 
 const CoursePage: React.FC = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
-  const course = location.state; // Access the passed course data
+  const [batchName, setBatchName] = useState("");
+  const [selectedClass, setSelectedClass] = useState<any>(null); // ✅ Store selected class
 
-  if (!course) {
-    // Handle the case where course data is not available
-    return <div>Error: Course data not found.</div>;
-  }
+  // ✅ Extract Batch Name from URL
+  useEffect(() => {
+    const extractPath = () => {
+      const hash = window.location.hash.replace("#", ""); // Remove `#`
+      const parts = hash.split("/"); // Split into segments
+      let lastPart = parts.pop() || ""; // Get the last segment
 
-  console.log("Course Data:", course);
+      lastPart = decodeURIComponent(lastPart) // Convert `%20` to spaces
+        .split(" ") // Split into words
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
+        .join(" "); // Join back into a single string
 
-  // State for the recorded video link
-  const [recordedLink, setRecordedLink] = useState<string | null>(null);
-  const [selectedModuleDetails, setSelectedModuleDetails] = useState<{
-    name: string;
-    description: string;
-  } | null>(null);
+      setBatchName(lastPart);
+    };
+
+    extractPath(); // Run on mount
+    window.addEventListener("hashchange", extractPath); // Listen for hash changes
+
+    return () => {
+      window.removeEventListener("hashchange", extractPath); // Cleanup event listener
+    };
+  }, []);
+
+  console.log("🔗 Extracted Batch Name:", batchName);
+
+  // ✅ Fetch batch data when batchName is available
+  useEffect(() => {
+    if (batchName) {
+      console.log("📡 Fetching batch data for:", batchName);
+      dispatch(fetchBatchByNameRequest(batchName));
+    }
+  }, [batchName, dispatch]);
+
+  // ✅ Get batch data from Redux
+  const batch = useSelector(
+    (state: any) => state.batch.batchDataByName || null
+  );
+
+  console.log("📝 Redux Batch Data:", batch);
 
   return (
-    <>
-      <CourseHeader course={course} />
-      {/* Main Content Row */}
-      <div className="flex flex-row w-[780px] h-[calc(80vh-8rem)]  gap-4">
-        <div className="flex-3 bg-white p-4">
-          <Mainbar course={course} recordedLink={recordedLink} selectedModuleDetails={selectedModuleDetails}/>{" "}
-          {/* Pass recordedLink to Mainbar */}
-        </div>
-        <div className="flex-1 bg-white p-4">
-          <CourseContent course={course} setRecordedLink={setRecordedLink} setSelectedModuleDetails={setSelectedModuleDetails} />{" "}
-          {/* Pass setRecordedLink to CourseContent */}
-        </div>
-      </div>
+    <div className=" bg-gray-100 -ml-10">
+      {/* Course Header */}
+      <CourseHeader />
 
-      {/* Full-width CourseAssignments */}
-      <div className="w-full px-6 mt-[100px]">
-        <CourseAssignments />
+      {/* Main Content */}
+      <div className="flex flex-row flex-grow gap-8 p-4 max-w-7xl mx-auto mt-4">
+        {/* Left Section - Mainbar */}
+        <div className="flex-[3] bg-white rounded-xl shadow-md border border-gray-300">
+          <Mainbar selectedClass={selectedClass} />
+        </div>
+
+        {/* Right Section - Course Content */}
+        <div className="flex-[1] bg-white p-5 rounded-xl shadow-md border border-gray-300 h-[600px]">
+          <CourseContent setSelectedClass={setSelectedClass} />
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 

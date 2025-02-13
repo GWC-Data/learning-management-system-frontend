@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { fetchUsersbyIdApi, updateUserApi } from "../../../api/userApi"; // Import API functions
+import { fetchUsersbyIdApi, updateUserApi } from "../../../helpers/api/userApi"; // Import API functions
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import CameraIcon from "../../../icons/photo-camera.png";
@@ -142,8 +142,8 @@ const ProfileSettings: React.FC = () => {
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-lg w-[1400px] mt-20 mb-20 font-metropolis ml-[140px]">
-      <div className="bg-custom-gradient p-16 rounded-lg">
-        <h2 className="text-2xl font-semibold text-center">Profile Settings</h2>
+      <div className="bg-gradient-to-r from-[#6E2B8B] to-[#9A5EB5] p-16 rounded-lg">
+        <h2 className="text-2xl font-semibold text-center text-white">Profile Settings</h2>
       </div>
 
       <div className="grid grid-cols-2 mt-10 mb-10">
@@ -292,7 +292,7 @@ const ProfileSettings: React.FC = () => {
             <div>
               <button
                 type="submit"
-                className="bg-blue-600 text-white p-3 rounded-lg"
+                className="bg-[#6E2B8B] text-white p-3 rounded-lg"
               >
                 Save Changes
               </button>
@@ -308,7 +308,7 @@ const ProfileSettings: React.FC = () => {
             <button
               type="button"
               onClick={handleEditClick}
-              className="bg-green-600 text-white p-3 rounded-lg"
+              className="bg-[#6E2B8B] text-white p-3 rounded-lg"
             >
               Edit Profile
             </button>

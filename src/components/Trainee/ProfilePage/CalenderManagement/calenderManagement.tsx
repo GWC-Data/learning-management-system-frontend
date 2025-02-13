@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { toast } from "sonner";
-import { fetchBatchIdByTraineeIdApi } from "@/api/batchTrainee";
-import { fetchBatchByIdApi } from "@/api/batchApi";
-import { fetchBatchModuleScheduleByBatchIdApi } from "@/api/batchModuleScheduleApi";
-import { fetchCourseAssignmentbybatchIdApi } from "@/api/courseAssignmentApi";
-import { fetchUsersbyIdApi } from "@/api/userApi";
-import { createAssignmentCompletionsApi } from "@/api/assignmentCompletionsApi";
+import { fetchBatchIdByTraineeIdApi } from "@/helpers/api/batchTrainee";
+import { fetchBatchByIdApi } from "@/helpers/api/batchApi";
+import { fetchBatchModuleScheduleByBatchIdApi } from "@/helpers/api/batchModuleScheduleApi";
+import { fetchCourseAssignmentbybatchIdApi } from "@/helpers/api/courseAssignmentApi";
+import { fetchUsersbyIdApi } from "@/helpers/api/userApi";
+import { createAssignmentCompletionsApi } from "@/helpers/api/assignmentCompletionsApi";
+import { useNavigate } from "react-router-dom";
+import { fetchClassForModuleByModuleIdApi } from "@/helpers/api/classForModuleApi";
 
 interface CalendarEvent {
   title: string;
@@ -21,6 +23,11 @@ interface CalendarEvent {
   endTime: string;
   startDateModule: string;
   endDateModule: string;
+  classDate: Date;
+  classDescription: string;
+  classRecordedLink: string;
+  classTitle: string;
+  isPastEvent?: boolean; // Add isPastEvent to CalendarEvent
 }
 
 // Event Interface for Assignments
@@ -75,6 +82,8 @@ const Calendar: React.FC = () => {
 
   const getToken = () => localStorage.getItem("authToken");
 
+  const navigate = useNavigate();
+
   const getUserId = () => {
     const token = getToken();
     if (token) {
@@ -116,6 +125,18 @@ const Calendar: React.FC = () => {
         const modules = await fetchBatchModuleScheduleByBatchIdApi(id);
         console.log("Modules for Batch", id, modules);
 
+        const moduleIds = modules.map((module: any) => module.moduleId);
+        console.log("Module IDs", moduleIds);
+
+        // Fetch classes for each moduleId
+        const classDataArray = await Promise.all(
+          moduleIds.map((moduleId: any) =>
+            fetchClassForModuleByModuleIdApi(moduleId)
+          )
+        );
+
+        console.log("All Class Data:", classDataArray);
+
         const assignmentData: Assignment[] =
           await fetchCourseAssignmentbybatchIdApi(id);
         console.log("Assignment Data", assignmentData);
@@ -127,6 +148,28 @@ const Calendar: React.FC = () => {
           modules.forEach((module) => {
             const moduleStart = moment(module.startDate);
             const moduleEnd = moment(module.endDate);
+
+            // Updated code to filter class data based on module start and end dates
+            const mappedClassData = classDataArray.flatMap((moduleClasses) =>
+              moduleClasses
+                .filter(
+                  (classItem: any) =>
+                    moment(classItem.classDate).isSameOrAfter(
+                      moment(module.startDate)
+                    ) &&
+                    moment(classItem.classDate).isSameOrBefore(
+                      moment(module.endDate)
+                    )
+                )
+                .map((classItem: any) => ({
+                  classDate: classItem?.classDate || "",
+                  classDescription: classItem?.classDescription || "",
+                  classRecordedLink: classItem?.classRecordedLink || "",
+                  classTitle: classItem?.classTitle || "",
+                }))
+            );
+
+            console.log(mappedClassData, 'mappedClassData')
 
             while (moduleStart.isSameOrBefore(moduleEnd)) {
               if (moduleStart.day() !== 0) {
@@ -148,6 +191,23 @@ const Calendar: React.FC = () => {
                     )
                     .join(", "),
                   duration: module.duration,
+                  isPastEvent: moment(moduleStart).isBefore(moment(), "day"), // Determine if it's a past event
+                  classDate:
+                    mappedClassData.length > 0
+                      ? mappedClassData[0].classDate
+                      : null,
+                  classDescription:
+                    mappedClassData.length > 0
+                      ? mappedClassData[0].classDescription
+                      : "",
+                  classRecordedLink:
+                    mappedClassData.length > 0
+                      ? mappedClassData[0].classRecordedLink
+                      : "",
+                  classTitle:
+                    mappedClassData.length > 0
+                      ? mappedClassData[0].classTitle
+                      : "",
                 });
               }
               lastModuleEnd = moduleStart.clone(); // ✅ Update lastModuleEnd safely
@@ -155,6 +215,7 @@ const Calendar: React.FC = () => {
             }
           });
         }
+        console.log(courseDetails, "courseDetails");
 
         // Process course assignments
         if (assignmentData && Array.isArray(assignmentData)) {
@@ -195,6 +256,11 @@ const Calendar: React.FC = () => {
               batchId: id,
               trainers: "No Trainers Assigned",
               duration: 0,
+              isPastEvent: false, // Mark this as not a past event
+              classDate: new Date(),
+              classDescription: "",
+              classRecordedLink: "",
+              classTitle: "",
             });
           }
         }
@@ -242,11 +308,6 @@ const Calendar: React.FC = () => {
     // console.log("Checking assignments for:", day.format("YYYY-MM-DD"));
     console.log("All Assignments:", assignments);
 
-    // return assignments.filter((assignment) => {
-    //   const assignmentEndDate = moment(assignment.end).format("YYYY-MM-DD");
-
-    //   return assignmentEndDate;
-    // });
     console.log(
       "assign",
       assignments.filter((assignment) =>
@@ -350,6 +411,16 @@ const Calendar: React.FC = () => {
     reader.readAsDataURL(selectedFile); // Converts the file to a Base64 string
   };
 
+  const handleWatchRecording = () => {
+    if (selectedEvent) {
+      // ✅ Convert title to lowercase, preserving numbers and hyphens
+      const formattedTitle = selectedEvent.title
+        .toLowerCase()
+        .replace(/\s+/g, "%20");
+      navigate(`/trainee/enrolledCourses/${formattedTitle}`);
+    }
+  };
+
   useEffect(() => {
     assignments.forEach((assignment) => {
       fetchTrainerNames(assignment.trainer); // Fetch trainer for each assignment
@@ -357,13 +428,13 @@ const Calendar: React.FC = () => {
   }, [assignments]);
 
   return (
-    <div className="h-[900px] bg-gradient-to-r from-green-100 to-green-300 p-4">
+    <div className="h-[900px] p-4">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         {/* Calendar Header */}
-        <div className="p-4 flex justify-between items-center bg-green-600 text-white">
+        <div className="p-4 flex justify-between items-center bg-[#6e2b8b] text-white">
           <button
             onClick={() => changeWeek(-1)}
-            className="px-4 py-2 rounded hover:bg-green-700"
+            className="px-4 py-2 rounded hover:bg-white hover:text-black"
           >
             Previous Week
           </button>
@@ -373,7 +444,7 @@ const Calendar: React.FC = () => {
           </h2>
           <button
             onClick={() => changeWeek(1)}
-            className="px-4 py-2 rounded hover:bg-green-700"
+            className="px-4 py-2 rounded hover:bg-white hover:text-black"
           >
             Next Week
           </button>
@@ -384,7 +455,7 @@ const Calendar: React.FC = () => {
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
             <div
               key={day}
-              className="bg-green-50 hover:bg-white p-2 text-center font-semibold"
+              className="bg-[#FAF2FD] hover:bg-white p-2 text-center font-semibold"
             >
               {day}
             </div>
@@ -406,54 +477,54 @@ const Calendar: React.FC = () => {
               <div
                 key={index}
                 className={`min-h-[200px] p-2 transition-colors ${
-                  isToday ? "bg-green-50" : "bg-white"
-                } ${isSunday ? "bg-gray-100" : "hover:bg-green-50"} ${
+                  isToday ? "bg-gray-50" : "bg-white"
+                } ${isSunday ? "bg-gray-100" : "hover:bg-gray-200"} ${
                   isPastDay ? "bg-gray-50" : ""
                 }`}
               >
                 {/* Display Date */}
                 <div
-                  className={`font-semibold text-sm mb-1 ${isToday ? "text-green-600" : ""}`}
+                  className={`font-semibold text-sm mb-1 ${isToday ? "text-[#6E2B8B]" : ""}`}
                 >
                   {day.format("D")}
                 </div>
 
                 <div className="max-h-[2000px] overflow-y-auto">
                   {/* === MODULES LIST (EVENTS) === */}
-                  {dayEvents.length > 0 && (
-                    <div className="mb-2">
-                      <div className="text-xs font-bold text-green-700 mb-1">
-                        Modules
-                      </div>
-                      {dayEvents.map((event, eventIndex) => {
-                        const isPastEvent = moment(event.start).isBefore(
-                          moment(),
-                          "day"
-                        );
-                        console.log("events", event.start);
+                  {dayEvents.length > 0 &&
+                    dayEvents.some((event) => event.module !== "No Module") && (
+                      <div className="mb-2">
+                        <div className="text-xs font-bold text-[#6E2B8B] mb-1">
+                          Modules
+                        </div>
+                        {dayEvents.map((event, eventIndex) => {
+                          if (event.module === "No Module") return null; // ✅ Skip rendering No Module events
 
-                        console.log("isPastEvent", isPastEvent);
-                        return (
-                          <div
-                            key={`event-${eventIndex}`}
-                            onClick={() => handleDayClick(event)}
-                            className={`text-xs p-2 mb-1 rounded cursor-pointer ${
-                              isPastEvent
-                                ? "line-through text-gray-400 cursor-not-allowed"
-                                : "bg-green-100 hover:bg-green-300"
-                            }`}
-                            style={isPastEvent ? { pointerEvents: "none" } : {}}
-                          >
-                            <div className="font-semibold">{event.title}</div>
-                            <div>
-                              {event.startTime} - {event.endTime}
+                          const isPastEvent = moment(event.start).isBefore(
+                            moment(),
+                            "day"
+                          );
+
+                          return (
+                            <div
+                              key={`event-${eventIndex}`}
+                              onClick={() => handleDayClick(event)}
+                              className={`text-xs p-2 mb-1 rounded cursor-pointer ${
+                                isPastEvent
+                                  ? "bg-green-200 hover:bg-green-300"
+                                  : "bg-[#FAF2FD] hover:bg-[#d5afe3]"
+                              }`}
+                            >
+                              <div className="font-semibold">{event.title}</div>
+                              <div>
+                                {event.startTime} - {event.endTime}
+                              </div>
+                              <div className="truncate">{event.module}</div>
                             </div>
-                            <div className="truncate">{event.module}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                          );
+                        })}
+                      </div>
+                    )}
 
                   {/* === ASSIGNMENTS LIST === */}
                   {dayAssignments.length > 0 && (
@@ -470,17 +541,6 @@ const Calendar: React.FC = () => {
                         console.log("assignment", assignment.start);
 
                         return (
-                          // <div
-                          //   key={`assignment-${assignmentIndex}`}
-                          //   className={`text-xs p-2 mb-1 rounded cursor-pointer ${
-                          //     isPastAssignment
-                          //       ? "line-through text-gray-500 cursor-not-allowed"
-                          //       : "bg-yellow-200 hover:bg-yellow-300"
-                          //   }`}
-                          //   style={
-                          //     isPastAssignment ? { pointerEvents: "none" } : {}
-                          //   }
-                          // >
                           <div
                             key={`assignment-${assignmentIndex}`}
                             className="text-xs p-2 mb-1 rounded cursor-pointer bg-yellow-200 hover:bg-yellow-300 w-[210px]"
@@ -565,7 +625,7 @@ const Calendar: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-green-50 p-4 rounded-lg">
+                <div className="bg-[#FAF2FD] p-4 rounded-lg">
                   <p className="text-sm text-gray-600 mb-2">
                     <span className="font-semibold">Module:</span>{" "}
                     {selectedEvent.module}
@@ -590,17 +650,23 @@ const Calendar: React.FC = () => {
                     <span className="font-semibold">Duration:</span>{" "}
                     {selectedEvent.duration + " minutes"}
                   </p>
-                  {selectedEvent.meetingLink && (
-                    <div className="mt-4">
-                      <a
-                        href={selectedEvent.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 text-sm text-center w-full"
-                      >
-                        Join Meeting
-                      </a>
-                    </div>
+
+                  {selectedEvent.isPastEvent ? (
+                    <a
+                      href={`http://localhost:5173/#/trainee/enrolledCourses/${encodeURIComponent(selectedEvent.title.toLowerCase())}`}
+                      className="inline-block text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm text-center w-full bg-green-500 hover:bg-green-600"
+                    >
+                      Watch Recording
+                    </a>
+                  ) : (
+                    <a
+                      href={selectedEvent.meetingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm text-center w-full bg-[#6e2b8b] hover:bg-[#9a5eb5]"
+                    >
+                      Join Meeting
+                    </a>
                   )}
                 </div>
               </div>

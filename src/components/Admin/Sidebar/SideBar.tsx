@@ -12,6 +12,8 @@ import {
   BookOpen,
   Calendar,
   File,
+  Building2,
+  Crown,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -159,6 +161,20 @@ const Sidebar: React.FC = () => {
                   isActive={
                     location.pathname === "/admin/manage-batch-schedules"
                   }
+                />
+
+                <SidebarButton
+                  icon={<Building2 />} // You can replace this with a different icon
+                  label="Company Info"
+                  to="/admin/company-info"
+                  isActive={location.pathname === "/admin/company-info"}
+                />
+
+                <SidebarButton
+                  icon={<Crown />} // You can replace this with a different icon
+                  label="JobBoard"
+                  to="/admin/job-board"
+                  isActive={location.pathname === "/admin/job-board"}
                 />
               </div>
             )}

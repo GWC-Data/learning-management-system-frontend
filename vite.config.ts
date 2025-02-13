@@ -38,6 +38,14 @@ export default defineConfig({
 
       "/job-board": "http://localhost:5050",
 
+      "/companyinfo": "http://localhost:5050",
+
+      "/batchbyName": "http://localhost:5050",
+
+      "/class": "http://localhost:5050",
+
+      "/classbyModule": "http://localhost:5050",
+
       "/submissions": "https://api.judge0.com"
       
     },

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import CompletedCourse from "@/images/online-course.png"; // Completed course image
+import MissedModules from "@/images/problem-solving.png"; // Completed course image
 import Modules from "@/images/cubes.png";
 
 import RemainingClasses from "@/images/hourglass.png";
@@ -13,17 +13,17 @@ const DashboardHeader: React.FC = () => {
   );
 
   return (
-    <div className="grid grid-cols-2 mt-4 poppins-regular">
-      <div className="bg-slate-700 p-6 text-white w-[800px] h-[340px] rounded-lg ml-4 grid grid-cols-2 md:grid-cols-1">
+    <div className="grid grid-cols-1 mt-4 poppins-regular">
+      <div className="bg-gray-700 p-6 text-white w-[1320px] h-[340px] rounded-lg ml-4 grid grid-cols-2 md:grid-cols-1">
         <div>
-          <h1 className="text-2xl font-bold">Welcome back, Mr. {name}</h1>
-          <p className="mb-4">
+          <h1 className="text-4xl font-bold mb-5">Welcome back, Mr. {name}</h1>
+          <p className="mb-4 text-xl">
             Track, manage, and forecast your platform performance
           </p>
 
           <div className="mt-10">
             <h2 className="text-lg font-semibold">Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mt-4">
               {/* Completed Courses Section */}
               <OverviewCard
                 imgSrc={Modules}
@@ -38,11 +38,19 @@ const DashboardHeader: React.FC = () => {
                 value="10 Days"
               />
 
-              {/* Remaining Classes */}
+              {/* Missed Modules */}
               <OverviewCard
                 imgSrc={RemainingClasses}
                 title="Remaining Classes"
                 value="30 Classes"
+              />
+
+
+              {/* Remaining Classes */}
+              <OverviewCard
+                imgSrc={MissedModules}
+                title="Missed Modules"
+                value="10 Classes"
               />
             </div>
           </div>
@@ -50,9 +58,9 @@ const DashboardHeader: React.FC = () => {
           
         </div>
       </div>
-      <div>
+      {/* <div>
         <UpcomingEvents/>
-      </div>
+      </div> */}
     </div>
   );
 };

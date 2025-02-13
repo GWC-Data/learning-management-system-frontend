@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { UserCheck, Users, DollarSign, Shield, PlusCircle } from "lucide-react";
 import { useNavigate, Outlet } from "react-router-dom";
-import { fetchRolesApi } from "@/api/roleApi";
+import { fetchRolesApi } from "@/helpers/api/roleApi";
 
 type Role = {
   name: string;

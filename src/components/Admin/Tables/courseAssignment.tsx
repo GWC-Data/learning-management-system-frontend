@@ -7,10 +7,10 @@ import {
   fetchCourseAssignmentApi,
   updateCourseAssignmentApi,
   deleteCourseAssignmentApi,
-} from "@/api/courseAssignmentApi";
-import { fetchBatchApi } from "@/api/batchApi";
-import { fetchUsersApi } from "@/api/userApi";
-import { fetchCourseApi } from "@/api/courseApi";
+} from "@/helpers/api/courseAssignmentApi";
+import { fetchBatchApi } from "@/helpers/api/batchApi";
+import { fetchUsersApi } from "@/helpers/api/userApi";
+import { fetchCourseApi } from "@/helpers/api/courseApi";
 
 interface CourseAssignment {
   id: number;

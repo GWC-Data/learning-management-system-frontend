@@ -10,9 +10,9 @@ import {
   createBatchApi,
   updateBatchApi,
   deleteBatchApi,
-} from "@/api/batchApi";
-import { fetchUsersApi } from "@/api/userApi";
-import { fetchCourseApi } from "@/api/courseApi";
+} from "@/helpers/api/batchApi";
+import { fetchUsersApi } from "@/helpers/api/userApi";
+import { fetchCourseApi } from "@/helpers/api/courseApi";
 
 interface BatchTableProps {
   editable?: boolean;

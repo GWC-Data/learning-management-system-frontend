@@ -22,8 +22,9 @@ const NewCourse: React.FC = () => {
   );
 
   return (
-    <div className="bg-gradient-to-r from-green-200 to-blue-200 p-6 rounded-lg shadow-lg ml-40 max-w-5xl h-[500px] flex flex-col -mt-8">
-      <h2 className="text-xl font-bold mb-4 text-gray-800">New Courses</h2>
+    <div className="bg-[#EADCF1] p-6 rounded-lg shadow-lg ml-40 max-w-5xl h-[500px] flex flex-col -mt-8">
+      {/* Lavender Mist */}
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">New Courses</h2>
       <p className="mb-6 text-gray-600">
         Learn our course from scratch and become a pro in just two months. No
         prior experience required!
@@ -58,7 +59,7 @@ const NewCourse: React.FC = () => {
               {/* Explore Button */}
               <div>
                 <button
-                  className="bg-[#4d78b8] rounded-full p-3 shadow hover:bg-[#3b5e8f] transition-all"
+                  className="bg-[#F7C910] rounded-full p-3 shadow hover:bg-[#F7C915] transition-all"
                   onClick={() => {
                     if (course.courseLink) {
                       window.open(course.courseLink, "_blank"); // Open the link in a new tab

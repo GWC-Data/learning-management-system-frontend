@@ -10,9 +10,9 @@ import { format } from "date-fns";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
-import { fetchUsersApi, updateUserApi, deleteUserApi } from "@/api/userApi";
+import { fetchUsersApi, updateUserApi, deleteUserApi } from "@/helpers/api/userApi";
 
-import { fetchRolesApi } from "@/api/roleApi";
+import { fetchRolesApi } from "@/helpers/api/roleApi";
 
 interface User {
   id: number;

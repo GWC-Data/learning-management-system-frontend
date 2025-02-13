@@ -13,8 +13,8 @@ import {
   fetchCourseModuleApi,
   updateCourseModuleApi,
   deleteCourseModuleApi,
-} from "@/api/courseModuleApi";
-import { fetchCourseApi } from "@/api/courseApi";
+} from "@/helpers/api/courseModuleApi";
+import { fetchCourseApi } from "@/helpers/api/courseApi";
 
 // TypeScript types for the component props
 interface CourseModuleTableProps {

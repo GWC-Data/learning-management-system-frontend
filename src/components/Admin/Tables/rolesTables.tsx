@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Edit, Trash } from "lucide-react";
 import axios from "axios";
-import { createRoleApi, deleteRoleApi, updateRoleApi } from "@/api/roleApi";
+import { createRoleApi, deleteRoleApi, updateRoleApi } from "@/helpers/api/roleApi";
 
 // TypeScript interfaces
 interface Permission {

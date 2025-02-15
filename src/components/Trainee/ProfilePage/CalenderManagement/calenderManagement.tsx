@@ -23,11 +23,23 @@ interface CalendarEvent {
   endTime: string;
   startDateModule: string;
   endDateModule: string;
+  classId: number;
   classDate: Date;
   classDescription: string;
   classRecordedLink: string;
   classTitle: string;
+  classAssignId: number;
   isPastEvent?: boolean; // Add isPastEvent to CalendarEvent
+}
+
+interface ClassItem {
+  id: number;
+  classId: number;
+  classDate: string;
+  classDescription: string;
+  classRecordedLink: string;
+  classTitle: string;
+  classAssignId: number;
 }
 
 // Event Interface for Assignments
@@ -39,6 +51,9 @@ interface AssignmentEvent {
   trainer: number;
   assignmentFile: string;
   id: number;
+  batchName: string;
+  classId: number; // Added classId
+  moduleName: string; // Added moduleName
 }
 
 interface Assignment {
@@ -63,6 +78,7 @@ const Calendar: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null
   );
+
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[]>(
     []
   );
@@ -74,6 +90,7 @@ const Calendar: React.FC = () => {
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<
     number | null
   >(null);
+  const [batchName, setBatchName] = useState("");
   const userId = Number(localStorage.getItem("userId"));
 
   useEffect(() => {
@@ -118,6 +135,8 @@ const Calendar: React.FC = () => {
       for (const id of BatchIds) {
         const batchData = await fetchBatchByIdApi(id); // ✅ Declare batchData here
         console.log("Batch Data", batchData);
+        console.log("batchNamee", batchData.batchName);
+        setBatchName(batchData.batchName);
 
         const batchStart = moment(batchData.startDate);
         const batchEnd = moment(batchData.endDate); // ✅ Declare batchEnd
@@ -149,90 +168,99 @@ const Calendar: React.FC = () => {
             const moduleStart = moment(module.startDate);
             const moduleEnd = moment(module.endDate);
 
-            // Updated code to filter class data based on module start and end dates
-            const mappedClassData = classDataArray.flatMap((moduleClasses) =>
-              moduleClasses
-                .filter(
-                  (classItem: any) =>
-                    moment(classItem.classDate).isSameOrAfter(
-                      moment(module.startDate)
-                    ) &&
-                    moment(classItem.classDate).isSameOrBefore(
-                      moment(module.endDate)
-                    )
+            // Find classes for the current module by moduleId
+            const currentModuleClasses: ClassItem[] =
+              classDataArray
+                .find((classes: any) =>
+                  classes.some((c: any) => c.moduleId === module.moduleId)
                 )
-                .map((classItem: any) => ({
-                  classDate: classItem?.classDate || "",
-                  classDescription: classItem?.classDescription || "",
-                  classRecordedLink: classItem?.classRecordedLink || "",
-                  classTitle: classItem?.classTitle || "",
-                }))
+                ?.map(
+                  (classItem: any): ClassItem => ({
+                    classId: Number(classItem?.id),
+                    classDate: classItem?.classDate || "",
+                    classDescription: classItem?.classDescription || "",
+                    classRecordedLink: classItem?.classRecordedLink || "",
+                    classTitle: classItem?.classTitle || "",
+                    classAssignId: Number(classItem?.assignmentId),
+                    id: 0,
+                  })
+                ) || [];
+
+            console.log(
+              currentModuleClasses,
+              "Classes for Module",
+              module.module.moduleName
             );
 
-            console.log(mappedClassData, 'mappedClassData')
-
             while (moduleStart.isSameOrBefore(moduleEnd)) {
-              if (moduleStart.day() !== 0) {
-                courseDetails.push({
-                  title: batchData.batchName,
-                  module: module.module.moduleName,
-                  start: moduleStart.toDate(),
-                  end: moduleStart.clone().endOf("day").toDate(),
-                  startTime: module.startTime,
-                  endTime: module.endTime,
-                  startDateModule: module.startDate,
-                  endDateModule: module.endDate,
-                  meetingLink: module.meetingLink,
-                  batchId: id,
-                  trainers: module.trainers
-                    .map(
-                      (trainer: any) =>
-                        trainer.firstName + " " + trainer.lastName
-                    )
-                    .join(", "),
-                  duration: module.duration,
-                  isPastEvent: moment(moduleStart).isBefore(moment(), "day"), // Determine if it's a past event
-                  classDate:
-                    mappedClassData.length > 0
-                      ? mappedClassData[0].classDate
-                      : null,
-                  classDescription:
-                    mappedClassData.length > 0
-                      ? mappedClassData[0].classDescription
-                      : "",
-                  classRecordedLink:
-                    mappedClassData.length > 0
-                      ? mappedClassData[0].classRecordedLink
-                      : "",
-                  classTitle:
-                    mappedClassData.length > 0
-                      ? mappedClassData[0].classTitle
-                      : "",
-                });
-              }
-              lastModuleEnd = moduleStart.clone(); // ✅ Update lastModuleEnd safely
+              const classesForDate = currentModuleClasses.filter((classItem) =>
+                moment(classItem.classDate).isSame(moduleStart, "day")
+              );
+
+              console.log(classesForDate, "classesForDate");
+
+              classesForDate.forEach((classItem) => {
+                if (moduleStart.day() !== 0) {
+                  courseDetails.push({
+                    title: batchData.batchName,
+                    module: module.module.moduleName,
+                    start: moduleStart.toDate(),
+                    end: moduleStart.clone().endOf("day").toDate(),
+                    startTime: module.startTime,
+                    endTime: module.endTime,
+                    startDateModule: module.startDate,
+                    endDateModule: module.endDate,
+                    meetingLink: module.meetingLink,
+                    batchId: id,
+                    trainers: module.trainers
+                      .map(
+                        (trainer: any) =>
+                          trainer.firstName + " " + trainer.lastName
+                      )
+                      .join(", "),
+                    duration: module.duration,
+                    isPastEvent: moment(moduleStart).isBefore(moment(), "day"),
+                    classId: Number(classItem.classId),
+                    classDate: new Date(classItem.classDate),
+                    classDescription: classItem.classDescription,
+                    classRecordedLink: classItem.classRecordedLink,
+                    classTitle: classItem.classTitle,
+                    classAssignId: classItem.classAssignId,
+                  });
+                }
+              });
+              lastModuleEnd = moduleStart.clone();
               moduleStart.add(1, "day");
             }
           });
         }
-        console.log(courseDetails, "courseDetails");
+        console.log("coursedetails", courseDetails);
 
         // Process course assignments
-        if (assignmentData && Array.isArray(assignmentData)) {
-          assignmentData.forEach((assignment) => {
-            // Convert string dates to Date objects
-            const endDate = new Date(assignment.assignEndDate);
-            const startDate = new Date(assignment.assignStartDate);
+        // Process course assignments based on classes
+        if (courseDetails && Array.isArray(courseDetails)) {
+          courseDetails.forEach((classEvent) => {
+            // Find the assignment for the current class using assignmentId
+            const matchingAssignment = assignmentData.find(
+              (assignment) => assignment.id === classEvent.classAssignId
+            );
 
-            assignmentDetails.push({
-              id: assignment.id,
-              title: assignment.courseAssignmentQuestionName,
-              start: startDate,
-              end: endDate,
-              batchId: id,
-              trainer: assignment.trainerId,
-              assignmentFile: assignment.courseAssignmentQuestionFile,
-            });
+            //class.assignId == assignment.id
+
+            if (matchingAssignment) {
+              assignmentDetails.push({
+                batchName: batchData.batchName,
+                id: matchingAssignment.id,
+                title: matchingAssignment.courseAssignmentQuestionName,
+                start: new Date(matchingAssignment.assignStartDate),
+                end: new Date(matchingAssignment.assignEndDate),
+                batchId: id,
+                trainer: matchingAssignment.trainerId,
+                assignmentFile: matchingAssignment.courseAssignmentQuestionFile,
+                classId: classEvent.classId,
+                moduleName: classEvent.module,
+              });
+            }
           });
         }
 
@@ -257,10 +285,12 @@ const Calendar: React.FC = () => {
               trainers: "No Trainers Assigned",
               duration: 0,
               isPastEvent: false, // Mark this as not a past event
+              classId: 0,
               classDate: new Date(),
               classDescription: "",
               classRecordedLink: "",
               classTitle: "",
+              classAssignId: 0,
             });
           }
         }
@@ -311,16 +341,18 @@ const Calendar: React.FC = () => {
     console.log(
       "assign",
       assignments.filter((assignment) =>
-        moment(day).isSame(assignment.end, "day")
+        moment(day).isSame(assignment.start, "day")
       )
     );
     return assignments.filter((assignment) =>
-      moment(day).isSame(assignment.end, "day")
+      moment(day).isSame(assignment.start, "day")
     );
   };
 
   const handleDayClick = (event: CalendarEvent) => {
     if (event) {
+      console.log("calendar", event);
+
       setSelectedEvent(event);
       setShowModal(true);
     } else {
@@ -411,15 +443,22 @@ const Calendar: React.FC = () => {
     reader.readAsDataURL(selectedFile); // Converts the file to a Base64 string
   };
 
-  const handleWatchRecording = () => {
-    if (selectedEvent) {
-      // ✅ Convert title to lowercase, preserving numbers and hyphens
-      const formattedTitle = selectedEvent.title
-        .toLowerCase()
-        .replace(/\s+/g, "%20");
-      navigate(`/trainee/enrolledCourses/${formattedTitle}`);
-    }
-  };
+  // const handleWatchAssignment = () => {
+  //   if (selectedEvent) {
+  //     const formattedTitle = encodeURIComponent(
+  //       selectedEvent.title.toLowerCase()
+  //     );
+  //     const formattedModule = encodeURIComponent(selectedEvent.module);
+  //     const formattedClass = encodeURIComponent(selectedEvent.classTitle);
+  //     console.log(
+  //       `/#/trainee/enrolledCourses/${formattedTitle}/${formattedModule}/${formattedClass}`
+  //     );
+
+  //     navigate(
+  //       `/#/trainee/enrolledCourses/${formattedTitle}/${formattedModule}/${formattedClass}`
+  //     );
+  //   }
+  // };
 
   useEffect(() => {
     assignments.forEach((assignment) => {
@@ -539,49 +578,57 @@ const Calendar: React.FC = () => {
                         ).isBefore(moment(), "day");
                         console.log("isPastAssignment", isPastAssignment);
                         console.log("assignment", assignment.start);
+                        console.log(assignment, "assigg");
 
                         return (
                           <div
                             key={`assignment-${assignmentIndex}`}
                             className="text-xs p-2 mb-1 rounded cursor-pointer bg-yellow-200 hover:bg-yellow-300 w-[210px]"
                           >
-                            {/* Assignment Title */}
-                            <div className="font-semibold">
-                              {assignment.title}
-                            </div>
+                            <a
+                              href={`http://localhost:5173/#/trainee/enrolledCourses/${encodeURIComponent(assignment.batchName.toLowerCase())}#/${encodeURIComponent(assignment.moduleName)}?classId=${encodeURIComponent(assignment.classId)}`}
+                              className="inline-block px-4 py-2 rounded-lg"
+                            >
+                              {/* Assignment Title */}
+                              <div className="font-semibold">
+                                {assignment.title}
+                              </div>
 
-                            {/* Display Assignment File (as a link to download or preview) */}
-                            <div className="truncate">
-                              {assignment.assignmentFile && (
-                                <a
-                                  href={assignment.assignmentFile}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-500 underline text-sm"
-                                  download
-                                >
-                                  Download Assignment File
-                                </a>
-                              )}
-                            </div>
+                              {/* Display Assignment File (as a link to download or preview) */}
+                              {/* <div className="truncate">
+                                {assignment.assignmentFile && (
+                                  <a
+                                    href={assignment.assignmentFile}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-500 underline text-sm"
+                                    download
+                                  >
+                                    Download Assignment File
+                                  </a>
+                                )}
+                              </div> */}
 
-                            {/* Optional: If you want to display the trainer name */}
-                            <div className="text-sm text-gray-600">
-                              <strong>Trainer: </strong>
-                              {trainerNames[assignment.trainer] || "Loading..."}
-                            </div>
+                              {/* Optional: If you want to display the trainer name */}
+                              <div className="text-sm text-gray-600">
+                                <strong>Trainer: </strong>
+                                {trainerNames[assignment.trainer] ||
+                                  "Loading..."}
+                              </div>
 
-                            <div className="text-sm text-gray-600">
-                              <strong>Start: </strong>
-                              {moment(assignment.start).format("MMMM D, YYYY")}
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              <strong>End: </strong>
-                              {moment(assignment.end).format("MMMM D, YYYY")}
-                            </div>
-
+                              <div className="text-sm text-gray-600">
+                                <strong>Start: </strong>
+                                {moment(assignment.start).format(
+                                  "MMMM D, YYYY"
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                <strong>End: </strong>
+                                {moment(assignment.end).format("MMMM D, YYYY")}
+                              </div>
+                            </a>
                             {/* Upload Section */}
-                            <div className="text-sm text-gray-600">
+                            {/* <div className="text-sm text-gray-600">
                               <input
                                 type="file"
                                 accept=".pdf,.doc,.docx"
@@ -594,7 +641,7 @@ const Calendar: React.FC = () => {
                               >
                                 Upload Answers
                               </button>
-                            </div>
+                            </div> */}
                           </div>
                         );
                       })}
@@ -651,9 +698,18 @@ const Calendar: React.FC = () => {
                     {selectedEvent.duration + " minutes"}
                   </p>
 
+                  <p className="text-sm text-gray-600 mb-2">
+                    <span className="font-semibold">Class Title:</span>{" "}
+                    {selectedEvent.classTitle}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <span className="font-semibold">Description:</span>{" "}
+                    {selectedEvent.classDescription}
+                  </p>
+
                   {selectedEvent.isPastEvent ? (
                     <a
-                      href={`http://localhost:5173/#/trainee/enrolledCourses/${encodeURIComponent(selectedEvent.title.toLowerCase())}`}
+                      href={`http://localhost:5173/#/trainee/enrolledCourses/${encodeURIComponent(selectedEvent.title.toLowerCase())}#/${encodeURIComponent(selectedEvent.module)}?classId=${encodeURIComponent(selectedEvent.classId)}`}
                       className="inline-block text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm text-center w-full bg-green-500 hover:bg-green-600"
                     >
                       Watch Recording

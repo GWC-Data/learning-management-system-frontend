@@ -13,6 +13,7 @@ interface ClassState {
   classData: any | null;
   classById: ClassInfo | null;
   classByModule: ClassInfo[];
+  selectedClass: null,
   loading: boolean;
   error: string | null;
   submissionStatus: string | null;
@@ -25,6 +26,7 @@ const initialState: ClassState = {
   classData: null,
   classById: null,
   classByModule: [],
+  selectedClass: null,
   loading: false,
   error: null,
   submissionStatus: null,
@@ -57,6 +59,9 @@ const classForModuleReducer = (state = initialState, action: any): ClassState =>
       return { ...state, loading: false, classByModule: action.payload, error: null };
     case types.FETCH_CLASS_BY_MODULE_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
+    case types.SET_SELECTED_CLASS:
+        return { ...state, selectedClass: action.payload };
 
     // POST (Add Class)
     case types.CREATE_CLASS_REQUEST:

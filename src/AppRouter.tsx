@@ -110,7 +110,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
           <Route path="dashboard" element={<TraineeDashboard />} />
           <Route path="code-challenges" element={<CodeExecutor />} />
           <Route path="job-boards" element={<JobBoard/>} />
-          <Route path="calendar-management" element={<CalendarManagement />} />
+          <Route path="calendar-view" element={<CalendarManagement />} />
           <Route path="settings" element={<UserSettings />} />
         </Route>
 

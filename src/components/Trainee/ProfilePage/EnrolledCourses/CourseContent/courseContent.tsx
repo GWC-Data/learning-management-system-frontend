@@ -4,11 +4,14 @@ import { fetchBatchModuleScheduleByBatchIdRequest } from "@/store/batchModuleSch
 import { setSelectedModuleId } from "@/store/module/actions";
 import { FaPlay } from "react-icons/fa";
 import { fetchClassByModuleRequest } from "@/store/actions";
+import { useNavigate, useParams } from "react-router-dom";
 
 const CourseContent: React.FC<{
   setSelectedClass: (classData: any) => void;
 }> = ({ setSelectedClass }) => {
+  const { "*": dynamicPath } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
 
   // ✅ Fetch batch data using batchName instead of batchId
@@ -22,6 +25,8 @@ const CourseContent: React.FC<{
         []
       : []
   );
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [selectedClass, setSelectedClassState] = useState<number | null>(null);
 
   // ✅ Fetch class data from Redux
   const classForModule = useSelector(
@@ -60,27 +65,34 @@ const CourseContent: React.FC<{
     return classDataMap;
   }, [classForModule]);
 
-  // ✅ Toggle expanded module details
-  const handleModuleClick = (moduleId: number) => {
+  const parts = dynamicPath ? dynamicPath.split("/").filter(Boolean) : [];
+  const batchName = parts[1]
+    ? decodeURIComponent(parts[1]).replace(/%/g, " ")
+    : "";
+  console.log(batchName);
+
+  const handleModuleClick = (moduleId: number, moduleName: string) => {
     setExpandedTopic(
       expandedTopic === moduleId.toString() ? null : moduleId.toString()
     );
+    setSelectedModule(moduleId);
+    setSelectedClassState(null);
     dispatch(setSelectedModuleId(moduleId));
+    navigate(`#/${encodeURIComponent(moduleName)}`);
   };
 
-  // ✅ Handle Play Button Click
-  // const handlePlayClick = (recordedLink: string | null) => {
-  //   if (recordedLink) {
-  //     window.open(recordedLink, "_blank"); // ✅ Open in a new tab
-  //   } else {
-  //     alert("No recorded session available for this module.");
-  //   }
-  // };
+  const handleClassClick = (classItem: any, moduleName: string) => {
+    setSelectedClass(classItem);
+    setSelectedClassState(classItem.id);
+    navigate(
+      `#/${encodeURIComponent(moduleName)}?classId=${encodeURIComponent(classItem.id)}`
+    );
+  };
 
   return (
     <>
       <div className="sticky top-0 z-0 p-4">
-        <h3 className="text-lg font-semibold">Course Modules</h3>
+        <h3 className="text-2xl font-bold">Course Modules</h3>
       </div>
       <div className="w-[400px] overflow-y-auto bg-white p-5 rounded-lg shadow-lg border-2 border-slate-300 h-[500px]">
         {batchModuleSchedule.length === 0 ? (
@@ -93,8 +105,17 @@ const CourseContent: React.FC<{
               <div key={schedule.id}>
                 {/* Module Title */}
                 <div
-                  className="font-semibold text-lg cursor-pointer hover:bg-gray-200 p-2 rounded-md flex justify-between items-center"
-                  onClick={() => handleModuleClick(schedule.module.id)}
+                  className={`font-semibold text-lg cursor-pointer p-2 rounded-md flex justify-between items-center ${
+                    selectedModule === schedule.module.id
+                      ? "bg-gray-300"
+                      : "hover:bg-gray-200"
+                  }`}
+                  onClick={() =>
+                    handleModuleClick(
+                      schedule.module.id,
+                      schedule.module.moduleName
+                    )
+                  }
                 >
                   <span>{`${String(index + 1).padStart(2, "0")}: ${schedule.module.moduleName}`}</span>
                   <div className="border-2 p-1 rounded-lg border-gray-300">
@@ -125,16 +146,25 @@ const CourseContent: React.FC<{
                 {expandedTopic === schedule.module.id.toString() && (
                   <div className="mt-2 bg-gray-100 rounded-lg p-2">
                     {moduleClasses[schedule.module.id]?.length > 0 ? (
-                      <div className="mt-2 bg-gray-200 p-3 rounded-lg">
+                      <div className="mt-2 bg-[#eadcf1] p-3 rounded-lg">
                         <h4 className="font-semibold text-md mb-2">Classes:</h4>
                         {moduleClasses[schedule.module.id].map((classItem) => (
                           <div
                             key={classItem.id}
-                            className="flex items-center bg-white p-3 rounded-lg shadow-md gap-4 mb-2 hover:bg-gray-100 transition"
-                            onClick={() => setSelectedClass(classItem)}
+                            className={`flex items-center p-3 rounded-lg shadow-md gap-4 mb-2 cursor-pointer transition ${
+                              selectedClass === classItem.id
+                                ? "bg-white"
+                                : "hover:bg-gray-100"
+                            }`}
+                            onClick={() =>
+                              handleClassClick(
+                                classItem,
+                                schedule.module.moduleName
+                              )
+                            }
                           >
                             {/* Play Button */}
-                            <button className="flex items-center justify-center w-10 h-10 text-black bg-gray-300 rounded-full hover:bg-gray-400 transition">
+                            <button className="flex items-center justify-center w-10 h-10 text-black bg-white rounded-full hover:bg-gray-200 transition">
                               <FaPlay className="text-lg" />
                             </button>
 
@@ -147,8 +177,8 @@ const CourseContent: React.FC<{
                                 {classItem.classDescription}
                               </p>
                               <div>
-                                <div className="bg-[#eadcf1] rounded-xl px-4 py-1 flex items-center justify-center shadow-md w-44 mt-2">
-                                  <h1 className="text-sm font-semibold text-gray-700">
+                                <div className="bg-[#6e2b8b] rounded-xl px-4 py-1 flex items-center justify-center shadow-md w-44 mt-2">
+                                  <h1 className="text-sm font-semibold text-white">
                                     {new Date(
                                       classItem.classDate
                                     ).toLocaleDateString("en-US", {
@@ -157,21 +187,6 @@ const CourseContent: React.FC<{
                                       day: "numeric",
                                     })}
                                   </h1>
-                                </div>
-                                <div className="mt-2">
-                                  {classItem.materialForClass ? (
-                                    <a
-                                      href={classItem.materialForClass}
-                                      download="Resource.pdf"
-                                      className="text-blue-600 font-semibold hover:underline"
-                                    >
-                                      📥 Download Resources
-                                    </a>
-                                  ) : (
-                                    <p className="text-gray-500">
-                                      
-                                    </p>
-                                  )}
                                 </div>
                               </div>
                             </div>

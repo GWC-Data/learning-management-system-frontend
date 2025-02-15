@@ -28,7 +28,7 @@ export const fetchClassForModuleByIdApi = async (classId: number) => {
   try {
     console.log("fetchClassForModuleByIdApi", classId);
     const response = await apiClient.get(`/class/${classId}`);
-    return response || [];
+    return response.data.classData || [];
   } catch (error) {
     console.error("Failed to fetch class by id", error);
     throw error;

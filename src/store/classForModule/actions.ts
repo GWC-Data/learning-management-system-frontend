@@ -50,6 +50,12 @@ export const fetchClassByModuleFailure = (error: any) => ({
   payload: error,
 });
 
+//Selected Class
+export const setSelectedClass = (classId:number) => ({
+  type: actionTypes.SET_SELECTED_CLASS,
+  payload: classId,
+});
+
 // Create class
 export const createClassRequest = (classData: any) => ({
   type: actionTypes.CREATE_CLASS_REQUEST,

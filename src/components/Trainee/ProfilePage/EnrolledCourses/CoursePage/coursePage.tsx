@@ -65,7 +65,7 @@ const CoursePage: React.FC = () => {
         </div>
 
         {/* Right Section - Course Content */}
-        <div className="flex-[1] bg-white p-5 rounded-xl shadow-md border border-gray-300 h-[600px]">
+        <div className="flex-[1] bg-white p-5 rounded-xl shadow-md border border-gray-300 h-[600px] w-[500px]">
           <CourseContent setSelectedClass={setSelectedClass} />
         </div>
       </div>

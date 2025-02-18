@@ -39,6 +39,8 @@ const CourseContent: React.FC<{
     [batchModuleSchedule]
   );
 
+  console.log(batchModuleSchedule, 'batchSchedule')
+
   // ✅ API Call: Fetch batch module schedule only once
   useEffect(() => {
     if (batchId && batchModuleSchedule.length === 0) {

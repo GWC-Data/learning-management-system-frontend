@@ -100,7 +100,7 @@ const EnrolledCourses: React.FC = () => {
               {enrolledCourses.map((course: any) => (
                 <div
                   key={course.id}
-                  className="relative bg-[#eadcf1] border border-gray-300 rounded-xl shadow-lg hover:shadow-xl transition-shadow transform hover:scale-105 duration-300 ease-in-out p-6 cursor-pointer"
+                  className="relative bg-[#F5ECF9] border border-gray-300 rounded-xl hover:shadow-lg transition-shadow transform hover:scale-105 duration-300 ease-in-out p-6 cursor-pointer"
                   onClick={() => {
                     const batchData = fetchBatch.find(
                       (b: any) => b.id === course.id
@@ -128,7 +128,7 @@ const EnrolledCourses: React.FC = () => {
                     <span className="font-medium">End:</span>{" "}
                     {course.endDate.toLocaleDateString()}
                   </div>
-                  <div className="absolute bottom-4 right-4 bg-[#6e2b8b] text-white text-sm px-4 py-1 rounded-full">
+                  <div className="absolute bottom-4 right-4 bg-[#6e2b8b] text-white text-sm px-6 py-2 rounded-full">
                     {course.course}
                   </div>
                 </div>

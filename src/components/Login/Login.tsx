@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-
-import Loginpic from "../../images/login&signup.png";
 import LoadingSpinner from "../loadingSpinner";
 import Lms from "../../images/LMS.avif"
 

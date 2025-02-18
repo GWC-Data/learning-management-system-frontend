@@ -7,7 +7,11 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Edit, Trash } from "lucide-react";
 import axios from "axios";
-import { createRoleApi, deleteRoleApi, updateRoleApi } from "@/helpers/api/roleApi";
+import { 
+  createRoleApi, 
+  deleteRoleApi, 
+  updateRoleApi 
+} from "@/helpers/api/roleApi";
 
 // TypeScript interfaces
 interface Permission {
@@ -48,12 +52,10 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
 
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!newRole.name) newErrors.name = "RoleName is required.";
-    if (!newRole.description)
-      newErrors.description = "description is required.";
-    if (!newRole.permissions)
-      newErrors.permissions = "Atleast choose any one Permission";
+    
+    if (!newRole.name) newErrors.name = 'RoleName is required.';
+    if (!newRole.description) newErrors.description = 'description is required.';
+    if (!newRole.permissions) newErrors.permissions = 'Atleast choose any one Permission';
 
     setErrors(newErrors);
 
@@ -62,7 +64,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
     });
 
     return newErrors;
-  };
+  }
 
   const [availablePermissions, setAvailablePermissions] = useState<
     Permission[]
@@ -80,16 +82,12 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Log the entire response data to examine its structure
-      console.log("Fetch Permission Response:", permissionResponse.data);
-
       // Check if the response is an array
       if (Array.isArray(permissionResponse.data)) {
         const permissionsData = permissionResponse.data.map((perm: any) => ({
           id: perm.id, // Ensure 'id' exists in the response
           action: perm.action, // Assuming 'action' exists in each permission
         }));
-        console.log(permissionsData, "permissiondata");
         setAvailablePermissions(permissionsData); // Now the data includes 'id' and 'action'
       } else {
         // If it's not an array, check if it's an object and handle accordingly
@@ -100,10 +98,8 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
               action: perm.action, // Assuming 'action' exists
             })
           );
-          console.log(permissionsData, "permissiondata");
           setAvailablePermissions(permissionsData); // Now the data includes 'id' and 'action'
         } else {
-          console.log("Invalid permissions data format");
           setAvailablePermissions([]);
         }
       }
@@ -228,16 +224,13 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
       ...newRole,
       permissions: newRole.permissions.map((perm) => perm.action),
     };
-    console.log("payload", payload);
 
     try {
       if (editing) {
         const updatedCategory = await updateRoleApi(newRole.id, payload);
-        console.log("updatedCategory", updatedCategory);
         toast.success("Role updated successfully!");
       } else {
         const newRoleData = await createRoleApi(payload);
-        console.log("Role with Permission Added", newRoleData);
         toast.success("Role added successfully!");
       }
       await fetchRoles();
@@ -321,8 +314,8 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
   }, [roles]);
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-24">
-      <div className="flex items-center justify-between bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1147px]">
+    <div className="flex-1 p-4 mt-10 ml-20">
+      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1165px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             Roles & Permissions
@@ -341,7 +334,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
 
       <div
         className="ag-theme-quartz text-left"
-        style={{ height: "calc(100vh - 180px)", width: "88%" }}
+        style={{ height: "calc(100vh - 180px)", width: "93%" }}
       >
         <AgGridReact
           rowSelection="multiple"
@@ -367,9 +360,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
             </h2>
             <form>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">
-                  Role Name
-                </label>
+                <label className="block font-metropolis font-medium">Role Name</label>
                 <input
                   type="text"
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
@@ -380,9 +371,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">
-                  Description
-                </label>
+                <label className="block font-metropolis font-medium">Description</label>
                 <input
                   type="text"
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
@@ -393,9 +382,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">
-                  Permissions
-                </label>
+                <label className="block font-metropolis font-medium">Permissions</label>
                 <select
                   multiple
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
@@ -408,15 +395,11 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                     );
 
                     // Log the selected actions for debugging
-                    console.log("Selected Actions:", selectedActions);
 
                     // Filter available permissions based on the selected actions
                     const selectedPermissions = availablePermissions.filter(
                       (perm) => selectedActions.includes(perm.action)
                     );
-
-                    // Log the selected permissions
-                    console.log("Selected Permissions:", selectedPermissions);
 
                     // Update the role's permissions state
                     setNewRole({
@@ -438,28 +421,20 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                     ))
                   )}
                 </select>
-
-                {/* Displaying selected permissions with unique keys */}
-                {/* <div className="mt-2">
-                  {newRole.permissions.map((perm) => (
-                    <Badge key={perm.action} color="primary" className="mr-2">
-                      {" "}
-            
-                      {perm.action}
-                    </Badge>
-                  ))}
-                </div> */}
               </div>
               <div className="flex justify-end space-x-2">
                 <Button
                   onClick={handleModalClose}
-                  className="bg-gray-500 text-white px-3 py-2 rounded hover:bg-gray-700"
+                  className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleFormSubmit}
-                  className="bg-blue-500 text-white px-3 py-2 rounded hover:bg-blue-700"
+                  className="bg-custom-gradient-btn text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   {editing ? "Update" : "Create"}
                 </Button>
@@ -469,19 +444,18 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         </div>
       )}
 
-      {isDeleteModalOpen && roleToDelete && (
+      {isDeleteModalOpen && roleToDelete &&(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
-            <h2 className="text-xl font-metropolis font-semibold mb-4">
-              Confirm Delete
-            </h2>
+            <h2 className="text-xl font-metropolis font-semibold mb-4">Confirm Delete</h2>
             <p className="font-metropolis font-medium">
-              Are you sure you want to delete the Role
+              Are you sure you want to delete the Role 
               <strong>
-                {roleToDelete?.name?.charAt(0).toUpperCase() +
-                  roleToDelete?.name?.slice(1).toLowerCase() || "this role"}
-              </strong>
-              ?
+              {roleToDelete?.name?.charAt(0).toUpperCase() + 
+              roleToDelete?.name?.slice(1).toLowerCase() || 'this role'}
+                </strong>
+                ?
+                
             </p>
             <div className="flex justify-end space-x-2 mt-4">
               <Button

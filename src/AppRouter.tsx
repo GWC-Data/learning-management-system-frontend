@@ -24,9 +24,14 @@ import PermissionRoles from "./components/Admin/Tables/permissionTables";
 import BatchTable from "./components/Admin/Tables/batchTable";
 import CourseModuleTable from "./components/Admin/Tables/courseModule";
 import BatchModuleScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
-import AdminCourseAssignments from "./components/Admin/Tables/courseAssignment";
+import AdminCourseAssignments from "./components/Admin/Tables/courseAssignmentTable";
+import Attendance from "./components/Admin/Tables/attendance";
 import ExcelfileUploader from "./components/Admin/Tables/excelFileUploader";
 import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
+// import Courses from './components/Tables/courseDropdown';
+import TrainersActivityPage from "./components/Charts/trainersActivityPage";
+import TraineeActivityPage from "./components/Charts/traineesActivityPage";
+// import JobBoard from './components/Admin/jobBoard';
 
 import TraineeHome from "./components/Trainee/traineeHome";
 import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
@@ -77,12 +82,18 @@ const AppRouter: React.FC<AppRouterProps> = ({
             element={<ManageRoles />}
           />
           <Route path="manage-permissions" element={<PermissionRoles />} />
-          <Route path="file-uploader" element={<AdminCourseAssignments/>}/>
+          <Route path="course-assignment" element={<AdminCourseAssignments/>}/>
+          <Route path="batch-management" element={<BatchTable />} />
+          <Route path="course-module" element={<CourseModuleTable />} />
+
+          <Route path="trainers-activity" element={<TrainersActivityPage />} />
+          <Route path="trainees-activity" element={<TraineeActivityPage />} />
+          <Route path="attendance" element={<Attendance />} />
           <Route path="company-info" element={<CompanyInfoTable/>}/>
       
           <Route path="excel-file-uploader" element={<ExcelfileUploader/>}/>
-          <Route path="batch-management" element={<BatchTable />} />
-          <Route path="course-module" element={<CourseModuleTable />} />
+       
+         
           <Route
             path="manage-batch-schedules"
             element={<BatchModuleScheduleTable />}

@@ -1,19 +1,14 @@
 import React, { useState } from "react";
 import {
   Users,
-  Grid,
   Shield,
   ChevronDown,
   ChevronUp,
   Layers,
   Key,
+  Book,
   MountainSnow,
-  ClipboardList,
-  BookOpen,
-  Calendar,
-  File,
-  Building2,
-  Crown,
+  Sheet
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -21,34 +16,36 @@ const Sidebar: React.FC = () => {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMasterDataOpen, setIsMasterDataOpen] = useState(false);
   const location = useLocation(); // To determine the current active route
-  const isActiveUsers = location.pathname.startsWith("/admin/allUsers");
+  const isActiveUsers = location.pathname.startsWith(
+    "/admin/allUsers"
+  );
+  // const isActiveCourse = location.pathname.startsWith(
+  //   "/admin/course"
+  // );
 
   return (
     <div className="flex h-full min-h-0 text-gray-700">
-      <div className="flex flex-col w-80 bg-green-200 shadow-lg overflow-y-auto">
+      <div className="flex flex-col w-80 bg-[#FFFF] shadow-lg overflow-y-auto">
         <nav className="flex-1 p-4 space-y-2">
           {/* Admin Section */}
           <div>
             <button
               onClick={() => setIsAdminOpen(!isAdminOpen)}
-              className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 border-b-2 border-gray-200 ${
-                isAdminOpen
-                  ? "bg-gray-300 text-gray-800"
-                  : "bg-gray-100 text-gray-800"
-              } hover:bg-gray-100 hover:shadow-md`}
+              className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 ${isAdminOpen
+                ? "bg-gray-300 text-gray-800"
+                : "bg-gray-100 text-gray-800"
+                } hover:bg-gray-100 hover:shadow-md`}
             >
               <div
-                className={`mr-3 text-blue-500 transition-transform duration-300 ${
-                  isAdminOpen ? "rotate-12 scale-110" : ""
-                }`}
+                className={`mr-3 text-[#6e2b8b] transition-transform duration-300 ${isAdminOpen ? "rotate-12 scale-110" : ""
+                  }`}
               >
                 <Shield />
               </div>
               <span className="flex-1 text-lg font-semibold">Admin</span>
               <div
-                className={`ml-auto transform transition-transform duration-300 ${
-                  isAdminOpen ? "rotate-180 text-blue-400" : "text-gray-500"
-                }`}
+                className={`ml-auto transform transition-transform duration-300 ${isAdminOpen ? "rotate-180 text-[#6e2b8b]" : ""
+                  }`}
               >
                 {isAdminOpen ? <ChevronUp /> : <ChevronDown />}
               </div>
@@ -62,13 +59,19 @@ const Sidebar: React.FC = () => {
                   to="/admin/allUsers"
                   isActive={isActiveUsers}
                 />
+                {/* <SidebarButton
+                  icon={<Activity />}
+                  label="Trainers Activity"
+                  to="/admin/trainers-activity"
+                  isActive={location.pathname === "/admin/trainers-activity"}
+                />
 
                 <SidebarButton
-                  icon={<Grid />}
-                  label="Courses"
-                  to="/admin/courses"
-                  isActive={location.pathname === "/admin/courses"}
-                />
+                  icon={<Activity />}
+                  label="Trainees Activity"
+                  to="/admin/trainees-activity"
+                  isActive={location.pathname === "/admin/trainees-activity"}
+                /> */}
 
                 <SidebarButton
                   icon={<Key />}
@@ -78,19 +81,24 @@ const Sidebar: React.FC = () => {
                     location.pathname === "/admin/manage-roles-and-permissions"
                   }
                 />
-                <SidebarButton
-                  icon={<File />}
-                  label="Course Assignment"
-                  to="/admin/file-uploader"
-                  isActive={location.pathname === "/admin/file-uploader"}
-                />
 
                 <SidebarButton
-                  icon={<File />}
-                  label="Excel File Uploader"
-                  to="/admin/excel-file-uploader"
-                  isActive={location.pathname === "/admin/excel-file-uploader"}
+                  icon={<Book />}
+                  label="Course"
+                  to="/admin/courses"
+                  isActive={
+                    location.pathname === "/admin/courses"
+                  }
                 />
+
+                {/* <SidebarButton
+                  icon={<File />}
+                  label="Course Assignment"
+                  to="/admin/course-assignment"
+                  isActive={
+                    location.pathname === "/admin/course-assignment"
+                  }
+                /> */}
               </div>
             )}
           </div>
@@ -99,26 +107,21 @@ const Sidebar: React.FC = () => {
           <div>
             <button
               onClick={() => setIsMasterDataOpen(!isMasterDataOpen)}
-              className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 border-b-2 border-gray-200 ${
-                isMasterDataOpen
-                  ? "bg-gray-300 text-gray-800"
-                  : "bg-gray-100 text-gray-800"
-              } hover:bg-gray-100 hover:shadow-md`}
+              className={`relative flex items-center w-full p-3 text-sm font-metropolis rounded-md transition-all duration-300 ${isMasterDataOpen
+                ? "bg-gray-300 text-gray-800"
+                : "bg-gray-100 text-gray-800"
+                } hover:bg-gray-100 hover:shadow-md`}
             >
               <div
-                className={`mr-3 text-blue-500 transition-transform duration-300 ${
-                  isMasterDataOpen ? "rotate-12 scale-110" : ""
-                }`}
+                className={`mr-3 text-[#6e2b8b] transition-transform duration-300 ${isMasterDataOpen ? "rotate-12 scale-110" : ""
+                  }`}
               >
                 <Layers />
               </div>
               <span className="flex-1 text-lg font-semibold">Master Data</span>
               <div
-                className={`ml-auto transform transition-transform duration-300 ${
-                  isMasterDataOpen
-                    ? "rotate-180 text-blue-400"
-                    : "text-gray-500"
-                }`}
+                className={`ml-auto transform transition-transform duration-300 ${isMasterDataOpen ? "rotate-180 text-[#6e2b8b]" : ""
+                  }`}
               >
                 {isMasterDataOpen ? <ChevronUp /> : <ChevronDown />}
               </div>
@@ -126,19 +129,19 @@ const Sidebar: React.FC = () => {
 
             {isMasterDataOpen && (
               <div className="space-y-2 mt-2 mr-7 ml-7">
-                <SidebarButton
+                {/* <SidebarButton
                   icon={<Layers />}
                   label="Course Category"
                   to="/admin/course-category"
                   isActive={location.pathname === "/admin/course-category"}
-                />
+                /> */}
 
-                <SidebarButton
+                {/* <SidebarButton
                   icon={<BookOpen />}
                   label="Course Module"
                   to="/admin/course-module"
                   isActive={location.pathname === "/admin/course-module"}
-                />
+                /> */}
 
                 <SidebarButton
                   icon={<MountainSnow />}
@@ -148,34 +151,25 @@ const Sidebar: React.FC = () => {
                 />
 
                 <SidebarButton
+                  icon={<Sheet />}
+                  label="Attendance"
+                  to="/admin/attendance"
+                  isActive={location.pathname === "/admin/attendance"}
+                />
+{/* 
+                <SidebarButton
                   icon={<ClipboardList />}
                   label="Batch Management"
                   to="/admin/batch-management"
                   isActive={location.pathname === "/admin/batch-management"}
-                />
+                /> */}
 
-                <SidebarButton
+               {/* <SidebarButton
                   icon={<Calendar />} // You can replace this with a different icon
                   label="Batch Module Schedules"
                   to="/admin/manage-batch-schedules"
-                  isActive={
-                    location.pathname === "/admin/manage-batch-schedules"
-                  }
-                />
-
-                <SidebarButton
-                  icon={<Building2 />} // You can replace this with a different icon
-                  label="Company Info"
-                  to="/admin/company-info"
-                  isActive={location.pathname === "/admin/company-info"}
-                />
-
-                <SidebarButton
-                  icon={<Crown />} // You can replace this with a different icon
-                  label="JobBoard"
-                  to="/admin/job-board"
-                  isActive={location.pathname === "/admin/job-board"}
-                />
+                  isActive={location.pathname === "/admin/manage-batch-schedules"}
+                />  */}
               </div>
             )}
           </div>
@@ -200,25 +194,22 @@ const SidebarButton: React.FC<SidebarButtonProps> = ({
 }) => (
   <Link
     to={to}
-    className={`group flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-      isActive
-        ? "bg-custom-gradient text-white shadow-md"
-        : "bg-white hover:bg-gray-100 border border-gray-200"
-    }`}
-  >
-    <div
-      className={`text-xl flex items-center justify-center rounded-md p-2 ${
-        isActive
-          ? "bg-white text-blue-500"
-          : "bg-blue-100 text-blue-400 group-hover:bg-blue-200"
+    className={`group flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${isActive
+      ? "bg-[#6e2b8b] text-[#475569] shadow-md"
+      : "hover:bg-[#d5afe3]"
       }`}
+  >    
+    <div
+      className={`text-xl flex items-center justify-center rounded-md p-2 ${isActive
+        ? "bg-[#6e2b8b] text-white"
+        : "bg-[#eadcf1] text-[#6e2b8b]"
+        }`}
     >
       {icon}
     </div>
     <span
-      className={`text-sm font-medium transition-colors duration-300 ${
-        isActive ? "text-white" : "text-gray-800 group-hover:text-blue-500"
-      }`}
+      className={`text-sm font-medium transition-colors duration-300 ${isActive ? "text-white" : "text-gray-800 group-hover:text-black"
+        }`}
     >
       {label}
     </span>

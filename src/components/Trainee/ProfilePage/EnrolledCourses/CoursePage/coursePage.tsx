@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+import { useLocation } from "react-router-dom";
 import CourseHeader from "../CourseHeader/courseHeader";
 import Mainbar from "../MainBar/mainBar";
 import CourseContent from "../CourseContent/courseContent";
@@ -9,51 +9,32 @@ import { fetchBatchByNameRequest } from "@/store/batch/actions";
 const CoursePage: React.FC = () => {
   const dispatch = useDispatch();
   const location = useLocation();
-  const [batchName, setBatchName] = useState("");
-  const [selectedClass, setSelectedClass] = useState<any>(null); // ✅ Store selected class
+  const [selectedClass, setSelectedClass] = useState<any>(null);
 
-  // ✅ Extract Batch Name from URL
+  // ✅ Extract batch name from URL using `useLocation`
+  const batchName = decodeURIComponent(location.pathname.split("/")[3]);
+
+  // Capitalize the batch name
+  const capitalizedBatchName = batchName
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  // ✅ Fetch batch data when the component mounts
   useEffect(() => {
-    const extractPath = () => {
-      const hash = window.location.hash.replace("#", ""); // Remove `#`
-      const parts = hash.split("/"); // Split into segments
-      let lastPart = parts.pop() || ""; // Get the last segment
-
-      lastPart = decodeURIComponent(lastPart) // Convert `%20` to spaces
-        .split(" ") // Split into words
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize each word
-        .join(" "); // Join back into a single string
-
-      setBatchName(lastPart);
-    };
-
-    extractPath(); // Run on mount
-    window.addEventListener("hashchange", extractPath); // Listen for hash changes
-
-    return () => {
-      window.removeEventListener("hashchange", extractPath); // Cleanup event listener
-    };
-  }, []);
-
-  console.log("🔗 Extracted Batch Name:", batchName);
-
-  // ✅ Fetch batch data when batchName is available
-  useEffect(() => {
-    if (batchName) {
-      console.log("📡 Fetching batch data for:", batchName);
-      dispatch(fetchBatchByNameRequest(batchName));
+    if (capitalizedBatchName) {
+      console.log("📡 Fetching batch data for:", capitalizedBatchName);
+      dispatch(fetchBatchByNameRequest(capitalizedBatchName));
     }
-  }, [batchName, dispatch]);
+  }, [capitalizedBatchName, dispatch]);
 
   // ✅ Get batch data from Redux
-  const batch = useSelector(
-    (state: any) => state.batch.batchDataByName || null
-  );
+  const batch = useSelector((state: any) => state.batch.batchDataByName);
 
   console.log("📝 Redux Batch Data:", batch);
 
   return (
-    <div className=" bg-gray-100 -ml-10">
+    <div className="bg-gray-100 -ml-10">
       {/* Course Header */}
       <CourseHeader />
 

@@ -42,15 +42,25 @@ const Mainbar: React.FC<{ selectedClass: any }> = ({ selectedClass }) => {
   // console.log(selectedClass.materialForClass,'selectedClass')
 
 
-  useEffect(() => {
-    if (classData && classData.courseAssignments) {
-      const endDate = new Date(classData.courseAssignments.assignEndDate);
-      const currentDate = new Date();
-      if (currentDate >= endDate) {
-        setIsUploadDisabled(true);
-      }
+useEffect(() => {
+  if (classData && classData.courseAssignments) {
+    const endDate = new Date(classData.courseAssignments.assignEndDate);
+    const currentDate = new Date();
+
+    // Reset time to midnight for both dates
+    endDate.setHours(0, 0, 0, 0);
+    currentDate.setHours(0, 0, 0, 0);
+
+    console.log('EndDate', endDate);
+    console.log('CurrentDate', currentDate);
+
+    // Compare dates without considering time
+    if (currentDate > endDate) {
+      setIsUploadDisabled(true);
     }
-  }, [classData]);
+  }
+}, [classData]);
+
 
   const handleFileChange = (e: any) => {
     if (e.target.files && e.target.files[0]) {

@@ -30,7 +30,7 @@ const Sidebar: React.FC = () => {
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveDashboard
                   ? "bg-[#6E2B8B] text-white"
-                  : "bg-white hover:bg-[#d5afe3] text-slate-600"
+                  : "bg-white hover:bg-[#f3f3f3] text-slate-600"
               }`}
             >
               <svg
@@ -51,7 +51,7 @@ const Sidebar: React.FC = () => {
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveCourses
                   ? "bg-[#6E2B8B] text-white"
-                  : "bg-white hover:bg-[#d5afe3]  text-slate-600"
+                  : "bg-white hover:bg-[#f3f3f3]  text-slate-600"
               }`}
             >
               <svg
@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveJobBoards
                   ? "bg-[#6E2B8B] text-white"
-                  : "bg-white hover:bg-[#d5afe3] text-slate-600"
+                  : "bg-white hover:bg-[#f3f3f3] text-slate-600"
               }`}
             >
               <svg
@@ -114,7 +114,7 @@ const Sidebar: React.FC = () => {
               className={`flex flex-col-2 py-3 px-4 rounded-lg transition mb-5 gap-4 cursor-pointer ${
                 isActiveCalendarView
                   ? "bg-[#6E2B8B] text-white"
-                  : "bg-white hover:bg-[#d5afe3] text-slate-600"
+                  : "bg-white hover:bg-[#f3f3f3] text-slate-600"
               }`}
             >
               <svg

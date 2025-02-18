@@ -70,7 +70,6 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
   const fetchPermissionsData = async () => {
     try {
       const permissionsData = await fetchPermissionsApi();
-      console.log("Fetched permissions:", permissionsData);
       setPermissions(permissionsData || []);
     } catch (error) {
       console.error("Failed to fetch permissions", error);
@@ -147,7 +146,6 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
     const permissionToEdit = permissions.find(
       (permission) => permission.action === data.data.action
     );
-    console.log("Permission to edit:", permissionToEdit);
     if (permissionToEdit) {
       setEditing(true);
       setNewPermission(permissionToEdit);
@@ -191,8 +189,6 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
           newPermission.action,
           newPermission
         );
-
-        console.log("updatePermission:", updatedPermission);
         setPermissions((prev) =>
           prev.map((permission) =>
             permission.action === newPermission.action
@@ -262,8 +258,8 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
   }, [permissions]);
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-24">
-      <div className="flex items-center justify-between bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1147px]">
+    <div className="flex-1 p-4 mt-10 ml-20">
+      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1140px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             Permissions
@@ -282,7 +278,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
 
       <div
         className="ag-theme-quartz text-left"
-        style={{ height: "calc(100vh - 180px)", width: "88%" }}
+        style={{ height: "calc(100vh - 180px)", width: "91%" }}
       >
         <AgGridReact
           rowSelection="multiple"

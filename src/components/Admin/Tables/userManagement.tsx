@@ -4,14 +4,16 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef } from "ag-grid-community";
 import { toast } from "react-toastify";
-import { Edit, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import { Button } from "../../ui/button";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-
-import { fetchUsersApi, updateUserApi, deleteUserApi } from "@/helpers/api/userApi";
-
+import {
+  fetchUsersApi,
+  updateUserApi,
+  deleteUserApi,
+} from "@/helpers/api/userApi";
 import { fetchRolesApi } from "@/helpers/api/roleApi";
 
 interface User {
@@ -125,14 +127,18 @@ const UserManagement: React.FC = () => {
         return (
           <div className="flex space-x-2">
             <Button
+              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white">
+              <Eye className="h-5 w-5" />
+            </Button>
+            <Button
               onClick={() => handleEditClick(data)}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
+              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
             >
               <Edit className="h-5 w-5" />
             </Button>
             <Button
               onClick={() => confirmDeleteUser(data)}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-700"
+              className="bg-white text-red-600 p-2 rounded hover:bg-white"
             >
               <Trash className="h-5 w-5" />
             </Button>
@@ -146,28 +152,25 @@ const UserManagement: React.FC = () => {
     setSelectedUser(user);
     setFormData({
       ...user,
-      dateOfBirth: user.dateOfBirth
-        ? format(new Date(user.dateOfBirth), "yyyy-MM-dd")
-        : "",
+      dateOfBirth: user.dateOfBirth ? format(new Date(user.dateOfBirth), 'yyyy-MM-dd') : '',
     });
-    setIsModalOpen(true);
-  };
-  // Handle form field changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => (prev ? { ...prev, [name]: value } : null));
+    setIsModalOpen(true); // Open the modal
   };
 
-  //edit user
+  // Handle form field changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => prev ? { ...prev, [name]: value } : null);
+  };
+
+  // Edit user
   const editUser = (userToEdit: User) => {
     if (!formData) {
       toast.error("Form data is missing!");
       return;
     }
 
-    console.log("formdata", formData);
+    console.log('formdata', formData);
     // Prepare updated user data with the formData
     const updatedUser = {
       ...userToEdit,
@@ -207,7 +210,7 @@ const UserManagement: React.FC = () => {
           )
         );
         setSelectedUser(null);
-        setIsModalOpen(false); // Optionally close the edit form here
+        setIsModalOpen(false); // Close the modal after saving
       })
       .catch((error) => {
         console.error("Error updating user:", error);
@@ -236,11 +239,11 @@ const UserManagement: React.FC = () => {
 
     try {
       await deleteUserApi(userToDelete.id);
-      toast.success("Role deleted successfully!");
+      toast.success("User deleted successfully!");
       setUserData((prev) => prev.filter((user) => user.id !== userToDelete.id));
     } catch (error) {
-      console.error("Failed to delete role", error);
-      toast.error("Failed to delete the role. Please try again later.");
+      console.error("Failed to delete user", error);
+      toast.error("Failed to delete the user. Please try again later.");
     } finally {
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
@@ -255,12 +258,12 @@ const UserManagement: React.FC = () => {
 
   return (
     <div className="flex-1 p-4 mt-5 ml-20 w-[1200px] overflow-hidden">
-      <div className="flex items-center justify-between bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6">
+      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             {roleName
               ? roleName.charAt(0).toUpperCase() +
-                roleName.slice(1).toLowerCase()
+              roleName.slice(1).toLowerCase()
               : ""}{" "}
             Management
           </h2>
@@ -271,153 +274,153 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Form - Conditional Rendering */}
-      {selectedUser && (
-        <div className="bg-white p-4 rounded shadow-md mb-6">
-          <h3 className="text-xl font-metropolis font-semibold mb-4">
-            Edit User
-          </h3>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              editUser(formData!); // Ensure formData is not null
-            }}
-          >
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                First Name
-              </label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData?.firstName || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                Last Name
-              </label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData?.lastName || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData?.email || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">Role</label>
-              <select
-                name="roleId"
-                value={formData?.roleId || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              >
-                <option value="">Select a role</option>
-                {roles.map((role) => (
-                  <option key={role.id} value={role.id}>
-                    {role.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                Date of Birth
-              </label>
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={formData?.dateOfBirth || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                PhoneNumber
-              </label>
-              <input
-                type="number"
-                name="phoneNumber"
-                value={formData?.phoneNumber || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                Address
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData?.address || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                Qualification
-              </label>
-              <input
-                type="text"
-                name="qualification"
-                value={formData?.qualification || ""}
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block font-metropolis font-medium">
-                Account Status
-              </label>
-              <select
-                name="accountStatus"
-                value={formData?.accountStatus || "active"} // Default to "active"
-                onChange={handleInputChange}
-                className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
-              </select>
-            </div>
-            <div className="flex space-x-2">
-              <Button
-                type="submit"
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Save Changes
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setSelectedUser(null)}
-                className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
+      {/* Custom Edit User Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
+            <h2 className="text-xl font-bold mb-4">Edit User</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (selectedUser) {
+                  editUser(selectedUser);
+                }
+              }}
+            >
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="mb-4">
+                  <label className="block font-metropolis font-medium">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData?.firstName || ""}
+                    onChange={handleInputChange}
+                    className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-metropolis font-medium">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData?.lastName || ""}
+                    onChange={handleInputChange}
+                    className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-metropolis font-medium">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData?.email || ""}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block font-metropolis font-medium">Role</label>
+                  <select
+                    name="roleId"
+                    value={formData?.roleId || ""}
+                    onChange={handleInputChange}
+                    className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                  >
+                    <option value="">Select a role</option>
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-metropolis font-medium">Date of Birth</label>
+                  <input
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData?.dateOfBirth || ""}
+                    onChange={handleInputChange}
+                    className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-metropolis font-medium">Phone Number</label>
+                <input
+                  type="number"
+                  name="phoneNumber"
+                  value={formData?.phoneNumber || ""}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-metropolis font-medium">Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData?.address || ""}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-metropolis font-medium">Qualification</label>
+                <input
+                  type="text"
+                  name="qualification"
+                  value={formData?.qualification || ""}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-metropolis font-medium">Account Status</label>
+                <select
+                  name="accountStatus"
+                  value={formData?.accountStatus || "active"}
+                  onChange={handleInputChange}
+                  className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="submit"
+                  className="bg-custom-gradient-btn text-white px-4 py-2 
+                  transition-all duration-500 ease-in-out 
+                  rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
+                  rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
@@ -426,7 +429,7 @@ const UserManagement: React.FC = () => {
             <strong>
               {roleName
                 ? roleName.charAt(0).toUpperCase() +
-                  roleName.slice(1).toLowerCase()
+                roleName.slice(1).toLowerCase()
                 : ""}
             </strong>
             ?
@@ -451,6 +454,7 @@ const UserManagement: React.FC = () => {
         </div>
       )}
 
+      {/* Ag-Grid Table */}
       <div
         className="ag-theme-quartz text-left"
         style={{ height: "calc(100vh - 180px)", width: "100%" }}

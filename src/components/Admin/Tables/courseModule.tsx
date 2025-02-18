@@ -6,7 +6,7 @@ import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Edit, Trash } from "lucide-react";
 import { ColDef } from "ag-grid-community";
-import Select from "react-select";
+import Select from 'react-select';
 
 import {
   createCourseModuleApi,
@@ -15,10 +15,12 @@ import {
   deleteCourseModuleApi,
 } from "@/helpers/api/courseModuleApi";
 import { fetchCourseApi } from "@/helpers/api/courseApi";
+import { useSearchParams } from "react-router-dom";
 
 // TypeScript types for the component props
 interface CourseModuleTableProps {
   editable?: boolean;
+  courseId?: number; 
 }
 
 // TypeScript types for course module data
@@ -27,7 +29,9 @@ interface CourseModuleData {
   courseId: number;
   moduleName: string;
   moduleDescription: string;
-  courseName?: string; // Mapped course name from courseId
+  courseName?: string;
+  createdByUserName: string;
+  sequence: number;
 }
 
 // TypeScript types for course options
@@ -45,32 +49,30 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [selectedModule, setSelectedModule] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [courseOptions, setCourseOptions] = useState<CourseOption[]>([]);
   const [newModule, setNewModule] = useState<CourseModuleData>({
     id: 0,
     courseId: 0,
     moduleName: "",
     moduleDescription: "",
+    createdByUserName: "",
+    sequence: 0
   });
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [moduleToDelete, setModuleToDelete] = useState<CourseModuleData | null>(
     null
   );
-
+  const [searchParams] = useSearchParams();
+    const courseId = Number(searchParams.get("courseId")); 
+  
   const [currentPage, setCurrentPage] = useState(1);
 
-  {
-    /* pagination */
-  }
+  {/* pagination */ }
   const recordsPerPage = 15;
   const totalPages = Math.ceil(courseModules.length / recordsPerPage);
   const startIndex = (currentPage - 1) * recordsPerPage;
-  const currentData = courseModules.slice(
-    startIndex,
-    startIndex + recordsPerPage
-  );
+  const currentData = courseModules.slice(startIndex, startIndex + recordsPerPage);
 
   const handlePageChange = (newPage: SetStateAction<number>) => {
     setCurrentPage(newPage);
@@ -104,20 +106,12 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
     try {
       const courses = await fetchCourseApi();
-      const courseMap = courses.reduce(
-        (map: Record<number, string>, course: any) => {
-          map[course.id] = course.courseName;
-          return map;
-        },
-        {}
-      );
+      const mappedCourse = courses.map((course: any) => ({
+        id: course.id,
+        courseName: course.courseName,
+     }))
 
-      setCourseOptions(
-        courses.map((course: any) => ({
-          id: course.id,
-          courseName: course.courseName,
-        }))
-      );
+      setCourseOptions(mappedCourse)
 
       const modules = await fetchCourseModuleApi();
       const mappedModules = modules.map((module: any) => ({
@@ -125,10 +119,17 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
         courseId: module.courseId,
         moduleName: module.moduleName,
         moduleDescription: module.moduleDescription,
-        courseName: courseMap[module.courseId] || "Unknown Course",
+        sequence: module.sequence,
+        createdByUserName: module.user
+          ? `${module.user.firstName} ${module.user.lastName}`
+          : "Unknown",
+        courseName: mappedCourse[module.courseId] || "Unknown Course",
       }));
 
-      setCourseModules(mappedModules);
+          // If a courseId prop was passed, filter the modules for that course.
+    const filteredModules = mappedModules.filter((m: any) => m.courseId === courseId)
+
+      setCourseModules(filteredModules);
     } catch (error) {
       console.error("Failed to fetch course modules", error);
       toast.error("Failed to fetch course modules. Please try again later.");
@@ -149,6 +150,8 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
       courseId: 0,
       moduleName: "",
       moduleDescription: "",
+      createdByUserName: "",
+      sequence: 0
     });
     setIsModalOpen(true);
   };
@@ -167,6 +170,8 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
       courseId: 0,
       moduleName: "",
       moduleDescription: "",
+      createdByUserName: "",
+      sequence: 0
     });
   };
 
@@ -177,7 +182,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
     const token = getToken();
     if (!token) {
-      toast.error("You must be logged in to Perform this action");
+      toast.error("You must be logged in to Perform this action")
       return;
     }
 
@@ -206,39 +211,57 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
     }
   };
 
-  const handleDeleteCourseModule = async () => {
-    try {
-      await deleteCourseModuleApi(newModule.id);
-      toast.success("CourseModule deleted successfully!");
-      fetchCourseModules();
-      setLoading(true);
-      handleModalClose();
-    } catch (error) {
-      toast.error("Failed to delete the batch");
+  const confirmDeleteCourseModule = (data: CourseModuleData) => {
+    const course = courseModules.find((course) => course.id === data.id);
+    if (course) {
+      setModuleToDelete(course);
+      setIsDeleteModalOpen(true);
     }
+  }; 
+
+  const handleDeleteCourseModule = async () => {
+    if (!moduleToDelete) {
+      toast.error("No courseModule Selected for deletion")
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      toast.error("You must be logged in to delete a course.");
+      return;
+    }
+
+    try {
+
+      await deleteCourseModuleApi(moduleToDelete.id);
+      setCourseModules((prev) => prev.filter((course) => course.id !== moduleToDelete.id));
+      toast.success("CourseModule deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete the course. Please try again later.");
+    } finally {
+      setIsDeleteModalOpen(false);
+      setModuleToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setModuleToDelete(null);
   };
 
   // Define column definitions
   useEffect(() => {
     setColDefs([
-      {
-        headerName: "Course Name",
-        field: "courseName",
-        editable: false,
-        width: 200,
-      },
-      {
-        headerName: "Module Name",
-        field: "moduleName",
-        editable: false,
-        width: 300,
-      },
+      // { headerName: "Course Name", field: "courseName", editable: false, width: 200  },
+      { headerName: "Module Name", field: "moduleName", editable: false, width: 300, rowDrag: true },
       {
         headerName: "Description",
         field: "moduleDescription",
         editable: false,
-        width: 440,
+        width: 400
       },
+      { headerName: "Sequence", field: "sequence", editable: false, width: 130 },
+      { headerName: "Created By", field: "createdByUserName", editable: false, width: 130 },
       {
         headerName: "Actions",
         field: "actions",
@@ -246,13 +269,13 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
           <div className="flex space-x-2">
             <Button
               onClick={() => editCourseModule(params.data)}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
+              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
             >
               <Edit className="h-5 w-4" />
             </Button>
             <Button
               onClick={() => confirmDeleteCourseModule(params.data)}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-700"
+              className=" text-red-600 bg-white p-2 rounded hover:bg-white"
             >
               <Trash className="h-5 w-4" />
             </Button>
@@ -261,41 +284,53 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
       },
     ]);
   }, [courseModules]);
+  
 
-  const confirmDeleteCourseModule = (module: CourseModuleData) => {
-    setModuleToDelete(module);
-  };
+  const onRowDragEnd = async (event: any) => {
+    const draggedIndex = event.oldIndex;
+    const targetIndex = event.newIndex;
+    
+    if (draggedIndex === targetIndex) return;
+    
+    const newModules = [...courseModules];
+    const [draggedModule] = newModules.splice(draggedIndex, 1);
+    newModules.splice(targetIndex, 0, draggedModule);
+    
+    // Update sequences
+    const updatedModules = newModules.map((module, index) => ({
+        ...module,
+        sequence: index + 1
+    }));
 
-  // const handleDeleteCourseModule = async () => {
-  //   if (!moduleToDelete) {
-  //     toast.error('No module selected for deletion');
-  //     return;
-  //   }
+    try {
+        // Update frontend state immediately
+        setCourseModules(updatedModules);
+        
+        // Update the dragged module with its new sequence
+        const draggedModuleData = updatedModules[targetIndex];
+        await updateCourseModuleApi(draggedModuleData.id, {
+            courseId: draggedModuleData.courseId,
+            moduleName: draggedModuleData.moduleName,
+            moduleDescription: draggedModuleData.moduleDescription,
+            sequence: draggedModuleData.sequence
+        });
 
-  //   const token = getToken();
-  //       if (!token) {
-  //         toast.error("You must be logged in to delete a course.");
-  //         return;
-  //       }
-
-  //   try {
-  //     await deleteCourseModuleApi(moduleToDelete.id);
-  //     setCourseModules((prev) =>
-  //       prev.filter((m) => m.id !== moduleToDelete.id)
-  //     );
-  //     toast.success("Course module deleted successfully!");
-  //   } catch (error) {
-  //     console.error("Failed to delete course module", error);
-  //     toast.error("Failed to delete course module. Please try again later.");
-  //   } finally {
-  //     setModuleToDelete(null);
-  //   }
-  // };
+        toast.success("Module order updated successfully!");
+        
+        // Refresh the data
+        await fetchCourseModules();
+        
+    } catch (error) {
+        console.error("Failed to update module order:", error);
+        toast.error("Failed to update module order. Please try again.");
+        await fetchCourseModules(); // Refresh to ensure correct state
+    }
+};
 
   return (
     <>
       <div className="flex-1 p-4 mt-10 ml-20">
-        <div className="flex items-center justify-between bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1105px]">
+        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1105px]">
           <div className="flex flex-col">
             <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
               Course Modules
@@ -308,11 +343,11 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
             onClick={addNewRow}
             className="bg-yellow-400 text-gray-900 font-metropolis font-semibold px-5 py-2 rounded-md shadow-lg hover:bg-yellow-500 transition duration-300"
           >
-            + New Module
+            + Add Module
           </Button>
         </div>
 
-        {moduleToDelete && (
+        {moduleToDelete && isDeleteModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
               <h2 className="text-xl font-metropolis font-semibold mb-4">
@@ -324,7 +359,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
               </p>
               <div className="flex justify-end space-x-2 mt-4">
                 <Button
-                  onClick={() => setModuleToDelete(null)}
+                  onClick={handleCancelDelete}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
@@ -361,6 +396,8 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
               resizable: true,
             }}
             animateRows
+            onRowDragEnd={onRowDragEnd}
+            rowDragManaged={true}
           />
         </div>
 
@@ -378,18 +415,13 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                   <Select
                     options={courseOptions.map((course) => ({
                       value: course.id,
-                      label: course.courseName,
+                      label: course.courseName
                     }))}
-                    value={
-                      newModule.courseId
-                        ? {
-                            value: newModule.courseId,
-                            label:
-                              courseOptions.find(
-                                (course) => course.id === newModule.courseId
-                              )?.courseName || "Unknown",
-                          }
-                        : null
+                    value={newModule.courseId
+                      ? {
+                        value: newModule.courseId,
+                        label: courseOptions.find((course) => course.id === newModule.courseId)?.courseName || "Unknown",
+                      } : null
                     }
                     onChange={(selectedOption) => {
                       setNewModule({

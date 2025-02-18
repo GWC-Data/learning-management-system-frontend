@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaBars } from "react-icons/fa";
-import { NavLink } from "react-router-dom";
 import { MdPersonAddAlt1 } from "react-icons/md";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
 } from "../ui/dropdown-menu";
 
 import ProfileSettingsIcon from "../../icons/setting.png";
 import LogoutIcon from "../../icons/logout.png";
-import TeqcertifyLogo from "../../images/teqcertify logo-black.png";
+import LMSLogo from "../../images/Logo.png";
 
 interface NavProps {
   isAuthenticated: boolean;
@@ -46,16 +44,6 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // Handle search form submission
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Search for: ${searchQuery}`);
-  };
 
   // Toggle the mobile menu
   const toggleMobileMenu = () => {
@@ -80,7 +68,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
   }, [isAuthenticated]);
 
   return (
-    <div className="bg-gradient-to-r bg-gray-100 p-4 shadow-lg text-gray-700">
+    <div className="bg-[#130342] p-4 shadow-lg text-white">
       <div className="flex justify-between items-center max-w-screen-xxl ml-8">
         <Link
           to={
@@ -95,9 +83,9 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
           className="hover:scale-105 transform transition"
         >
           <img
-            src="https://teqcertify.com/wp-content/uploads/2024/11/2-300x100.png"
+            src={LMSLogo}
             alt="teqcertify"
-            className="w-52 h-16"
+            className="w-64 h-14"
           />
         </Link>
 
@@ -111,51 +99,51 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                 <div className="flex flex-1 justify-center items-center space-x-6">
                   <a
                     href="https://teqcertify.com/"
-                    className="relative font-metropolis font-semibold text-md hover:text-green-500 transition group"
+                    className="relative font-metropolis font-semibold text-md hover:text-white transition group"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     Home
-                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-white transition-all duration-300 group-hover:w-full"></span>
                   </a>
                   <a
                     href="https://teqcertify.com/about-2/"
-                    className="relative font-metropolis font-semibold text-md hover:text-green-500 transition group"
+                    className="relative font-metropolis font-semibold text-md hover:text-white transition group"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     About
-                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-white transition-all duration-300 group-hover:w-full"></span>
                   </a>
                   <a
                     href="https://teqcertify.com/talent-acquisition-partner/"
-                    className="relative font-metropolis font-semibold text-md hover:text-green-500 transition group"
+                    className="relative font-metropolis font-semibold text-md hover:text-white transition group"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ wordSpacing: "0.2em" }}
                   >
                     Talent Acquisition Partner
-                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-white transition-all duration-300 group-hover:w-full"></span>
                   </a>
                   <a
                     href="https://teqcertify.com/contact/"
-                    className="relative font-metropolis font-semibold text-md hover:text-green-500 transition group"
+                    className="relative font-metropolis font-semibold text-md hover:text-white transition group"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     Contact
-                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-green-500 transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-[0.5px] bg-white transition-all duration-300 group-hover:w-full"></span>
                   </a>
                 </div>
 
                 {/* Register Button */}
                 <a
                   href="https://teqcertify.com/register/"
-                  className="relative flex items-center font-metropolis font-semibold text-md hover:text-green-500 transition group"
+                  className="relative flex items-center font-metropolis font-semibold text-md hover:text-white transition group"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <MdPersonAddAlt1 className="mr-2 text-xl text-gray-600 hover:text-green-500" />{" "}
+                  <MdPersonAddAlt1 className="mr-2 text-xl text-gray-600 hover:text-white" />{" "}
                   Register
                 </a>
               </>
@@ -163,7 +151,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
               <>
                 {/* Authenticated User Navigation */}
                 <div className="flex flex-1 justify-end items-center space-x-4">
-                  <span className="text-gray-700 font-medium text-lg">{`Welcome, ${
+                  <span className="text-white font-medium text-lg">{`Welcome, ${
                     name || "User"
                   }`}</span>
 
@@ -195,6 +183,8 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                         <hr />
 
                         {/* Profile Settings */}
+
+                        {role !== "admin" && (
                         <Link
                           to="/trainee/settings"
                           className="text-black bg-gray-100 py-2.5 px-4 rounded-lg text-center shadow-md transition duration-300 mt-5 hover:bg-slate-200"
@@ -209,6 +199,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                             <div>Profile Settings</div>
                           </div>
                         </Link>
+                        )}
 
                         {/* Logout */}
                         <button

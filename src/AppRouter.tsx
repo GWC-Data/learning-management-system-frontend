@@ -7,31 +7,43 @@ import {
 } from "react-router-dom";
 import { Toaster } from "sonner";
 
-import Home from "./components/Home";
+import Home from "./components/Admin/Home/Home";
 import Nav from "./components/Navbar/Nav";
-import Footer from "./components/Trainee/Footer/Footer";
-import Login from "./components/Navbar/Login";
+import Footer from "./components/Footer/Footer";
+import Login from "./components/Login/Login";
 import ProtectedRoute from "./components/protectedRoute";
 
-import Dashboard from "./components/Dashboard";
-import UserManagement from "./components/Tables/userManagement";
-import CourseTable from "./components/Tables/courseTables";
-import AddUser from "./components/Tables/addUser";
-import AllUsers from "./components/Tables/allUsers";
-import CourseCategoryTable from "./components/Tables/courseCategory";
-import ManageRoles from "./components/Tables/rolesTables";
-import PermissionRoles from "./components/Tables/permissionTables";
-import BatchTable from "./components/Tables/batchTable";
-import CourseModuleTable from "./components/Tables/courseModule";
-import BatchModuleScheduleTable from "./components/Tables/manageBatchScheduleModule";
+import Dashboard from "./components/Admin/Dashboard/Dashboard";
+import UserManagement from "./components/Admin/Tables/userManagement";
+import CourseTable from "./components/Admin/Tables/courseTables";
+import AddUser from "./components/Admin/Tables/addUser";
+import AllUsers from "./components/Admin/Tables/allUsers";
+import CourseCategoryTable from "./components/Admin/Tables/courseCategory";
+import ManageRoles from "./components/Admin/Tables/rolesTables";
+import PermissionRoles from "./components/Admin/Tables/permissionTables";
+import BatchTable from "./components/Admin/Tables/batchTable";
+import CourseModuleTable from "./components/Admin/Tables/courseModule";
+import BatchModuleScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
+import AdminCourseAssignments from "./components/Admin/Tables/courseAssignmentTable";
+import Attendance from "./components/Admin/Tables/attendance";
+import ExcelfileUploader from "./components/Admin/Tables/excelFileUploader";
+import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
+// import Courses from './components/Tables/courseDropdown';
+import TrainersActivityPage from "./components/Admin/Charts/trainersActivityPage";
+import TraineeActivityPage from "./components/Admin/Charts/traineesActivityPage";
+// import JobBoard from './components/Admin/jobBoard';
 
 import TraineeHome from "./components/Trainee/traineeHome";
 import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
 import CoursePage from "./components/Trainee/ProfilePage/EnrolledCourses/CoursePage/coursePage";
 import TraineeDashboard from "./components/Trainee/ProfilePage/Dashboard/DashboardPage/dashboardPage";
+import CodeExecutor from "./components/Trainee/ProfilePage/CodeChallenges/codeExecutor";
+import CalendarManagement from "./components/Trainee/ProfilePage/CalenderManagement/calenderManagement";
+import EnrolledCourses from "./components/Trainee/ProfilePage/EnrolledCourses/enrolledCourses";
 
 import TrainerHelloWorld from "./components/Trainer/TrainerHelloWorld";
-import CodeExecutor from "./components/Trainee/ProfilePage/CodeChallenges/codeExecutor";
+import JobBoard from "./components/Trainee/ProfilePage/JobBoard/jobBoard";
+
 
 interface AppRouterProps {
   isAuthenticated: boolean;
@@ -63,15 +75,25 @@ const AppRouter: React.FC<AppRouterProps> = ({
           }
         >
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="courses" element={<CourseTable />} />
+          <Route path="courses" element={<CourseTable/>}/>
           <Route path="course-category" element={<CourseCategoryTable />} />
           <Route
             path="manage-roles-and-permissions"
             element={<ManageRoles />}
           />
           <Route path="manage-permissions" element={<PermissionRoles />} />
+          <Route path="course-assignment" element={<AdminCourseAssignments/>}/>
           <Route path="batch-management" element={<BatchTable />} />
           <Route path="course-module" element={<CourseModuleTable />} />
+
+          <Route path="trainers-activity" element={<TrainersActivityPage />} />
+          <Route path="trainees-activity" element={<TraineeActivityPage />} />
+          <Route path="attendance" element={<Attendance />} />
+          <Route path="company-info" element={<CompanyInfoTable/>}/>
+      
+          <Route path="excel-file-uploader" element={<ExcelfileUploader/>}/>
+       
+         
           <Route
             path="manage-batch-schedules"
             element={<BatchModuleScheduleTable />}
@@ -80,20 +102,26 @@ const AppRouter: React.FC<AppRouterProps> = ({
             <Route path=":roleName" element={<UserManagement />} />
             <Route path="add-user" element={<AddUser />} />
           </Route>
+          
         </Route>
 
-        {/* Trainee Protected Routes */}
-        <Route
-          path="/trainee/*"
-          element={
-            <ProtectedRoute allowedRoles={["trainee"]}>
-              <TraineeHome isAuthenticated={isAuthenticated} />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="courses" element={<CoursePage />} />
+          {/* Trainee Protected Routes */}
+          <Route
+            path="/trainee/*"
+            element={
+              <ProtectedRoute allowedRoles={["trainee"]}>
+                <TraineeHome isAuthenticated={isAuthenticated} />
+              </ProtectedRoute>
+            }
+          >
+          <Route path="enrolledCourses" element={<EnrolledCourses />}>
+            <Route path=":courseDetails" element={<CoursePage />} />
+          </Route>
+          {/* <Route path="courses" element={<CoursePage />} /> */}
           <Route path="dashboard" element={<TraineeDashboard />} />
-          <Route path="code-challenges" element={<CodeExecutor/>}/>
+          <Route path="code-challenges" element={<CodeExecutor />} />
+          <Route path="job-boards" element={<JobBoard/>} />
+          <Route path="calendar-view" element={<CalendarManagement />} />
           <Route path="settings" element={<UserSettings />} />
         </Route>
 

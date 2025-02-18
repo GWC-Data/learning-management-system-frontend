@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AppRouter from "./AppRouter";
-import {fetchUsersbyIdApi} from "./api/userApi";
+import { fetchUsersbyIdApi } from "./helpers/api/userApi";
+import './index.css';
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
@@ -22,7 +23,7 @@ const App: React.FC = () => {
       if (token && userId) {
         try {
           const user = await fetchUsersbyIdApi(Number(userId));
-          console.log("Fetched user", user)
+          console.log("Fetched user", user);
 
           if (user) {
             const fullName = `${user.firstName} ${user.lastName}`;
@@ -61,4 +62,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-

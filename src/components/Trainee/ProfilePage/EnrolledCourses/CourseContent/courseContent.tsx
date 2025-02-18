@@ -1,106 +1,230 @@
-import React, { useState } from "react";
-import AuthorDetails from "./authorDetails";
+import React, { useEffect, useState, useMemo } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchBatchModuleScheduleByBatchIdRequest } from "@/store/batchModuleSchedule/actions";
+import { setSelectedModuleId } from "@/store/module/actions";
+import { FaPlay } from "react-icons/fa";
+import { fetchClassByModuleRequest } from "@/store/actions";
+import { useNavigate, useParams } from "react-router-dom";
 
-const CourseContent: React.FC = () => {
-  // State to manage the visibility of subtopics for each main topic
+const CourseContent: React.FC<{
+  setSelectedClass: (classData: any) => void;
+}> = ({ setSelectedClass }) => {
+  const { "*": dynamicPath } = useParams();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
 
-  // Main topics with subtopics and time duration
-  const courseStructure = [
-    {
-      id: 1,
-      title: "Intro to Figma",
-      subtopics: [
-        { title: "What is Figma?", duration: "15 min" },
-        { title: "Figma Interface Overview", duration: "20 min" },
-        { title: "Creating Your First Project", duration: "30 min" },
-      ],
-    },
-    {
-      id: 2,
-      title: "Intermediate Figma Concepts",
-      subtopics: [
-        { title: "Designing with Constraints", duration: "25 min" },
-        { title: "Components and Variants", duration: "35 min" },
-        { title: "Prototyping Basics", duration: "40 min" },
-      ],
-    },
-    {
-      id: 3,
-      title: "Advanced Figma Techniques",
-      subtopics: [
-        { title: "Advanced Prototyping", duration: "50 min" },
-        { title: "Auto Layout", duration: "45 min" },
-        { title: "Figma Plugins and Integrations", duration: "60 min" },
-      ],
-    },
-  ];
+  // ✅ Fetch batch data using batchName instead of batchId
+  const batch = useSelector((state: any) => state.batch.batchDataByName);
+  const batchId = batch?.id; // ✅ Get batchId from fetched batch
 
-  // Toggle the visibility of subtopics
-  const handleTopicClick = (topic: string) => {
-    if (expandedTopic === topic) {
-      setExpandedTopic(null); // Collapse if the same topic is clicked
-    } else {
-      setExpandedTopic(topic); // Expand the selected topic
+  // ✅ Fetch batch module schedules from Redux
+  const batchModuleSchedule = useSelector((state: any) =>
+    batchId
+      ? state.batchModuleSchedule?.batchModuleSchedulesByBatchId?.[batchId] ||
+        []
+      : []
+  );
+  const [selectedModule, setSelectedModule] = useState<number | null>(null);
+  const [selectedClass, setSelectedClassState] = useState<number | null>(null);
+
+  // ✅ Fetch class data from Redux
+  const classForModule = useSelector(
+    (state: any) => state.classForModule.classByModule
+  );
+
+  // ✅ Extract module IDs (memoized to prevent re-computation)
+  const moduleIds = useMemo(
+    () => batchModuleSchedule.map((schedule: any) => schedule.module.id),
+    [batchModuleSchedule]
+  );
+
+  console.log(batchModuleSchedule, 'batchSchedule')
+
+  // ✅ API Call: Fetch batch module schedule only once
+  useEffect(() => {
+    if (batchId && batchModuleSchedule.length === 0) {
+      dispatch(fetchBatchModuleScheduleByBatchIdRequest(batchId));
     }
+  }, [batchId, batchModuleSchedule.length, dispatch]);
+
+  // ✅ API Call: Fetch class data only if moduleIds exist and haven't been fetched
+  useEffect(() => {
+    if (moduleIds.length > 0 && classForModule.length === 0) {
+      dispatch(fetchClassByModuleRequest(moduleIds));
+    }
+  }, [moduleIds, classForModule.length, dispatch]);
+
+  // ✅ Memoize transformed class data into an object { moduleId: [classes] }
+  const moduleClasses = useMemo(() => {
+    const classDataMap: { [key: number]: any[] } = {};
+    classForModule.forEach((classArray: any[]) => {
+      if (classArray.length > 0) {
+        const moduleId = classArray[0].moduleId;
+        classDataMap[moduleId] = classArray;
+      }
+    });
+    return classDataMap;
+  }, [classForModule]);
+
+  const parts = dynamicPath ? dynamicPath.split("/").filter(Boolean) : [];
+  const batchName = parts[1]
+    ? decodeURIComponent(parts[1]).replace(/%/g, " ")
+    : "";
+  console.log(batchName);
+
+  const handleModuleClick = (moduleId: number, moduleName: string) => {
+    setExpandedTopic(
+      expandedTopic === moduleId.toString() ? null : moduleId.toString()
+    );
+    setSelectedModule(moduleId);
+    setSelectedClassState(null);
+    dispatch(setSelectedModuleId(moduleId));
+    navigate(`#/${encodeURIComponent(moduleName)}`);
+  };
+
+  const handleClassClick = (classItem: any, moduleName: string) => {
+    setSelectedClass(classItem);
+    setSelectedClassState(classItem.id);
+    navigate(
+      `#/${encodeURIComponent(moduleName)}?classId=${encodeURIComponent(classItem.id)}`
+    );
   };
 
   return (
-    <div className="w-[460px] overflow-y-auto">
-      <aside>
-        <h3 className="text-lg font-semibold mb-4">Course Content</h3>
-        <hr />
-
-        {/* List of Main Topics */}
-        <div className="space-y-4 mt-5">
-          {courseStructure.map((course, index) => (
-            <div key={index}>
-              <div
-                className="font-semibold text-lg cursor-pointer hover:bg-gray-200 p-2 rounded-md flex justify-between items-center"
-                onClick={() => handleTopicClick(course.title)}
-              >
-                <span>{course.id + ") " + course.title}</span>
-
-                {/* Arrow icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  className={`transition-transform ${expandedTopic === course.title ? "rotate-180" : ""}`}
+    <>
+      <div className="sticky top-0 z-0 p-4">
+        <h3 className="text-2xl font-bold">Course Modules</h3>
+      </div>
+      <div className="w-[400px] overflow-y-auto bg-white p-5 rounded-lg shadow-lg border-2 border-slate-300 h-[500px]">
+        {batchModuleSchedule.length === 0 ? (
+          <div className="text-center mt-5 text-gray-500">
+            No modules available.
+          </div>
+        ) : (
+          <div className="space-y-4 mt-5">
+            {batchModuleSchedule.map((schedule: any, index: number) => (
+              <div key={schedule.id}>
+                {/* Module Title */}
+                <div
+                  className={`font-semibold text-lg cursor-pointer p-2 rounded-md flex justify-between items-center ${
+                    selectedModule === schedule.module.id
+                      ? "bg-gray-300"
+                      : "hover:bg-gray-200"
+                  }`}
+                  onClick={() =>
+                    handleModuleClick(
+                      schedule.module.id,
+                      schedule.module.moduleName
+                    )
+                  }
                 >
-                  <path
-                    d="M19 9l-7 7-7-7"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-
-              {/* Subtopics (Dropdown) */}
-              {expandedTopic === course.title && (
-                <div className="pl-4 mt-2 space-y-2">
-                  {course.subtopics.map((subtopic, subIndex) => (
-                    <div
-                      key={subIndex}
-                      className="flex justify-between p-2 rounded-md hover:bg-gray-100"
+                  <span>{`${String(index + 1).padStart(2, "0")}: ${schedule.module.moduleName}`}</span>
+                  <div className="border-2 p-1 rounded-lg border-gray-300">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      className={`transition-transform ${
+                        expandedTopic === schedule.module.id.toString()
+                          ? "rotate-180"
+                          : ""
+                      }`}
                     >
-                      <span>{subtopic.title}</span>
-                      <span className="text-gray-500">{subtopic.duration}</span>
-                    </div>
-                  ))}
+                      <path
+                        d="M19 9l-7 7-7-7"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </div>
                 </div>
-              )}
-              
-              <hr />
-            </div>
-          ))}
-        </div>
-      </aside>
-    </div>
+
+                {/* Expanded Module Details */}
+                {expandedTopic === schedule.module.id.toString() && (
+                  <div className="mt-2 bg-gray-100 rounded-lg p-2">
+                    {moduleClasses[schedule.module.id]?.length > 0 ? (
+                      <div className="mt-2 bg-[#eadcf1] p-3 rounded-lg">
+                        <h4 className="font-semibold text-md mb-2">Classes:</h4>
+                        {moduleClasses[schedule.module.id].map((classItem) => (
+                          <div
+                            key={classItem.id}
+                            className={`flex items-center p-3 rounded-lg shadow-md gap-4 mb-2 cursor-pointer transition ${
+                              selectedClass === classItem.id
+                                ? "bg-white"
+                                : "hover:bg-gray-100"
+                            }`}
+                            onClick={() =>
+                              handleClassClick(
+                                classItem,
+                                schedule.module.moduleName
+                              )
+                            }
+                          >
+                            {/* Play Button */}
+                            <button className="flex items-center justify-center w-10 h-10 text-black bg-white rounded-full hover:bg-gray-200 transition">
+                              <FaPlay className="text-lg" />
+                            </button>
+
+                            {/* Class Details */}
+                            <div className="flex-1">
+                              <h5 className="text-sm font-semibold">
+                                {classItem.classTitle}
+                              </h5>
+                              <p className="text-gray-600 text-xs">
+                                {classItem.classDescription}
+                              </p>
+                              <div>
+                                <div className="bg-[#6e2b8b] rounded-xl px-4 py-1 flex items-center justify-center shadow-md w-44 mt-2">
+                                  <h1 className="text-sm font-semibold text-white">
+                                    {new Date(
+                                      classItem.classDate
+                                    ).toLocaleDateString("en-US", {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                    })}
+                                  </h1>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-600 text-sm mt-2">
+                        No classes available for this module.
+                      </p>
+                    )}
+
+                    {/* Resource Download Section */}
+                    {schedule.module.materialForModule && (
+                      <div className="mt-3 flex flex-cols gap-2 ml-8">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm text-gray-600">Resources:</p>
+                          <a
+                            href={schedule.module.materialForModule}
+                            download
+                            className="text-blue-500 hover:underline text-sm"
+                          >
+                            Download Material
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                <hr />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

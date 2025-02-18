@@ -100,8 +100,9 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
 
     try {
       const schedulesResponse = await fetchBatchModuleScheduleApi();
+      console.log('schedulesResponse', schedulesResponse);
       // Extract the data array
-      const schedulesData = schedulesResponse?.data || [];
+      const schedulesData = schedulesResponse || [];
 
       // Safeguard with Array.isArray
       const schedules = Array.isArray(schedulesData)
@@ -122,6 +123,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
           duration: schedule.duration,
         }))
         : [];
+        console.log(schedules,'haha')
 
         const filteredbatchesSchedule = schedules.filter((b: any) => b.batchId === batchId)
         console.log('filteredbatchesSchedule', filteredbatchesSchedule)

@@ -77,13 +77,13 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const breadcrumbMap: { [key: string]: string } = {
-    "/admin/course": "Courses",
-    "/admin/batch-management": "Batch Management",
-    "/admin/manage-batch-schedules": "Manage Batch Schedules",
-  };
+  // const breadcrumbMap: { [key: string]: string } = {
+  //   "/admin/course": "Courses",
+  //   "/admin/batch-management": "Batch Management",
+  //   "/admin/manage-batch-schedules": "Manage Batch Schedules",
+  // };
 
-  const breadcrumbLabel = breadcrumbMap[location.pathname] || "Dashboard";
+  // const breadcrumbLabel = breadcrumbMap[location.pathname] || "Dashboard";
 
   const viewBatch = (data: CourseData) => {
     navigate(`/admin/batch-management?courseId=${data.id}`);
@@ -353,7 +353,6 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
 
     <div className="flex-1 p-4 mt-5 ml-20">
       <div className="text-gray-600 text-lg mb-4">
-        <span className="text-blue-600">{breadcrumbLabel}</span>
       </div>
       <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">

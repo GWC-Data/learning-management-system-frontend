@@ -428,12 +428,16 @@ const Attendance: React.FC = () => {
       console.log("batchResponse", batchResponse)
 
       const classResponse = await fetchClassForModuleApi();
-      const classMap = classResponse.map((c:any) => ({
-        id: c.id,
-        classTitle: c.classTitle,
-      }));
+      console.log("classResponse", classResponse); // Debugging
+     
+      const classMap = Array.isArray(classResponse?.data?.classes)
+        ? classResponse.data.classes.map((c: { id: any; classTitle: any }) => ({
+            id: c.id,
+            classTitle: c.classTitle,
+          }))
+        : [];
+     
       setClasses(classMap);
-      console.log("classResponse", classResponse)
 
       const moduleResponse = await fetchCourseModuleApi();
       const modules = moduleResponse.map((module: { id: any; moduleName: any; }) => ({

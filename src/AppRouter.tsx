@@ -29,8 +29,8 @@ import Attendance from "./components/Admin/Tables/attendance";
 import ExcelfileUploader from "./components/Admin/Tables/excelFileUploader";
 import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
 // import Courses from './components/Tables/courseDropdown';
-import TrainersActivityPage from "./components/Charts/trainersActivityPage";
-import TraineeActivityPage from "./components/Charts/traineesActivityPage";
+import TrainersActivityPage from "./components/Admin/Charts/trainersActivityPage";
+import TraineeActivityPage from "./components/Admin/Charts/traineesActivityPage";
 // import JobBoard from './components/Admin/jobBoard';
 
 import TraineeHome from "./components/Trainee/traineeHome";

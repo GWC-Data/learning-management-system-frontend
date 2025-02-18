@@ -44,16 +44,6 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-
-  // Handle search form submission
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Search for: ${searchQuery}`);
-  };
 
   // Toggle the mobile menu
   const toggleMobileMenu = () => {

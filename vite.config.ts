@@ -46,6 +46,11 @@ export default defineConfig({
 
       "/classbyModule": "http://localhost:5050",
 
+       
+      "/attendance": "http://localhost:5050",
+ 
+      "/attendance-file": "http://localhost:5050",
+
       "/submissions": "https://api.judge0.com"
       
     },

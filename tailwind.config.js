@@ -2,8 +2,12 @@
 module.exports = {
     darkMode: ["class"],
     content: ["./src/**/*.{html,js,ts,tsx}"],
+	
   theme: {
   	extend: {
+		fontFamily: {
+			metropolis: ["Metropolis", "sans-serif"],
+		  },
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
@@ -65,9 +69,15 @@ module.exports = {
 			text: "#212529", // Dark text for light mode
 			accent: "#0d6efd", // Accent color for buttons/links
 			},
-
 			'custom-dark': '#DDC3E7', 
-  		}
+			'baby-powder': '#EBCFF2',
+			
+  		},
+		  backgroundImage: {
+            'custom-gradient': 'linear-gradient(to right, #50bc8e, #3fa7d2, #4e6db4)',
+			'custom-gradient-btn': 'linear-gradient(to left, #50bc8e, #3fa7d2, #4e6db4)',
+			'settings-gradient': 'linear-gradient(90deg, rgba(158,197,243,1) 13%, rgba(253,237,192,1) 65%)'
+          },
   	}
   },
   plugins: [require("tailwindcss-animate")],

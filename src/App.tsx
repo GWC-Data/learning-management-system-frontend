@@ -1,121 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import axios from 'axios';
-import Cookies from 'js-cookie';
-
-import Home from './components/Home';
-import Dashboard from './components/Dashboard';
-import Login from './components/Navbar/Login';
-import Nav from './components/Navbar/Nav';
-
-import CourseTable from './components/Tables/courseTables';
-import UserTable from './components/Tables/userTables';
-import AdminTable from './components/Tables/adminTables';
-import FinanceTable from './components/Tables/financeTables';
-import TrainerTable from './components/Tables/trainerTables';
-import AddUser from './components/Tables/addUser';
-
-import AllUsers from './components/Tables/allUsers';
-import CourseCategoryTable from './components/Tables/courseCategory';
-
-import { Toaster } from 'sonner';
+import React, { useState, useEffect } from "react";
+import AppRouter from "./AppRouter";
+import { fetchUsersbyIdApi } from "./helpers/api/userApi";
+import './index.css';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(()=>{
-    const token = Cookies.get('authToken'); // Retrieve the token
-    const userId = Cookies.get('userId'); // Retrieve the user ID
-    console.log('user id', userId);
-  },[isAuthenticated])
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    () => localStorage.getItem("isAuthenticated") === "true"
+  );
+  const [userRole, setUserRole] = useState<string>(
+    () => localStorage.getItem("role") || ""
+  );
+  const [userName, setUserName] = useState<string>(
+    () => localStorage.getItem("userName") || ""
+  );
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const authenticateWithToken = async () => {
-      const token = Cookies.get('authToken'); // Retrieve the token
-      const userId = Cookies.get('userId'); // Retrieve the user ID
-      console.log('user id', userId);
-      
+      const token = localStorage.getItem("authToken");
+      const userId = localStorage.getItem("userId");
+
       if (token && userId) {
-        
         try {
-          // Validate token and fetch user details
-          const response = await axios.get(`/auth/userDetails/${userId}`, { 
-            headers: { Authorization: `Bearer ${token}` },
-          });
-  
-          const user = response.data.user;
-          const fullName = `${user.firstName} ${user.lastName}`;
-  
-          // Update authentication state and user name
-          setIsAuthenticated(true);
-          setUserName(fullName);
+          const user = await fetchUsersbyIdApi(Number(userId));
+          console.log("Fetched user", user);
+
+          if (user) {
+            const fullName = `${user.firstName} ${user.lastName}`;
+            setIsAuthenticated(true);
+            setUserRole(user.role);
+            setUserName(fullName);
+            localStorage.setItem("isAuthenticated", "true");
+            localStorage.setItem("userName", fullName);
+          }
         } catch (error) {
-          console.error('Token validation failed:', error);
-          Cookies.remove('authToken'); // Clear invalid token
-          Cookies.remove('userId'); // Clear invalid userId
+          console.error("Token validation failed:", error);
+          localStorage.clear();
           setIsAuthenticated(false);
         }
       }
-      setLoading(false); // Mark authentication check as complete
+      setLoading(false);
     };
-  
+
     authenticateWithToken();
   }, []);
-  
 
   if (loading) {
-    return <div className="text-center mt-20">Loading...</div>; // Show a loading screen while verifying the token
+    return <div className="text-center mt-20">Loading...</div>;
   }
 
   return (
     <>
-      <Router>
-        {/* Navbar */}
-        <Nav
-          isAuthenticated={isAuthenticated}
-          setIsAuthenticated={setIsAuthenticated}
-          userName={userName}
-        />
-
-        <Routes>
-          {/* Protected Route */}
-          <Route
-            path="/"
-            element={
-              isAuthenticated ? (
-                <Home isAuthenticated={isAuthenticated} />
-              ) : (
-                <Navigate to="/login" replace />
-              )
-            }
-          >
-            {/* Nested routes */}
-            <Route index element={<Dashboard />} />
-            <Route path="courses" element={<CourseTable />} />
-            <Route path= "course-category" element={<CourseCategoryTable/>}/>
-            
-
-            <Route path="allUsers/" element={<AllUsers/>}>
-                <Route path="trainees" element={<UserTable />} />
-                <Route path="admin" element={<AdminTable />} />
-                <Route path="finance" element={<FinanceTable />} />
-                <Route path="trainers" element={<TrainerTable />} />
-                <Route path="add-user" element={<AddUser />} />
-                
-            </Route>
-          </Route>
-
-          {/* Login Route */}
-          <Route
-            path="/login"
-            element={<Login setIsAuthenticated={setIsAuthenticated} setUserName={setUserName} />}
-          />
-        </Routes>
-      </Router>
-
-      <Toaster />
+      <AppRouter
+        isAuthenticated={isAuthenticated}
+        setIsAuthenticated={setIsAuthenticated}
+        userRole={userRole}
+        setUserName={setUserName}
+      />
     </>
   );
 };

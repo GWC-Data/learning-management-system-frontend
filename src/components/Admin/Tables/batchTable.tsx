@@ -17,7 +17,7 @@ import {
 } from "@/helpers/api/batchApi";
 import { fetchUsersApi } from "@/helpers/api/userApi";
 import { fetchCourseApi } from "@/helpers/api/courseApi";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 
 interface BatchTableProps {
@@ -653,7 +653,6 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 };
 export default ManageBatches;
 
-//     <div className="flex-1 p-6 mt-10 ml-16">
 //       <div className="relative bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-full">
 //         {/* Dropdown Button */}
 //         <Button

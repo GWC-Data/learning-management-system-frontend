@@ -16,7 +16,6 @@ export const createCourseApi = async (courseData: any) => {
   }
 };
 
-
 // Read all courses
 export const fetchCourseApi = async () => {
   try {

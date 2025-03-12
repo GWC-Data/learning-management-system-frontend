@@ -49,6 +49,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [courseOptions, setCourseOptions] = useState<CourseOption[]>([]);
   const [newModule, setNewModule] = useState<CourseModuleData>({
@@ -65,8 +66,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   );
   const [searchParams] = useSearchParams();
     const courseId = String(searchParams.get("courseId")); 
-  
-  const [currentPage, setCurrentPage] = useState(1);
+
 
   {/* pagination */ }
   const recordsPerPage = 15;

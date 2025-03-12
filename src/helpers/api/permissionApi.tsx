@@ -23,7 +23,6 @@ export const fetchPermissionsApi = async () => {
   }
 };
 
-
 // Update an existing permission
 export const updatePermissionApi = async (
   action: string,

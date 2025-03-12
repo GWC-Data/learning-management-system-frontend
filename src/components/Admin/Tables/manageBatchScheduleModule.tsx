@@ -681,7 +681,6 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                   </span>
                 )}
               </div>
-
               {/* Action Buttons */}
               <div className="flex space-x-4">
                 <Button

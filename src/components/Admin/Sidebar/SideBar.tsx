@@ -24,9 +24,9 @@ const Sidebar: React.FC = () => {
   const isActiveUsers = location.pathname.startsWith(
     "/admin/allUsers"
   );
-  const isActiveCourse = location.pathname.startsWith(
-    "/admin/course"
-  );
+  // const isActiveCourse = location.pathname.startsWith(
+  //   "/admin/course"
+  // );
 
   return (
     <div className="flex h-full min-h-0 text-gray-700">
@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
                 />
 
                 <SidebarButton
-                  icon={<Activity/>}
+                  icon={<Activity />}
                   label="Trainees Activity"
                   to="/admin/trainees-activity"
                   isActive={location.pathname === "/admin/trainees-activity"}
@@ -96,14 +96,14 @@ const Sidebar: React.FC = () => {
                   }
                 />
 
-                <SidebarButton
+                {/* <SidebarButton
                   icon={<File />}
                   label="Course Assignment"
                   to="/admin/course-assignment"
                   isActive={
                     location.pathname === "/admin/course-assignment"
                   }
-                />
+                /> */}
               </div>
             )}
           </div>
@@ -134,12 +134,12 @@ const Sidebar: React.FC = () => {
 
             {isMasterDataOpen && (
               <div className="space-y-2 mt-2 mr-7 ml-7">
-                <SidebarButton
+                {/* <SidebarButton
                   icon={<Layers />}
                   label="Course Category"
                   to="/admin/course-category"
                   isActive={location.pathname === "/admin/course-category"}
-                />
+                /> */}
 
                 {/* <SidebarButton
                   icon={<BookOpen />}
@@ -161,15 +161,15 @@ const Sidebar: React.FC = () => {
                   to="/admin/attendance"
                   isActive={location.pathname === "/admin/attendance"}
                 />
-
-                {/* <SidebarButton
+{/* 
+                <SidebarButton
                   icon={<ClipboardList />}
                   label="Batch Management"
                   to="/admin/batch-management"
                   isActive={location.pathname === "/admin/batch-management"}
-                /> 
+                /> */}
 
-               <SidebarButton
+               {/* <SidebarButton
                   icon={<Calendar />} // You can replace this with a different icon
                   label="Batch Module Schedules"
                   to="/admin/manage-batch-schedules"

@@ -25,10 +25,10 @@ const AddUser = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-
+ 
   // Get auth token from localStorage
   const getToken = () => localStorage.getItem("authToken");
-
+ 
   // Fetch roles on component mount
   useEffect(() => {
     const fetchRoles = async () => {
@@ -88,7 +88,7 @@ const AddUser = () => {
           "Password must contain at least one special character.";
       }
     }
-
+ 
     setErrors(newErrors);
     // Show errors in toast notifications
     Object.entries(newErrors).forEach(([field, message]) => {
@@ -96,44 +96,8 @@ const AddUser = () => {
     });
     return newErrors;
   };
-
+ 
   // Handle form submission
-  // const handleFormSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   const token = getToken();
-  //   if (!token) {
-  //     toast.error("You must be logged in to add a user.");
-  //     return;
-  //   }
-  //   const validationErrors = validateFields();
-  //   // Check if there are any validation errors
-  //   if (Object.keys(validationErrors).length > 0) {
-  //     return; // Stop further execution if errors exist
-  //   }
-  //   const userData = { ...newUser };
-  //   try {
-  //     const response = await createUserApi(userData);
-  //     console.log("newuser", response);
-  //     const createdUser = response.newUser;
-  //     console.log("createdUser", createdUser);
-
-  //     toast.success("User added successfully!");
-  //     // Redirect based on the user's role
-  //     if (createdUser.role && createdUser.role?.name === "admin") {
-  //       navigate("/admin/allUsers/admin", { state: { user: createdUser } });
-  //     } else if (createdUser.role && createdUser.role?.name === "sales") {
-  //       navigate("/admin/allUsers/sales", { state: { user: createdUser } });
-  //     } else if (createdUser.role && createdUser.role?.name === "trainer") {
-  //       navigate("/admin/allUsers/trainer", { state: { user: createdUser } });
-  //     } else {
-  //       navigate("/admin/allUsers/trainee", { state: { user: createdUser } });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error creating user:", error);
-  //     toast.error("Failed to create user. Please try again later.");
-  //   }
-  // };
-
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = getToken();
@@ -147,42 +111,18 @@ const AddUser = () => {
     }
     const userData = { ...newUser };
     try {
-      const response = await createUserApi(userData);
-      console.log("API Response:", response);
-  
-      // Access the user object from the response
-      const createdUser = response.user;
-      console.log("Created User:", createdUser);
-  
-      if (!createdUser) {
-        throw new Error("User creation failed: No user data returned.");
-      }
-  
+      const response = await createUserApi(userData); 
+      const createdUser = response.newUser;
+ 
       toast.success("User added successfully!");
-  
-      // Use the roleId from the userData to determine the role
-      const roleId = userData.roleId;
-  
-      // Fetch the role details using the roleId
-      const role = roles.find((r) => r.id === roleId);
-      if (role) {
-        const roleName = role.name.toLowerCase();
-        switch (roleName) {
-          case "admin":
-            navigate("/admin/allUsers/admin", { state: { user: createdUser } });
-            break;
-          case "sales":
-            navigate("/admin/allUsers/sales", { state: { user: createdUser } });
-            break;
-          case "trainer":
-            navigate("/admin/allUsers/trainer", { state: { user: createdUser } });
-            break;
-          default:
-            navigate("/admin/allUsers/trainee", { state: { user: createdUser } });
-            break;
-        }
+      // Redirect based on the user's role
+      if (createdUser.role && createdUser.role.name === "Admin") {
+        navigate("/admin/allUsers/admin", { state: { user: createdUser } });
+      } else if (createdUser.role && createdUser.role.name === "Sales") {
+        navigate("/admin/allUsers/sales", { state: { user: createdUser } });
+      } else if (createdUser.role && createdUser.role.name === "Trainer") {
+        navigate("/admin/allUsers/trainer", { state: { user: createdUser } });
       } else {
-        // Fallback to a default route if role is not found
         navigate("/admin/allUsers/trainee", { state: { user: createdUser } });
       }
     } catch (error) {
@@ -190,7 +130,7 @@ const AddUser = () => {
       toast.error("Failed to create user. Please try again later.");
     }
   };
-
+ 
   // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -201,7 +141,7 @@ const AddUser = () => {
       [name]: value,
     }));
   };
-
+ 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
@@ -323,5 +263,4 @@ const AddUser = () => {
     </div>
   );
 };
-
 export default AddUser;

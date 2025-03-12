@@ -314,7 +314,11 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 Category Name
               </label>
               <p className="font-metropolis text-gray-700">
+<<<<<<< HEAD
                 {viewingCategory.coursecategoryName}
+=======
+                {viewingCategory.courseCategory}
+>>>>>>> origin/sakthivel
               </p>
             </div>
             <div className="mb-4">
@@ -329,9 +333,15 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
               <label className="block font-metropolis font-medium">
                 Category Image
               </label>
+<<<<<<< HEAD
               {viewingCategory.coursecategoryImg ? (
                 <img
                   src={viewingCategory.coursecategoryImg}
+=======
+              {viewingCategory.courseCategoryImg ? (
+                <img
+                  src={viewingCategory.courseCategoryImg}
+>>>>>>> origin/sakthivel
                   alt="Category"
                   className="w-full h-40 object-cover rounded"
                 />

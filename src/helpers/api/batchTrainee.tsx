@@ -1,7 +1,7 @@
 import apiClient from "../rootApi/apiClient";
 
 // Read a course by id
-export const fetchBatchIdByTraineeIdApi = async (traineeId: number) => {
+export const fetchBatchIdByTraineeIdApi = async (traineeId: string) => {
   try {
     console.log("fetchBatchByTraineeIdApi", traineeId);
     const response = await apiClient.get(`/batchTrainee/${traineeId}`);

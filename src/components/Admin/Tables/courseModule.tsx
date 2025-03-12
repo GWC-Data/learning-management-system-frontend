@@ -65,6 +65,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   );
   const [searchParams] = useSearchParams();
     const courseId = Number(searchParams.get("courseId")); 
+    console.log('courseId', courseId);
   
   const [currentPage, setCurrentPage] = useState(1);
 

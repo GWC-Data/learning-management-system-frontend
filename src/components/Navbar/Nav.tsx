@@ -11,6 +11,7 @@ import {
 import ProfileSettingsIcon from "../../icons/setting.png";
 import LogoutIcon from "../../icons/logout.png";
 import LMSLogo from "../../images/Logo.png";
+import { fetchUsersbyIdApi } from "@/helpers/api/userApi";
 
 interface NavProps {
   isAuthenticated: boolean;
@@ -21,6 +22,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [profilePic, setProfilePic] = useState(null);
 
   // Initialize role and name from localStorage or fallback to null
   const [role, setRole] = useState<string | null>(localStorage.getItem("role"));
@@ -29,6 +31,9 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
   );
 
   const navigate = useNavigate();
+  const userId = localStorage.getItem("userId");
+
+  console.log(userId);
 
   useEffect(() => {
     // Listen for manual storage updates in other tabs
@@ -44,6 +49,24 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
+  const fetchProfilePic = async () => {
+    if (!userId) return; // Prevent API call if userId is null
+
+    try {
+      const response = await fetchUsersbyIdApi(String(userId));
+      console.log(response, "respp");
+
+      if (response?.profilePic) {
+        setProfilePic(response.profilePic);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile picture:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfilePic();
+  }, [userId]); // Ensure `userId` is a valid dependency
 
   // Toggle the mobile menu
   const toggleMobileMenu = () => {
@@ -57,6 +80,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
     setRole(null); // Clear role
     setName(null); // Clear name
     navigate("/login"); // Redirect to login page
+    setProfilePic(null);
   };
 
   useEffect(() => {
@@ -75,18 +99,14 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
             role === "admin"
               ? "/admin/dashboard"
               : role === "trainer"
-              ? "/trainer"
-              : role === "trainee"
-              ? "/trainee/dashboard"
-              : "/"
+                ? "/trainer"
+                : role === "trainee"
+                  ? "/trainee/dashboard"
+                  : "/"
           }
           className="hover:scale-105 transform transition"
         >
-          <img
-            src={LMSLogo}
-            alt="teqcertify"
-            className="w-64 h-14"
-          />
+          <img src={LMSLogo} alt="teqcertify" className="w-64 h-14" />
         </Link>
 
         {/* Navigation Bar */}
@@ -162,9 +182,19 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                   >
                     <DropdownMenuTrigger>
                       <div className="cursor-pointer">
-                        <div className="w-12 h-12 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                          {name?.charAt(0)}
-                        </div>
+                        {profilePic ? (
+                          <img
+                            src={
+                              profilePic || "https://via.placeholder.com/150"
+                            }
+                            alt="Profile"
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gray-500 flex items-center justify-center text-white">
+                            {name?.charAt(0)}
+                          </div>
+                        )}
                       </div>
                     </DropdownMenuTrigger>
 
@@ -172,9 +202,17 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                       <div className="flex flex-col space-y-2">
                         <div className="grid grid-cols-2 gap-2">
                           <div className="cursor-pointer">
-                            <div className="w-12 h-12 rounded-full bg-gray-500 flex items-center justify-center text-white">
-                              {name?.charAt(0)}
-                            </div>
+                            {profilePic ? (
+                              <img
+                                src={profilePic}
+                                alt="Profile"
+                                className="w-12 h-12 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gray-500 flex items-center justify-center text-white">
+                                {name?.charAt(0)}
+                              </div>
+                            )}
                           </div>
                           <div className="justify-items-center items-center -ml-[210px] mt-2 text-lg">
                             <h1>{name}</h1>
@@ -185,20 +223,20 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
                         {/* Profile Settings */}
 
                         {role !== "admin" && (
-                        <Link
-                          to="/trainee/settings"
-                          className="text-black bg-gray-100 py-2.5 px-4 rounded-lg text-center shadow-md transition duration-300 mt-5 hover:bg-slate-200"
-                          onClick={() => setDropdownOpen(false)} // Close dropdown when clicked
-                        >
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={ProfileSettingsIcon}
-                              alt="profileSettingIcon"
-                              className="w-8 h-8"
-                            />
-                            <div>Profile Settings</div>
-                          </div>
-                        </Link>
+                          <Link
+                            to="/trainee/settings"
+                            className="text-black bg-gray-100 py-2.5 px-4 rounded-lg text-center shadow-md transition duration-300 mt-5 hover:bg-slate-200"
+                            onClick={() => setDropdownOpen(false)} // Close dropdown when clicked
+                          >
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={ProfileSettingsIcon}
+                                alt="profileSettingIcon"
+                                className="w-8 h-8"
+                              />
+                              <div>Profile Settings</div>
+                            </div>
+                          </Link>
                         )}
 
                         {/* Logout */}

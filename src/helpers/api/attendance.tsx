@@ -12,16 +12,31 @@ export const createAttendanceApi = async (newAttendance: any) => {
     }
   };
 
-export const getAttendanceUserByIdApi = async (userId: number) => {
+// export const getAttendanceUserByIdApi = async (userId: number) => {
+//   try {
+//     const response = await apiClient.get(`/attendance/${userId}`);
+//     console.log('response', response.data);
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error getting attendance user by id', error);
+//     throw error;
+//   }
+// }
+
+export const getAttendanceByUserIdApi = async (userId: string) => {
   try {
-    const response = await apiClient.get(`/attendance/${userId}`);
-    console.log('response', response.data);
-    return response.data;
+    const response = await apiClient.get(`/attendance`, {
+      params: { userId }, // Pass userId as a query parameter
+    });
+
+    console.log('response', response.data.attendanceRecords);
+    return response.data.attendanceRecords;
   } catch (error) {
     console.error('Error getting attendance user by id', error);
     throw error;
   }
-}
+};
+
 
   // Read all Batches
 export const fetchAttendanceApi = async () => {

@@ -1,9 +1,9 @@
 import * as types from "./actionTypes";
 
 interface BatchModuleSchedule {
-  id: number;
-  batchId: number;
-  moduleId: number;
+  id: string;
+  batchId: string;
+  moduleId: string;
   scheduleDate: string;
   startTime: string;
   endTime: string;
@@ -12,7 +12,7 @@ interface BatchModuleSchedule {
 
 interface BatchModuleScheduleState {
   batchModuleSchedules: BatchModuleSchedule[];
-  batchModuleSchedulesByBatchId: Record<number, BatchModuleSchedule[]>;
+  batchModuleSchedulesByBatchId: Record<string, BatchModuleSchedule[]>;
   loading: boolean;
   error: string | null;
   submissionStatus: string | null;

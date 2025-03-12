@@ -8,25 +8,25 @@ import { createAssignmentCompletionsApi } from "@/helpers/api/assignmentCompleti
 interface Assignment {
   courseAssignmentQuestionFile: string;
   courseAssignmentQuestionName: string;
-  trainerId: number;
-  id: number; // Add id field to each assignment
+  trainerId: string;
+  id: string; // Add id field to each assignment
 }
 
 const Assignments: React.FC = () => {
-  const userId = Number(localStorage.getItem("userId"));
+  const userId = localStorage.getItem("userId");
   const location = useLocation();
   const course = location.state;
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
   const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(null);
-  const [trainerNames, setTrainerNames] = useState<Record<number, string>>({});
+  const [trainerNames, setTrainerNames] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<number | null>(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
 
   // Fetch assignments on component mount
   const fetchCourseAssignments = async () => {
     try {
-      const data = await fetchCourseAssignmentbybatchIdApi(course.id);
+      const data = await fetchCourseAssignmentbybatchIdApi(String(course.id));
       console.log("course", course.id);
       console.log("data", data);
       setAssignments(data);
@@ -43,9 +43,9 @@ const Assignments: React.FC = () => {
   };
 
   // Fetch trainer names by IDs
-  const fetchTrainerNames = async (trainerIds: number[]) => {
+  const fetchTrainerNames = async (trainerIds: string[]) => {
     try {
-      const names: Record<number, string> = {};
+      const names: Record<string, string> = {};
       for (const id of trainerIds) {
         const trainer = await fetchUsersbyIdApi(id); // Assume this returns { id, name }
         console.log(trainer, "trai");
@@ -86,7 +86,7 @@ const Assignments: React.FC = () => {
     }
   };
 
-  const handleUpload = async (assignmentId: number) => {
+  const handleUpload = async (assignmentId: string) => {
     if (!selectedFile) {
       alert("Please select a file to upload.");
       return;
@@ -101,7 +101,7 @@ const Assignments: React.FC = () => {
 
       const payload = {
         traineeId: userId || "", // Send userId as string or empty string if null
-        courseAssignId: Number(assignmentId), // Send as number
+        courseAssignId: assignmentId, // Send as number
         courseAssignmentAnswerFile: base64String, // Send base64 string
         obtainedMarks: 0, // Default to 0
       };

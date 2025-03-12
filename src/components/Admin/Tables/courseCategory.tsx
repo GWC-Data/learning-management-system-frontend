@@ -25,7 +25,7 @@ interface CourseCategoryTableProps {
 // TypeScript types for course category data
 interface CourseCategoryData {
   id: number;
-  courseCategory: string;
+  coursecategoryName: string;
   description: string;
   courseCategoryImg: string;
 }
@@ -50,7 +50,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     useState<CourseCategoryData | null>(null);
   const [newCategory, setNewCategory] = useState<CourseCategoryData>({
     id: 0,
-    courseCategory: "",
+    coursecategoryName: "",
     description: "",
     courseCategoryImg: "",
   });
@@ -62,8 +62,8 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!newCategory.courseCategory)
-      newErrors.courseCategory = "courseCategory is required.";
+    if (!newCategory.coursecategoryName)
+      newErrors.coursecategoryName = "coursecategoryName is required.";
     if (!newCategory.description)
       newErrors.description = "description is required.";
     if (!newCategory.courseCategoryImg)
@@ -113,7 +113,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     setUploadedFile(null);
     setNewCategory({
       id: 0,
-      courseCategory: "",
+      coursecategoryName: "",
       description: "",
       courseCategoryImg: "",
     });
@@ -148,7 +148,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     setNewCategory(data);
     setNewCategory({
       id: data.id,
-      courseCategory: data.courseCategory,
+      coursecategoryName: data.courseCategory,
       description: data.description || "",
       courseCategoryImg: data.courseCategoryImg
     });
@@ -159,7 +159,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     setIsModalOpen(false);
     setNewCategory({
       id: 0,
-      courseCategory: "",
+      coursecategoryName: "",
       description: "",
       courseCategoryImg: "",
     });
@@ -184,7 +184,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
 
   useEffect(() => {
     setColDefs([
-      { headerName: "Category Name", field: "courseCategory", editable: false },
+      { headerName: "Category Name", field: "coursecategoryName", editable: false },
       {
         headerName: "Description",
         field: "description",
@@ -295,7 +295,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 Category Name
               </label>
               <p className="font-metropolis text-gray-700">
-                {viewingCategory.courseCategory}
+                {viewingCategory.coursecategoryName}
               </p>
             </div>
             <div className="mb-4">
@@ -340,8 +340,8 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
             <p className="font-metropolis font-medium">
               Are you sure you want to delete the category{" "}
               <strong>
-                {categoryToDelete?.courseCategory?.charAt(0).toUpperCase() +
-                  categoryToDelete?.courseCategory?.slice(1).toLowerCase() ||
+                {categoryToDelete?.coursecategoryName?.charAt(0).toUpperCase() +
+                  categoryToDelete?.coursecategoryName?.slice(1).toLowerCase() ||
                   "this category"}
               </strong>
               ?
@@ -380,11 +380,11 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 <input
                   type="text"
                   className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
-                  value={newCategory.courseCategory}
+                  value={newCategory.coursecategoryName}
                   onChange={(e) =>
                     setNewCategory({
                       ...newCategory,
-                      courseCategory: e.target.value,
+                      coursecategoryName: e.target.value,
                     })
                   }
                 />

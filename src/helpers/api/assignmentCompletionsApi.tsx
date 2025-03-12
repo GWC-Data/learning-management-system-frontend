@@ -1,14 +1,14 @@
 import apiClient from "../rootApi/apiClient";
 
 // Create a new assignment completion
-export const createAssignmentCompletionsApi = async (
-  newAssignmentCompletion: any
-) => {
+export const createAssignmentCompletionsApi = async (formData: FormData) => {
   try {
-    const response = await apiClient.post(
-      "/assignment-completion",
-      newAssignmentCompletion
-    );
+    const response = await apiClient.post("/assignment-completion", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Axios will handle this correctly
+      },
+    });
+
     console.log("createAssignmentCompletionsApi", response.data);
     return response.data;
   } catch (error) {
@@ -16,6 +16,7 @@ export const createAssignmentCompletionsApi = async (
     throw error;
   }
 };
+
 
 // Read all assignment completions
 export const fetchAssignmentCompletionsApi = async () => {

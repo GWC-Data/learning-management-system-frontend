@@ -129,12 +129,12 @@ const Sidebar: React.FC = () => {
 
             {isMasterDataOpen && (
               <div className="space-y-2 mt-2 mr-7 ml-7">
-                {/* <SidebarButton
+                <SidebarButton
                   icon={<Layers />}
                   label="Course Category"
                   to="/admin/course-category"
                   isActive={location.pathname === "/admin/course-category"}
-                /> */}
+                />
 
                 {/* <SidebarButton
                   icon={<BookOpen />}

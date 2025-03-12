@@ -15,12 +15,16 @@ const getToken = () => localStorage.getItem("authToken");
 apiClient.interceptors.request.use(
   (config) => {
     const token = getToken();
+    console.log("Token being set:", token); // Debugging purpose
+
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.set("Authorization", `Bearer ${token}`);
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
+
 
 export default apiClient;

@@ -24,11 +24,11 @@ export const fetchClassForModuleApi = async () => {
 };
 
 // Read a class by id
-export const fetchClassForModuleByIdApi = async (classId: number) => {
+export const fetchClassForModuleByIdApi = async (classId: string) => {
   try {
     console.log("fetchClassForModuleByIdApi", classId);
     const response = await apiClient.get(`/class/${classId}`);
-    return response.data.classData || [];
+    return response.data.class || [];
   } catch (error) {
     console.error("Failed to fetch class by id", error);
     throw error;
@@ -36,11 +36,12 @@ export const fetchClassForModuleByIdApi = async (classId: number) => {
 };
 
 // Read a class by moduleId
-export const fetchClassForModuleByModuleIdApi = async (moduleId: number) => {
+export const fetchClassForModuleByModuleIdApi = async (moduleId: string) => {
   try {
     console.log("fetchClassForModuleByModuleIdApi", moduleId);
     const response = await apiClient.get(`/classbyModule/${moduleId}`);
-    return response.data.classData || [];
+    console.log('fetchclassformoduleBymoduleid', response.data.class);
+    return response.data.class || [];
   } catch (error) {
     console.error("Failed to fetch class by moduleId", error);
     throw error;

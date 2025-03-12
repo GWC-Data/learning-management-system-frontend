@@ -1,16 +1,68 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-import MissedModules from "@/images/problem-solving.png"; // Completed course image
+import MissedModules from "@/images/problem-solving.png";
 import Modules from "@/images/cubes.png";
-
 import RemainingClasses from "@/images/hourglass.png";
 import Attendance from "@/images/time-management.png";
-import UpcomingEvents from "../UpcomingEvents/upcomingEvents";
+import { getAttendanceByUserIdApi } from "@/helpers/api/attendance";
 
 const DashboardHeader: React.FC = () => {
   const [name, setName] = useState<string | null>(
     localStorage.getItem("userName")
   );
+  const [attendanceStatus, setAttendanceStatus] = useState<any[]>([]);
+
+  const getUserId = () => localStorage.getItem("userId");
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      const userId = getUserId();
+      if (userId) {
+        try {
+          const attendance = await getAttendanceByUserIdApi(userId);
+          console.log("attendance", attendance);
+          setAttendanceStatus(attendance);
+        } catch (error) {
+          console.error("Error fetching attendance:", error);
+        }
+      }
+    };
+
+    fetchAttendance();
+  }, []);
+
+  // Calculate class completion based on attendance data
+  const calculateClassCompletion = () => {
+    return attendanceStatus.length > 0
+      ? `${attendanceStatus.length} Classes`
+      : "Loading...";
+  };
+
+  // Calculate attendance percentage
+  const calculateAttendancePercentage = () => {
+    if (!attendanceStatus || attendanceStatus.length === 0) return "Loading...";
+
+    const totalDays = attendanceStatus.length;
+    const presentDays = attendanceStatus.reduce(
+      (count, day) => count + (day.attendance ? 1 : 0),
+      0
+    );
+
+    const percentage = ((presentDays / totalDays) * 100).toFixed(2);
+    return `${percentage}%`;
+  };
+
+  // Calculate missed classes based on attendance data
+  const calculateMissedClasses = () => {
+    if (!attendanceStatus || attendanceStatus.length === 0) return "Loading...";
+
+    const missedClasses = attendanceStatus.reduce(
+      (count, day) => count + (!day.attendance ? 1 : 0),
+      0
+    );
+
+    return `${missedClasses} Classes`;
+  };
 
   return (
     <div className="grid grid-cols-1 mt-4 poppins-regular">
@@ -23,44 +75,31 @@ const DashboardHeader: React.FC = () => {
 
           <div className="mt-10">
             <h2 className="text-lg font-semibold">Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mt-4">
-              {/* Completed Courses Section */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-4">
               <OverviewCard
                 imgSrc={Modules}
-                title="Module Completed"
-                value="2"
+                title="Class Completed"
+                value={calculateClassCompletion()}
               />
-
-              {/* Attedance Section */}
               <OverviewCard
                 imgSrc={Attendance}
                 title="Attendance"
-                value="10 Days"
+                value={calculateAttendancePercentage()}
               />
-
-              {/* Missed Modules */}
-              <OverviewCard
+              {/* <OverviewCard
                 imgSrc={RemainingClasses}
                 title="Remaining Classes"
                 value="30 Classes"
-              />
-
-
-              {/* Remaining Classes */}
+              /> */}
               <OverviewCard
                 imgSrc={MissedModules}
-                title="Missed Modules"
-                value="10 Classes"
+                title="Missed Classes"
+                value={calculateMissedClasses()}
               />
             </div>
           </div>
-
-          
         </div>
       </div>
-      {/* <div>
-        <UpcomingEvents/>
-      </div> */}
     </div>
   );
 };

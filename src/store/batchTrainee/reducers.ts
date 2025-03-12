@@ -1,7 +1,7 @@
 import * as types from "./actionTypes";
 
 interface BatchTraineeState {
-  batchTrainees: number[]; // Assuming it's an array of batch IDs
+  batchTrainees: string[]; // Assuming it's an array of batch IDs
   loading: boolean;
   error: string | null;
 }

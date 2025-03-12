@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import LoadingSpinner from "../loadingSpinner";
-import Lms from "../../images/LMS.avif"
+import Lms from "../../images/LMS.avif";
 
 interface LoginProps {
   setIsAuthenticated: (auth: boolean) => void;
@@ -26,7 +26,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
       // Log response for debugging
       console.log("Login successful:", response.data);
 
-      const { accessToken, user } = response.data;
+      const { accessToken, user } = response.data.login;
       console.log("tokennn", accessToken);
 
       // Save token and user data to localStorage
@@ -62,7 +62,8 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
 
   return (
     <>
-      {isLoading && <LoadingSpinner timeout={8000}/>} {/* Show spinner when loading */}
+      {isLoading && <LoadingSpinner timeout={8000} />}{" "}
+      {/* Show spinner when loading */}
       <div className="flex items-center justify-center min-h-screen bg-[#D5AFE3] ">
         {/* Card Container */}
         <div className="relative flex flex-col bg-white space-x-5 rounded-2xl shadow-md md:max-w-[1000px] md:min-w[800px] md:flex-row md:space-y-0 -mt-[50px]">

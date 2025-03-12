@@ -23,9 +23,10 @@ export const fetchBatchApi = async () => {
   }
 };
 
-export const fetchBatchByIdApi = async (batchId: number) => {
+export const fetchBatchByIdApi = async (batchId: string) => {
   try {
     const response = await apiClient.get(`/batch/${batchId}`);
+    console.log(response.data.batch)
     return response.data.batch || [];
   } catch (error) {
     console.error("Failed to fetch batch by id", error);
@@ -36,6 +37,7 @@ export const fetchBatchByIdApi = async (batchId: number) => {
 export const fetchBatchByBatchNameApi = async (batchName: String) => {
   try {
     const response = await apiClient.get(`/batchbyName/${batchName}`);
+    console.log('FetchBatchbyName', response.data.batch)
     return response.data.batch || [];
   } catch (error) {
     console.error("Failed to fetch batch by id", error);

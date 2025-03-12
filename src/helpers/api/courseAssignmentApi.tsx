@@ -27,12 +27,13 @@ export const fetchCourseAssignmentApi = async () => {
 };
 
 // Read all courseAssignment by batchId
-export const fetchCourseAssignmentbybatchIdApi = async (batchId: number) => {
+export const fetchCourseAssignmentbybatchIdApi = async (batchId: string) => {
   try {
     console.log("BatchId", batchId);
     const response = await apiClient.get(`/courseAssignmentRecords/${batchId}`);
-    console.log("fetchcourseassignmentApi", response.data.records);
-    return response.data.records || [];
+    console.log("fetchcourseassignmentApi", response.data.courseAssignments);
+    return response.data.courseAssignments
+     || [];
   } catch (error) {
     console.error("Failed to fetch courses", error);
     throw error;

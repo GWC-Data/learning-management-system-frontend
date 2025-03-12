@@ -9,6 +9,7 @@ import { fetchUsersbyIdApi } from "@/helpers/api/userApi";
 import { createAssignmentCompletionsApi } from "@/helpers/api/assignmentCompletionsApi";
 import { useNavigate } from "react-router-dom";
 import { fetchClassForModuleByModuleIdApi } from "@/helpers/api/classForModuleApi";
+import { getAttendanceByUserIdApi } from "@/helpers/api/attendance";
 
 interface CalendarEvent {
   title: string;
@@ -29,7 +30,8 @@ interface CalendarEvent {
   classRecordedLink: string;
   classTitle: string;
   classAssignId: number;
-  isPastEvent?: boolean; // Add isPastEvent to CalendarEvent
+  isPastEvent?: boolean;
+  attendance?: boolean;
 }
 
 interface ClassItem {
@@ -42,25 +44,28 @@ interface ClassItem {
   classAssignId: number;
 }
 
-// Event Interface for Assignments
 interface AssignmentEvent {
   title: string;
   start: Date;
   end: Date;
   batchId: number;
-  trainer: number;
+  trainer: string;
   assignmentFile: string;
   id: number;
   batchName: string;
-  classId: number; // Added classId
-  moduleName: string; // Added moduleName
+  classId: number | string;
+  moduleName: string;
+  assignCompletionId?: string;
+  assignmentTraineeId?: string;
+  obtainedPercentage?: number;
 }
 
 interface Assignment {
   id: number;
   courseAssignmentQuestionFile: string;
   courseAssignmentQuestionName: string;
-  trainerId: number;
+  trainerId: string;
+  trainer: string;
   assignStartDate: Date;
   assignEndDate: Date;
 }
@@ -82,7 +87,7 @@ const Calendar: React.FC = () => {
   const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[]>(
     []
   );
-  const [trainerNames, setTrainerNames] = useState<Record<number, string>>({});
+  const [trainerNames, setTrainerNames] = useState<Record<string, string>>({});
 
   const [batchFilters, setBatchFilters] = useState<BatchFilter[]>([]);
   const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
@@ -91,7 +96,7 @@ const Calendar: React.FC = () => {
     number | null
   >(null);
   const [batchName, setBatchName] = useState("");
-  const userId = Number(localStorage.getItem("userId"));
+  const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     fetchBatchesData();
@@ -105,7 +110,7 @@ const Calendar: React.FC = () => {
     const token = getToken();
     if (token) {
       const userId = localStorage.getItem("userId");
-      return userId ? parseInt(userId, 10) : null;
+      return userId;
     }
     return null;
   };
@@ -120,8 +125,27 @@ const Calendar: React.FC = () => {
     }
 
     try {
-      const BatchIds = await fetchBatchIdByTraineeIdApi(userId);
+      console.log("userId", userId);
+      const BatchIds = await fetchBatchIdByTraineeIdApi(String(userId));
       console.log("BatchIds", BatchIds);
+
+      const attendanceStatus = await getAttendanceByUserIdApi(String(userId));
+      console.log("attendanceStatus", attendanceStatus);
+      console.log(
+        "Full attendance data structure:",
+        JSON.stringify(attendanceStatus, null, 2)
+      );
+      // Check the first item to understand its structure
+      if (attendanceStatus && attendanceStatus.length > 0) {
+        console.log(
+          "First attendance record properties:",
+          Object.keys(attendanceStatus[0])
+        );
+        console.log(
+          "First attendance record values:",
+          Object.values(attendanceStatus[0])
+        );
+      }
 
       if (BatchIds.length === 0) {
         toast.error("No batches found for this trainee.");
@@ -133,13 +157,14 @@ const Calendar: React.FC = () => {
       const filters: BatchFilter[] = [];
 
       for (const id of BatchIds) {
-        const batchData = await fetchBatchByIdApi(id); // ✅ Declare batchData here
+        const batchData = await fetchBatchByIdApi(id);
         console.log("Batch Data", batchData);
         console.log("batchNamee", batchData.batchName);
         setBatchName(batchData.batchName);
 
         const batchStart = moment(batchData.startDate);
-        const batchEnd = moment(batchData.endDate); // ✅ Declare batchEnd
+        const batchEnd = moment(batchData.endDate);
+        console.log("valuee", batchStart, batchEnd, String(id));
 
         const modules = await fetchBatchModuleScheduleByBatchIdApi(id);
         console.log("Modules for Batch", id, modules);
@@ -160,12 +185,13 @@ const Calendar: React.FC = () => {
           await fetchCourseAssignmentbybatchIdApi(id);
         console.log("Assignment Data", assignmentData);
 
-        let lastModuleEnd = batchStart.clone(); // ✅ Initialize lastModuleEnd before using it
+        let lastModuleEnd = batchStart.clone();
 
         // Process module schedules
         if (modules && Array.isArray(modules)) {
           modules.forEach((module) => {
             const moduleStart = moment(module.startDate);
+            console.log(moduleStart, "moduleStart");
             const moduleEnd = moment(module.endDate);
 
             // Find classes for the current module by moduleId
@@ -176,12 +202,14 @@ const Calendar: React.FC = () => {
                 )
                 ?.map(
                   (classItem: any): ClassItem => ({
-                    classId: Number(classItem?.id),
-                    classDate: classItem?.classDate || "",
+                    classId: classItem?.classId,
+                    // Extract value property if classDate is an object, or use as is
+                    classDate:
+                      classItem?.classDate?.value || classItem?.classDate || "",
                     classDescription: classItem?.classDescription || "",
                     classRecordedLink: classItem?.classRecordedLink || "",
                     classTitle: classItem?.classTitle || "",
-                    classAssignId: Number(classItem?.assignmentId),
+                    classAssignId: classItem?.assignmentId,
                     id: 0,
                   })
                 ) || [];
@@ -201,6 +229,44 @@ const Calendar: React.FC = () => {
 
               classesForDate.forEach((classItem) => {
                 if (moduleStart.day() !== 0) {
+                  // Find this section in your code (around line 280-300)
+                  const attendanceData = attendanceStatus.find(
+                    (att: any) =>
+                      String(att.classId) === String(classItem.classId)
+                  );
+
+                  // Log for debugging
+                  console.log(`Looking for classId: ${classItem.classId}`);
+                  console.log(`Attendance found:`, attendanceData);
+
+                  // Ensure attendance is converted to a boolean
+                  let attendance;
+                  if (attendanceData) {
+                    // Convert "true" or "false" strings to boolean if necessary
+                    if (typeof attendanceData.attendance === "string") {
+                      attendance =
+                        attendanceData.attendance.toLowerCase() === "true";
+                      console.log(
+                        `String attendance converted to:`,
+                        attendance
+                      );
+                    } else {
+                      attendance = Boolean(attendanceData.attendance);
+                      console.log(
+                        `Non-string attendance converted to:`,
+                        attendance
+                      );
+                    }
+                  }
+
+                  // Make sure to explicitly set it to undefined if no attendance data is found
+                  else {
+                    attendance = undefined;
+                    console.log(
+                      `No attendance data found, setting to undefined`
+                    );
+                  }
+
                   courseDetails.push({
                     title: batchData.batchName,
                     module: module.module.moduleName,
@@ -220,12 +286,14 @@ const Calendar: React.FC = () => {
                       .join(", "),
                     duration: module.duration,
                     isPastEvent: moment(moduleStart).isBefore(moment(), "day"),
-                    classId: Number(classItem.classId),
+                    classId: classItem.classId,
                     classDate: new Date(classItem.classDate),
                     classDescription: classItem.classDescription,
                     classRecordedLink: classItem.classRecordedLink,
                     classTitle: classItem.classTitle,
                     classAssignId: classItem.classAssignId,
+                    // Set attendance with proper boolean conversion
+                    attendance: attendance,
                   });
                 }
               });
@@ -236,7 +304,6 @@ const Calendar: React.FC = () => {
         }
         console.log("coursedetails", courseDetails);
 
-        // Process course assignments
         // Process course assignments based on classes
         if (courseDetails && Array.isArray(courseDetails)) {
           courseDetails.forEach((classEvent) => {
@@ -245,30 +312,57 @@ const Calendar: React.FC = () => {
               (assignment) => assignment.id === classEvent.classAssignId
             );
 
-            //class.assignId == assignment.id
+            console.log("matchingAssignment", matchingAssignment);
+            console.log("attendanceStatus", attendanceStatus);
 
             if (matchingAssignment) {
+              // Find assignment completion data for this assignment
+              const assignmentCompletionData = attendanceStatus.find(
+                (att: any) => {
+                  console.log("haha", att.assignmentClassId); // This will log each assignmentClassId while iterating
+                  console.log("hehe", classEvent.classId);
+                  return att.assignmentClassId === classEvent.classId;
+                }
+              );
+
+              console.log("assignmentCompletionData", assignmentCompletionData);
               assignmentDetails.push({
                 batchName: batchData.batchName,
                 id: matchingAssignment.id,
                 title: matchingAssignment.courseAssignmentQuestionName,
-                start: new Date(matchingAssignment.assignStartDate),
-                end: new Date(matchingAssignment.assignEndDate),
+                start:
+                  typeof matchingAssignment.assignStartDate === "object" &&
+                  matchingAssignment.assignStartDate !== null &&
+                  "value" in matchingAssignment.assignStartDate
+                    ? new Date(String(matchingAssignment.assignStartDate.value)) // Cast value to string
+                    : classEvent.classDate,
+                end:
+                  typeof matchingAssignment.assignEndDate === "object" &&
+                  matchingAssignment.assignEndDate !== null &&
+                  "value" in matchingAssignment.assignEndDate
+                    ? new Date(String(matchingAssignment.assignEndDate.value)) // Cast value to string
+                    : classEvent.classDate,
                 batchId: id,
-                trainer: matchingAssignment.trainerId,
+                trainer: String(matchingAssignment.trainerId), // Convert to string explicitly
                 assignmentFile: matchingAssignment.courseAssignmentQuestionFile,
                 classId: classEvent.classId,
                 moduleName: classEvent.module,
+                // Add assignment completion data
+                assignCompletionId:
+                  assignmentCompletionData?.assignCompletionId,
+                assignmentTraineeId:
+                  assignmentCompletionData?.assignmentTraineeId,
+                obtainedPercentage:
+                  assignmentCompletionData?.obtainedPercentage,
               });
             }
           });
         }
 
-        console.log("course assignments", assignmentDetails);
+        console.log("courseassignments", assignmentDetails);
 
         // Ensure events continue until batch end date
         while (lastModuleEnd.isBefore(batchEnd)) {
-          // ✅ Now batchEnd is correctly referenced
           lastModuleEnd.add(1, "day");
           if (lastModuleEnd.day() !== 0) {
             courseDetails.push({
@@ -284,13 +378,14 @@ const Calendar: React.FC = () => {
               batchId: id,
               trainers: "No Trainers Assigned",
               duration: 0,
-              isPastEvent: false, // Mark this as not a past event
+              isPastEvent: false,
               classId: 0,
               classDate: new Date(),
               classDescription: "",
               classRecordedLink: "",
               classTitle: "",
               classAssignId: 0,
+              attendance: undefined,
             });
           }
         }
@@ -370,7 +465,7 @@ const Calendar: React.FC = () => {
     setCurrentWeek(moment(currentWeek).add(offset, "weeks"));
   };
 
-  const fetchTrainerNames = async (trainerId: number) => {
+  const fetchTrainerNames = async (trainerId: string) => {
     if (trainerId in trainerNames) return; // Skip fetching if already cached
 
     try {
@@ -404,65 +499,9 @@ const Calendar: React.FC = () => {
     }
   };
 
-  const handleUpload = async (assignmentId: number) => {
-    if (!selectedFile) {
-      alert("Please select a file to upload.");
-      return;
-    }
-
-    setSelectedAssignmentId(assignmentId); // Automatically select the assignment when upload is clicked
-
-    const reader = new FileReader();
-
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-
-      const payload = {
-        traineeId: userId || "", // Send userId as string or empty string if null
-        courseAssignId: Number(assignmentId), // Send as number
-        courseAssignmentAnswerFile: base64String, // Send base64 string
-        obtainedMarks: 0, // Default to 0
-      };
-      console.log("Payload:", payload);
-
-      try {
-        await createAssignmentCompletionsApi(payload); // Update the API to handle JSON payload
-        alert("File uploaded successfully!");
-        setSelectedFile(null);
-        setSelectedAssignmentId(null);
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        alert("Failed to upload file. Please try again.");
-      }
-    };
-
-    reader.onerror = (error) => {
-      console.error("Error converting file to Base64:", error);
-    };
-
-    reader.readAsDataURL(selectedFile); // Converts the file to a Base64 string
-  };
-
-  // const handleWatchAssignment = () => {
-  //   if (selectedEvent) {
-  //     const formattedTitle = encodeURIComponent(
-  //       selectedEvent.title.toLowerCase()
-  //     );
-  //     const formattedModule = encodeURIComponent(selectedEvent.module);
-  //     const formattedClass = encodeURIComponent(selectedEvent.classTitle);
-  //     console.log(
-  //       `/#/trainee/enrolledCourses/${formattedTitle}/${formattedModule}/${formattedClass}`
-  //     );
-
-  //     navigate(
-  //       `/#/trainee/enrolledCourses/${formattedTitle}/${formattedModule}/${formattedClass}`
-  //     );
-  //   }
-  // };
-
   useEffect(() => {
     assignments.forEach((assignment) => {
-      fetchTrainerNames(assignment.trainer); // Fetch trainer for each assignment
+      fetchTrainerNames(String(assignment.trainer)); // Fetch trainer for each assignment
     });
   }, [assignments]);
 
@@ -536,6 +575,7 @@ const Calendar: React.FC = () => {
                         <div className="text-xs font-bold text-[#6E2B8B] mb-1">
                           Modules
                         </div>
+
                         {dayEvents.map((event, eventIndex) => {
                           if (event.module === "No Module") return null; // ✅ Skip rendering No Module events
 
@@ -544,21 +584,62 @@ const Calendar: React.FC = () => {
                             "day"
                           );
 
+                          console.log('isPastEvent',isPastEvent)
+
+                          // Debug the actual attendance value
+                          console.log(
+                            `Event ${eventIndex} attendance:`,
+                            event.attendance,
+                            typeof event.attendance
+                          );
+
+                          // Determine background color based on attendance status
+                          let bgColor = "bg-[#FAF2FD] hover:bg-[#d5afe3]"; // Default color
+                          if (isPastEvent) {
+                            // More robust checking of attendance value
+                            if (event.attendance === true) {
+                              bgColor = "bg-green-200 hover:bg-green-300"; // Green for attended
+                              console.log(
+                                "Setting GREEN background for event:",
+                                event.classId
+                              );
+                            } else if (event.attendance === false) {
+                              bgColor = "bg-red-200 hover:bg-red-300"; // Red for absent
+                              console.log(
+                                "Setting RED background for event:",
+                                event.classId
+                              );
+                            } else {
+                              bgColor = "bg-gray-200 hover:bg-gray-300"; // Gray for no attendance data
+                              console.log(
+                                "Setting GRAY background for event:",
+                                event.classId
+                              );
+                            }
+                          }
+
                           return (
                             <div
                               key={`event-${eventIndex}`}
                               onClick={() => handleDayClick(event)}
-                              className={`text-xs p-2 mb-1 rounded cursor-pointer ${
-                                isPastEvent
-                                  ? "bg-green-200 hover:bg-green-300"
-                                  : "bg-[#FAF2FD] hover:bg-[#d5afe3]"
-                              }`}
+                              className={`text-xs p-2 mb-1 rounded cursor-pointer ${bgColor}`}
                             >
                               <div className="font-semibold">{event.title}</div>
                               <div>
                                 {event.startTime} - {event.endTime}
                               </div>
                               <div className="truncate">{event.module}</div>
+                              {/* Display attendance status directly for debugging */}
+                              {isPastEvent && (
+                                <div className="text-xs mt-1">
+                                  Status:{" "}
+                                  {event.attendance === true
+                                    ? "Present"
+                                    : event.attendance === false
+                                      ? "Absent"
+                                      : "Unknown"}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -576,6 +657,19 @@ const Calendar: React.FC = () => {
                         const isPastAssignment = moment(
                           assignment.start
                         ).isBefore(moment(), "day");
+
+                        // Determine background color based on completion status
+                        let bgColor = "bg-yellow-200 hover:bg-yellow-300"; // Default color for not completed
+
+                        if (assignment.assignCompletionId) {
+                          bgColor = "bg-blue-200 hover:bg-blue-300"; // Blue for completed assignments
+
+                          // If there's a grade, show green instead
+                          if (assignment.obtainedPercentage !== undefined) {
+                            bgColor = "bg-green-200 hover:bg-green-300"; // Green for graded assignments
+                          }
+                        }
+
                         console.log("isPastAssignment", isPastAssignment);
                         console.log("assignment", assignment.start);
                         console.log(assignment, "assigg");
@@ -583,7 +677,7 @@ const Calendar: React.FC = () => {
                         return (
                           <div
                             key={`assignment-${assignmentIndex}`}
-                            className="text-xs p-2 mb-1 rounded cursor-pointer bg-yellow-200 hover:bg-yellow-300 w-[210px]"
+                            className={`text-xs p-2 mb-1 rounded cursor-pointer ${bgColor} w-[210px] relative`}
                           >
                             <a
                               href={`http://localhost:5173/#/trainee/enrolledCourses/${encodeURIComponent(assignment.batchName.toLowerCase())}#/${encodeURIComponent(assignment.moduleName)}?classId=${encodeURIComponent(assignment.classId)}`}
@@ -593,21 +687,6 @@ const Calendar: React.FC = () => {
                               <div className="font-semibold">
                                 {assignment.title}
                               </div>
-
-                              {/* Display Assignment File (as a link to download or preview) */}
-                              {/* <div className="truncate">
-                                {assignment.assignmentFile && (
-                                  <a
-                                    href={assignment.assignmentFile}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 underline text-sm"
-                                    download
-                                  >
-                                    Download Assignment File
-                                  </a>
-                                )}
-                              </div> */}
 
                               {/* Optional: If you want to display the trainer name */}
                               <div className="text-sm text-gray-600">
@@ -627,21 +706,14 @@ const Calendar: React.FC = () => {
                                 {moment(assignment.end).format("MMMM D, YYYY")}
                               </div>
                             </a>
-                            {/* Upload Section */}
-                            {/* <div className="text-sm text-gray-600">
-                              <input
-                                type="file"
-                                accept=".pdf,.doc,.docx"
-                                onChange={handleFileChange}
-                                className="mb-4"
-                              />
-                              <button
-                                onClick={() => handleUpload(assignment.id)} // Automatically select assignment when clicked
-                                className="bg-green-500 text-white py-2 px-4 rounded-lg shadow hover:bg-green-600 transition-all"
-                              >
-                                Upload Answers
-                              </button>
-                            </div> */}
+
+                            {/* Show obtained percentage if available */}
+                            {assignment.obtainedPercentage !== undefined && (
+                              <div className=" bg-white text-green-700 px-2 py-1 rounded-full text-xs font-bold">
+                                Obtained Percentage:{" "}
+                                {assignment.obtainedPercentage}%
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -706,6 +778,28 @@ const Calendar: React.FC = () => {
                     <span className="font-semibold">Description:</span>{" "}
                     {selectedEvent.classDescription}
                   </p>
+
+                  {/* Add attendance status if available */}
+                  {selectedEvent.isPastEvent && (
+                    <p className="text-sm text-gray-600 mb-2">
+                      <span className="font-semibold">Attendance:</span>{" "}
+                      <span
+                        className={
+                          selectedEvent.attendance === true
+                            ? "text-green-600"
+                            : selectedEvent.attendance === false
+                              ? "text-red-600"
+                              : "text-gray-600"
+                        }
+                      >
+                        {selectedEvent.attendance === true
+                          ? "Present"
+                          : selectedEvent.attendance === false
+                            ? "Absent"
+                            : "Not recorded"}
+                      </span>
+                    </p>
+                  )}
 
                   {selectedEvent.isPastEvent ? (
                     <a

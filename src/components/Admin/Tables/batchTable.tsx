@@ -2,12 +2,13 @@ import { useState, useEffect, SetStateAction } from "react";
 import { Button } from "../../ui/button";
 import "react-day-picker/dist/style.css";
 import { toast } from "sonner";
-import { Edit, Plus, Calendar } from "lucide-react";
+import { Edit, Calendar } from "lucide-react";
 import { ColDef } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import { format } from "date-fns";
 import Select from 'react-select';
 import remove from '../../../assets/delete.png';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import Breadcrumb from "./breadcrumb";
 import {
   fetchBatchApi,
@@ -19,10 +20,8 @@ import { fetchUsersApi } from "@/helpers/api/userApi";
 import { fetchCourseApi } from "@/helpers/api/courseApi";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-
 interface BatchTableProps {
   editable?: boolean;
-
 }
 
 interface BatchData {
@@ -83,7 +82,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
     navigate(`/admin/manage-batch-schedules?batchId=${data.id}`);
   };
 
-  
+
   {/* pagination */ }
   const recordsPerPage = 10;
   const totalPages = Math.ceil(batches.length / recordsPerPage);
@@ -128,7 +127,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
       const batches = batchResponse.batch.map((batch: any) => ({
         id: batch.id,
         batchName: batch.batchName,
-        courseId: batch.course?.id || "", 
+        courseId: batch.course?.id || "",
         courseName: batch.course?.courseName || "Unknown",
         traineeId: batch.trainees?.map((trainee: any) => trainee.id) || [],
         traineeName: batch.trainees
@@ -352,19 +351,46 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
         cellRenderer: (params: any) => {
           return (
             <div className="flex space-x-2">
-              <Button onClick={() => editBatch(params.data)}
-                className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white">
-                <Edit className="h-5 w-5" />
-              </Button>
-              <Button onClick={() => ScheduleBatches(params.data)}
-                className=" text-green-600 bg-white p-2 rounded hover:bg-white">
-                <Calendar className="h-6 w-6" />
-              </Button>
-              <Button onClick={() => confirmDeleteBatch(params.data)}
-                className="text-red-600 bg-white hover:bg-white p-2"
-              >
-                <img src={remove} alt="Batch Icon" className="h-5 w-5 filter fill-current text-[#6E2B8B]" />
-              </Button>
+              <TooltipProvider>
+                {/* Edit Batch Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => editBatch(params.data)}
+                      className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                    >
+                      <Edit className="h-6 w-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit Batch</TooltipContent>
+                </Tooltip>
+
+                {/* Schedule Batch Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => ScheduleBatches(params.data)}
+                      className="text-green-600 bg-white p-2 rounded hover:bg-white"
+                    >
+                      <Calendar className="h-6 w-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Schedule Batch</TooltipContent>
+                </Tooltip>
+
+                {/* Delete Batch Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => confirmDeleteBatch(params.data)}
+                      className="text-red-600 bg-white hover:bg-white p-2"
+                    >
+                      <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Batch</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           );
         },
@@ -409,27 +435,27 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
             </p>
             <div className="flex justify-end space-x-2 mt-4">
               <Button
+                onClick={handleDeleteBatch}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                  transition-all duration-500 ease-in-out 
+                 rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
+              <Button
                 onClick={handleCancelDelete}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                  rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleDeleteBatch}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                  transition-all duration-500 ease-in-out 
-                 rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
-              </Button>
             </div>
           </div>
         </div>
       )}
       <div
-        className="ag-theme-quartz text-left"
-        style={{ height: "calc(100vh - 180px)", width: "93%" }}
+        className="ag-theme-quartz text-left font-poppins"
+        style={{ height: "calc(100vh - 180px)", width: "91.5%" }}
       >
         <AgGridReact
           rowSelection="multiple"
@@ -450,43 +476,41 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 
       {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-4">
-       <button
-         disabled={currentPage === 1}
-        onClick={() => handlePageChange(currentPage - 1)}
-        className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${
-          currentPage === 1 && "cursor-not-allowed opacity-50"
-        }`}
-      >
-        Previous
-      </button>
-      <span className="px-4 py-2 border-t border-b text-gray-700">
-        Page {currentPage} of {totalPages}
-      </span>
-      <button
-        disabled={currentPage === totalPages}
-        onClick={() => handlePageChange(currentPage + 1)}
-        className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${
-          currentPage === totalPages && "cursor-not-allowed opacity-50"
-        }`}
-      >
-        Next
-      </button>
-    </div>
+        <button
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 border-t border-b text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Next
+        </button>
+      </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[900px]">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[850px]">
             <h2 className="text-xl font-metropolis font-semibold">
               {editing ? "Edit Batch" : "Add New Batch"}
             </h2>
             <form>
               <div className="grid grid-cols-2 gap-4 mt-4">
-                {/* ✅ Batch Name */}
+                {/* Batch Name */}
                 <div className="mb-4 mt-2">
-                  <label className="block font-metropolis font-medium mb-2">Batch Name</label>
+                  <label className="block font-metropolis font-medium mb-2">Batch Name <span className="text-red-500">*</span></label>
                   <input
                     type="text"
-                    className="w-full border rounded p-2 font-metropolis text-gray-700"
+                    className="w-full border rounded p-2 h-9 font-metropolis text-gray-700"
                     value={newBatch.batchName}
                     onChange={(e) =>
                       setNewBatch({ ...newBatch, batchName: e.target.value })
@@ -494,10 +518,10 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
                   />
                 </div>
 
-                {/* ✅ Conditionally Render Course Selection */}
+                {/* Conditionally Render Course Selection */}
                 {!editing && (
                   <div className="mb-4 mt-2">
-                    <label className="block font-metropolis font-medium mb-2">Courses</label>
+                    <label className="block font-metropolis font-medium mb-2">Courses <span className="text-red-500">*</span></label>
                     <Select
                       options={course.map((c) => ({
                         value: c.id,
@@ -528,7 +552,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 
 
               <div className="mb-4">
-                <label className="block font-metropolis font-medium mb-2">Trainees</label>
+                <label className="block font-metropolis font-medium mb-2">Trainees <span className="text-red-500">*</span></label>
                 <div className="overflow-x-auto">
                   <table className="min-w-full bg-white border rounded">
                     <thead>
@@ -581,10 +605,10 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
               <div className="grid grid-cols-2 gap-4 mt-4">
                 {/* Start Date */}
                 <div className="mb-4">
-                  <label className="block font-metropolis font-medium">Start Date</label>
+                  <label className="block font-metropolis font-medium">Start Date <span className="text-red-500">*</span></label>
                   <input
                     type="date"
-                    className="w-full border rounded p-2 font-metropolis text-gray-700"
+                    className="w-full border rounded mt-1 p-2 font-metropolis text-gray-700"
                     value={newBatch.startDate}
                     onChange={(e) => setNewBatch({ ...newBatch, startDate: e.target.value })}
                   />
@@ -592,10 +616,10 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 
                 {/* End Date */}
                 <div className="mb-4">
-                  <label className="block font-metropolis font-medium">End Date</label>
+                  <label className="block font-metropolis font-medium">End Date <span className="text-red-500">*</span></label>
                   <input
                     type="date"
-                    className="w-full border rounded p-2 font-metropolis text-gray-700"
+                    className="w-full border rounded mt-1 p-2 font-metropolis text-gray-700"
                     value={newBatch.endDate}
                     onChange={(e) => setNewBatch({ ...newBatch, endDate: e.target.value })}
                   />
@@ -603,48 +627,24 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex space-x-4">
+              <div className="flex justify-end space-x-4 mt-3">
                 <Button
                   onClick={handleFormSubmit}
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
-            transition-all duration-500 ease-in-out 
-            rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+    transition-all duration-500 ease-in-out 
+    rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
-                  {editing ? "Update Batch" : "Create Batch"}
+                  {editing ? "Update Batch" : "Create NewBatch"}
                 </Button>
                 <Button
                   onClick={handleModalClose}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
-            rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+    rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   Cancel
                 </Button>
               </div>
             </form>
-
-            {/* Pagination Controls */}
-      <div className="flex justify-center items-center mt-4">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => handlePageChange(currentPage - 1)}
-          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
-            }`}
-        >
-          Previous
-        </button>
-        <span className="px-4 py-2 border-t border-b text-gray-700">
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => handlePageChange(currentPage + 1)}
-          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
-            }`}
-        >
-          Next
-        </button>
-      </div>
-
           </div>
         </div>
       )}
@@ -653,7 +653,6 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 };
 export default ManageBatches;
 
-//       <div className="relative bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-full">
 //         {/* Dropdown Button */}
 //         <Button
 //           className="w-80 flex justify-between items-center px-4 py-2 border bg-yellow-400"

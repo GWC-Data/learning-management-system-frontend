@@ -4,8 +4,10 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef } from "ag-grid-community";
 import { toast } from "react-toastify";
-import { Edit, Eye, Trash } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
+import remove from '../../../assets/delete.png';
 import { Button } from "../../ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -52,124 +54,15 @@ const UserManagement: React.FC = () => {
 
   const getToken = () => localStorage.getItem("authToken");
 
-  // Fetch users and roles, filtering by the roleName in the URL
-  // const fetchUsersAndRoles = async (roleName: string) => {
-  //   const token = getToken();
-  //   if (!token) {
-  //     toast.error("You must be logged in.");
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await fetchUsersApi();
-  //     const responseUsers = response.Users; // Access the `Users` property
-  //     console.log("userResp", responseUsers);
-
-  //     if (response && Array.isArray(responseUsers)) {
-  //       const filteredUsers = responseUsers.filter(
-  //         (user: { role: any; roleName: string }) =>
-  //           user.role.name.toLowerCase() === roleName.toLowerCase() // Filter by dynamic roleName
-  //       );
-  //       setUserData(filteredUsers);
-  //       console.log("fileterdUsers", filteredUsers);
-  //     } else {
-  //       console.error("Unexpected data format:", response);
-  //       toast.error("Unexpected response format from the server.");
-  //     }
-
-  //     const roleResponse = await fetchRolesApi();
-  //     console.log("roleResponse", roleResponse);
-  //     setRoles(roleResponse); // Set available roles
-  //   } catch (error: any) {
-  //     console.error("Error fetching data:", error);
-  //     toast.error("Failed to fetch users or roles.");
-  //   }
-  // };
-
-  // const fetchUsersAndRoles = async (roleName: string) => {
-  //   const token = getToken();
-  //   if (!token) {
-  //     toast.error("You must be logged in.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     const response = await fetchUsersApi();
-  //     const responseUsers = response.users; // Ensure correct key
-  //     console.log("userResp", responseUsers);
-  
-  //     if (responseUsers && Array.isArray(responseUsers)) {
-  //       const filteredUsers = responseUsers.filter(
-  //         (user: { role?: string }) => user.role?.toLowerCase() === roleName.toLowerCase()
-  //       );
-  //       setUserData(filteredUsers);
-  //       console.log("filteredUsers", filteredUsers);
-  //     } else {
-  //       console.error("Unexpected data format:", response);
-  //       toast.error("Unexpected response format from the server.");
-  //     }
-  
-  //     const roleResponse = await fetchRolesApi();
-  //     console.log("roleResponse", roleResponse);
-  //     setRoles(roleResponse);
-  //   } catch (error: any) {
-  //     console.error("Error fetching data:", error);
-  //     toast.error("Failed to fetch users or roles.");
-  //   }
-  // };
-
-  // const fetchUsersAndRoles = async (roleName: string) => {
-  //   const token = getToken();
-  //   if (!token) {
-  //     toast.error("You must be logged in.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     const response = await fetchUsersApi();
-  //     const responseUsers = response.users; // Ensure correct key
-  //     console.log("All Users:", responseUsers); // Debugging log
-  
-  //     if (responseUsers && Array.isArray(responseUsers)) {
-  //       const filteredUsers = responseUsers.filter(
-  //         (user: { role?: string }) => user.role?.toLowerCase() ===  roleName.toLowerCase()
-  //       );
-  //       console.log("Filtered Users for Role:", filteredUsers); // Debugging log
-  //       setUserData(filteredUsers);
-  //     } else {
-  //       console.error("Unexpected data format:", response);
-  //       toast.error("Unexpected response format from the server.");
-  //     }
-  
-  //     const roleResponse = await fetchRolesApi();
-  //     console.log("Roles:", roleResponse); // Debugging log
-  //     setRoles(roleResponse);
-  //   } catch (error: any) {
-  //     console.error("Error fetching data:", error);
-  //     toast.error("Failed to fetch users or roles.");
-  //   }
-  // };
-
-  
-  // useEffect(() => {
-  //   setSelectedUser(null);
-  //   setFormData(null);
-  //   setIsModalOpen(false);
-
-  //   if (roleName) {
-  //     fetchUsersAndRoles(roleName); // Fetch filtered users for the role
-  //   }
-  // }, [roleName]);
-
   {/* pagination */ }
-    const recordsPerPage = 10;
-    const totalPages = Math.ceil(userData.length / recordsPerPage);
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const currentData = userData.slice(startIndex, startIndex + recordsPerPage);
-  
-    const handlePageChange = (newPage: SetStateAction<number>) => {
-      setCurrentPage(newPage);
-    };
+  const recordsPerPage = 10;
+  const totalPages = Math.ceil(userData.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const currentData = userData.slice(startIndex, startIndex + recordsPerPage);
+
+  const handlePageChange = (newPage: SetStateAction<number>) => {
+    setCurrentPage(newPage);
+  };
 
   const fetchUsersAndRoles = async (roleName: string) => {
     const token = getToken();
@@ -177,28 +70,28 @@ const UserManagement: React.FC = () => {
       toast.error("You must be logged in.");
       return;
     }
-  
+
     try {
       const response = await fetchUsersApi();
       const responseUsers = response?.users ?? []; // Ensure array structure
       console.log("All Users:", responseUsers); // Debugging log
-  
+
       // Filter users by roleName
       const filteredUsers =
         roleName && roleName.trim() !== ""
           ? responseUsers.filter(
-              (user: { roleName?: string }) =>
-                user.roleName?.toLowerCase() === roleName.toLowerCase()
-            )
+            (user: { roleName?: string }) =>
+              user.roleName?.toLowerCase() === roleName.toLowerCase()
+          )
           : responseUsers;
-  
+
       console.log("Filtered Users for Role:", filteredUsers); // Debugging log
       setUserData(filteredUsers);
-  
+
       // Fetch roles
       const roleResponse = await fetchRolesApi();
       console.log("Roles:", roleResponse); // Debugging log
-  
+
       if (roleResponse?.role && Array.isArray(roleResponse.role)) {
         setRoles(roleResponse.role);
       } else {
@@ -210,16 +103,16 @@ const UserManagement: React.FC = () => {
       toast.error("Failed to fetch users or roles.");
     }
   };
-  
+
   // Fetch users when roleName changes
   useEffect(() => {
     setSelectedUser(null);
     setFormData(null);
     setIsModalOpen(false);
-  
+
     fetchUsersAndRoles(roleName || ""); // Fetch all users if roleName is not provided
   }, [roleName]);
-  
+
 
   // Column Definitions for AgGridReact
   const colDefs: ColDef[] = [
@@ -256,22 +149,39 @@ const UserManagement: React.FC = () => {
         const { data } = params;
         return (
           <div className="flex space-x-2">
-            <Button
+            {/* <Button
               className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white">
               <Eye className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => handleEditClick(data)}
-              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => confirmDeleteUser(data)}
-              className="bg-white text-red-600 p-2 rounded hover:bg-white"
-            >
-              <Trash className="h-5 w-5" />
-            </Button>
+            </Button> */}
+            <TooltipProvider>
+              <div className="flex space-x-2">
+                {/* Edit User Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => handleEditClick(data)}
+                      className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                    >
+                      <Edit className="h-6 w-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit User</TooltipContent>
+                </Tooltip>
+
+                {/* Delete User Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => confirmDeleteUser(data)}
+                      className="bg-white text-red-600 p-2 rounded hover:bg-white"
+                    >
+                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete User</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         );
       },
@@ -297,9 +207,9 @@ const UserManagement: React.FC = () => {
       toast.error("Form data is missing!");
       return;
     }
-  
+
     console.log('Form Data:', formData);
-  
+
     // Prepare updated user data with the formData
     const updatedUser = {
       ...userToEdit,
@@ -313,16 +223,16 @@ const UserManagement: React.FC = () => {
       accountStatus: formData?.accountStatus,
       dateOfJoining: formData?.dateOfJoining,
     };
-  
+
     const token = getToken();
     if (!token) {
       toast.error("Authorization token not found!");
       return;
     }
-  
+
     console.log("Updating user with ID:", userToEdit.id);
     console.log("Request Payload:", updatedUser);
-  
+
     axios
       .put(`/userForAdmin/${userToEdit.id}`, updatedUser, {
         headers: {
@@ -532,11 +442,11 @@ const UserManagement: React.FC = () => {
               <div className="flex justify-end space-x-2">
                 <Button
                   type="submit"
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
                   transition-all duration-500 ease-in-out 
                   rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
-                  Save Changes
+                  Update User
                 </Button>
                 <Button
                   type="button"
@@ -567,19 +477,19 @@ const UserManagement: React.FC = () => {
             ?
             <div className="flex justify-end space-x-2 mt-4">
               <Button
+                onClick={handleDeleteUser}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
+              <Button
                 onClick={handleCancelDelete}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteUser}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
               </Button>
             </div>
           </div>
@@ -588,7 +498,7 @@ const UserManagement: React.FC = () => {
 
       {/* Ag-Grid Table */}
       <div
-        className="ag-theme-quartz text-left"
+        className="ag-theme-quartz text-left font-poppins "
         style={{ height: "calc(100vh - 180px)", width: "100%" }}
       >
         <AgGridReact
@@ -608,8 +518,8 @@ const UserManagement: React.FC = () => {
         />
       </div>
 
-        {/* Pagination Controls */}
-        <div className="flex justify-center items-center mt-4">
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center mt-4">
         <button
           disabled={currentPage === 1}
           onClick={() => handlePageChange(currentPage - 1)}

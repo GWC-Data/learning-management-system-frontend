@@ -30,7 +30,7 @@ import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
 // import Courses from './components/Tables/courseDropdown';
 import TrainersActivityPage from "./components/Admin/Charts/trainersActivityPage";
 import TraineeActivityPage from "./components/Admin/Charts/traineesActivityPage";
-// import JobBoard from './components/Admin/jobBoard';
+import JobBoard from './components/Admin/Tables/jobBoardTable';
 
 import TraineeHome from "./components/Trainee/traineeHome";
 import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
@@ -41,7 +41,7 @@ import CalendarManagement from "./components/Trainee/ProfilePage/CalenderManagem
 import EnrolledCourses from "./components/Trainee/ProfilePage/EnrolledCourses/enrolledCourses";
 
 import TrainerHelloWorld from "./components/Trainer/TrainerHelloWorld";
-import JobBoard from "./components/Trainee/ProfilePage/JobBoard/jobBoard";
+// import JobBoard from "./components/Trainee/ProfilePage/JobBoard/jobBoard";
 
 
 interface AppRouterProps {
@@ -116,7 +116,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
           {/* <Route path="courses" element={<CoursePage />} /> */}
           <Route path="dashboard" element={<TraineeDashboard />} />
           <Route path="code-challenges" element={<CodeExecutor />} />
-          <Route path="job-boards" element={<JobBoard/>} />
+          <Route path="job-board" element={<JobBoard/>} />
           <Route path="calendar-view" element={<CalendarManagement />} />
           <Route path="settings" element={<UserSettings />} />
         </Route>

@@ -54,7 +54,7 @@ export function* updateCourseSaga(action: { type: string; payload: any }): Gener
 }
 
 // DELETE
-export function* deleteCourseSaga(action: { type: string; payload: number }): Generator<any, void, any> {
+export function* deleteCourseSaga(action: { type: string; payload: any }): Generator<any, void, any> {
   try {
     yield call(deleteCourseApi, action.payload);
     yield put(actions.deleteCourseSuccess(action.payload));

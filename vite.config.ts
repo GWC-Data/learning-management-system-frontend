@@ -50,7 +50,7 @@ export default defineConfig({
  
       "/attendance-file": "http://localhost:5050",
 
-      "/submissions": "https://api.judge0.com"
+      "/jobs": "http://localhost:5050"
       
     },
   },

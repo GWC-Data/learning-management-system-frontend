@@ -1286,7 +1286,7 @@ const Attendance: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        <div className="overflow-x-auto mt-4 p-2 border-2 border-gray-300 rounded-lg shadow-md bg-gray-50 max-w-8xl mx-auto">
+        <div className="overflow-x-auto mt-4 p-2 border-2 border-gray-300 rounded-lg shadow-md bg-gray-50 max-w-8xl mx-auto font-poppins">
           <Table className="text-xs w-full">
             <TableCaption>Attendance Data</TableCaption>
 

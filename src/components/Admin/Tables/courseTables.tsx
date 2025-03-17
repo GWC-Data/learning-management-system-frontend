@@ -6,6 +6,7 @@ import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ColDef } from "ag-grid-community";
 import Select from 'react-select';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { useDropzone } from "react-dropzone";
 import Batch from '../../../assets/Batch.png';
 import Module from '../../../assets/Module.png';
@@ -18,7 +19,6 @@ import {
   updateCourseApi,
   deleteCourseApi,
 } from "@/helpers/api/courseApi";
-
 import { fetchCourseCategoryApi } from "@/helpers/api/courseCategoryApi";
 import { fetchCourseModuleApi } from "@/helpers/api/courseModuleApi";
 
@@ -151,7 +151,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         courseImg: course.courseImg,
         courseLink: course.courseLink,
         createdByUserName: course.createdByUserName,
-        moduleCount: moduleCountMap[course.courseId] || 0, 
+        moduleCount: moduleCountMap[course.courseId] || 0,
       }));
 
       console.log("finalized data", courses);
@@ -266,7 +266,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     }
 
     try {
-      
+
       if (editing) {
 
         await updateCourseApi(newCourse.id, {
@@ -299,50 +299,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     handleModalClose();
   };
 
-  // const handleFormSubmit = async () => {
-  //   const token = getToken();
-  //   if (!token) {
-  //     toast.error("You must be logged in to perform this action.");
-  //     return;
-  //   }
-  
-  //   // ✅ Prepare FormData for file upload
-  //   const formData = new FormData();
-  //   formData.append("courseName", newCourse.courseName);
-  //   formData.append("courseDesc", newCourse.courseDesc);
-  //   formData.append("courseCategoryId", newCourse.courseCategoryId);
-  //   formData.append("courseLink", newCourse.courseLink);
-  
-  //   // ✅ Append file only if it's uploaded (for both create & update)
-  //   if (uploadedFile) {
-  //     formData.append("file", uploadedFile);
-  //   }
-  
-  //   try {
-  //     // ✅ For Updating Course (With or Without File)
-  //     if (editing) {
-  //       await updateCourseApi(newCourse.id, formData);
-  //       toast.success("Course updated successfully!");
-  //     }
-  //     // ✅ For Creating Course (With File)
-  //     else {
-  //       await createCourseApi(formData);
-  //       toast.success("Course added successfully!");
-  //     }
-  
-  //     // ✅ Refresh Course List after Success
-  //     fetchCourses();
-  //   } catch (error) {
-  //     console.error("Failed to save course", error);
-  //     toast.error("Failed to save the course. Please try again later.");
-  //   }
-  
-  //   // ✅ Close Modal after Submission
-  //   handleModalClose();
-  // };
 
-  
-  // Define column definitions for the grid
   useEffect(() => {
     setColDefs([
       { headerName: "Course Name", field: "courseName", editable: false, width: 220 },
@@ -357,27 +314,34 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         width: 180,
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
-            <Button
-              onClick={() => viewBatch(params.data)}
-              className="text-[#6E2B8B] bg-white hover:bg-white p-2"
-            >
-              <img src={Batch} alt="Batch Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-            </Button>
-            <Button
-              onClick={() => viewModule(params)}
-              className="text-[#6E2B8B] bg-white hover:bg-white p-2"
-            >
-              <img src={Module} alt="Module Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-            </Button>
+            <TooltipProvider>
+              <Button onClick={() => viewBatch(params.data)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={Batch} alt="Batch Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>View Batch</TooltipContent>
+                </Tooltip>
+              </Button>
 
-            <Button
-              onClick={() => confirmDeleteCourse(params.data)}
-              className="text-red-600 bg-white hover:bg-white p-2"
-            >
-              <img src={remove} alt="remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-            </Button>
+              <Button onClick={() => viewModule(params)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={Module} alt="Module Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>View Module</TooltipContent>
+                </Tooltip>
+              </Button>
 
-
+              <Button onClick={() => confirmDeleteCourse(params.data)} className="text-red-600 bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Course</TooltipContent>
+                </Tooltip>
+              </Button>
+            </TooltipProvider>
           </div>
         ),
         editable: false,
@@ -390,7 +354,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
 
     <div className="flex-1 p-4 mt-5 ml-20">
       <div className="text-gray-600 text-lg mb-4">
-      <Breadcrumb />
+        <Breadcrumb />
       </div>
       <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">
@@ -418,26 +382,27 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
             </p>
             <div className="flex justify-end space-x-2 mt-4">
               <Button
+                onClick={handleDeleteCourse}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
+              <Button
                 onClick={handleCancelDelete}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleDeleteCourse}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
-              </Button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="ag-theme-quartz" style={{ height: "70vh", width: "91%" }}>
+      <div className="ag-theme-quartz font-poppins" 
+      style={{ height: "70vh", width: "91%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection
@@ -475,14 +440,14 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
       </div>
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-metropolis font-semibold">{editing ? "Edit Course" : "Add New Course"}</h2>
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
+            <h2 className="text-xl font-metropolis font-semibold">{editing ? "Edit Course" : "Add NewCourse"}</h2>
             <form>
               <div className="mb-4 mt-4">
                 <label className="block font-metropolis font-medium">Course Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newCourse.courseName}
                   onChange={(e) => setNewCourse({ ...newCourse, courseName: e.target.value })}
                 />
@@ -491,7 +456,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                 <label className="block font-metropolis font-medium">Description</label>
                 <input
                   type="text"
-                  className="w-full border rounded p-2 font-metropolis text-gray-400 font-semibold"
+                  className="w-full border rounded mt-1 p-2 font-metropolis text-gray-400 font-semibold"
                   value={newCourse.courseDesc}
                   onChange={(e) => setNewCourse({ ...newCourse, courseDesc: e.target.value })}
                 />
@@ -540,7 +505,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                 </label>
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded p-4 mt-1 h-30 text-center cursor-pointer 
+                  className={`border-2 border-dashed rounded p-4 mt-1 h-28 text-center cursor-pointer 
     ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
                 >
                   <input {...getInputProps()} />
@@ -568,23 +533,23 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                           alt="Course"
                           className="h-20 w-20 object-cover rounded border"
                         />
-                        <p className="text-gray-500 font-metropolis font-semibold mt-2">
+                        <p className="text-gray-500 font-metropolis font-semibold mt-4">
                           Existing Image
                         </p>
                       </div>
                     ) : (
                       /* ✅ Show Placeholder Text When No Image is Uploaded */
-                      <p className="text-gray-400 font-semibold mt-3">
+                      <p className="text-gray-400 font-semibold mt-5">
                         Drag & drop a file here, or click to select one
                       </p>
                     )}
                 </div>
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex justify-end space-x-4">
                 <Button
                   onClick={handleFormSubmit}
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
                 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >

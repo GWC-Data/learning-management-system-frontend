@@ -440,7 +440,8 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
         </div>
       )}
 
-      <div className="ag-theme-quartz" style={{ height: "70vh", width: "94%" }}>
+      <div className="ag-theme-quartz font-poppins" 
+      style={{ height: "70vh", width: "94%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection

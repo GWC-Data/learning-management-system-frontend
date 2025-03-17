@@ -22,7 +22,7 @@ const App: React.FC = () => {
 
       if (token && userId) {
         try {
-          const user = await fetchUsersbyIdApi(Number(userId));
+          const user = await fetchUsersbyIdApi(String(userId));
           console.log("Fetched user", user);
 
           if (user) {

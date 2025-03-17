@@ -3,6 +3,7 @@ import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { SetStateAction, useEffect, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { toast } from "sonner";
 import { Edit, Trash, Eye } from "lucide-react";
 import { useDropzone } from "react-dropzone";
@@ -79,7 +80,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     return newErrors;
   };
 
-  
+
   // {/* pagination */ }
   // const recordsPerPage = 10;
   // const totalPages = Math.ceil(newCategory.length / recordsPerPage);
@@ -130,7 +131,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
 
   const handleDeleteCategoryData = () => {
     if (!categoryToDelete) return;
-    dispatch(deleteCourseCategoryRequest(categoryToDelete.id)); 
+    dispatch(deleteCourseCategoryRequest(categoryToDelete.id));
     setIsDeleteModalOpen(false);
   };
 
@@ -216,24 +217,46 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
         field: "actions",
         cellRenderer: (params: any) => (
           <div className="flex space-x-4">
-            <Button
-              onClick={() => handleViewCategory(params.data)}
-              className="bg-white text-green-500 p-2 rounded hover:bg-white"
-            >
-              <Eye className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => editCategory(params.data)}
-              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => confirmDeleteCategory(params.data)}
-              className="text-red-600 bg-white p-2 rounded hover:bg-white"
-            >
-              <Trash className="h-5 w-5" />
-            </Button>
+            <TooltipProvider>
+              {/* View Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => handleViewCategory(params.data)}
+                    className="bg-white text-green-500 p-2 rounded hover:bg-white"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View Category</TooltipContent>
+              </Tooltip>
+
+              {/* Edit Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => editCategory(params.data)}
+                    className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit Category</TooltipContent>
+              </Tooltip>
+
+              {/* Delete Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => confirmDeleteCategory(params.data)}
+                    className="text-red-600 bg-white p-2 rounded hover:bg-white"
+                  >
+                    <Trash className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete Category</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         ),
         editable: false,
@@ -260,7 +283,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
         </Button>
       </div>
       <div
-        className="ag-theme-quartz text-left"
+        className="ag-theme-quartz text-left font-poppins"
         style={{ height: "calc(100vh - 180px)", width: "88%" }}
       >
         <AgGridReact
@@ -314,11 +337,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 Category Name
               </label>
               <p className="font-metropolis text-gray-700">
-<<<<<<< HEAD
                 {viewingCategory.coursecategoryName}
-=======
-                {viewingCategory.courseCategory}
->>>>>>> origin/sakthivel
               </p>
             </div>
             <div className="mb-4">
@@ -333,15 +352,9 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
               <label className="block font-metropolis font-medium">
                 Category Image
               </label>
-<<<<<<< HEAD
               {viewingCategory.coursecategoryImg ? (
                 <img
                   src={viewingCategory.coursecategoryImg}
-=======
-              {viewingCategory.courseCategoryImg ? (
-                <img
-                  src={viewingCategory.courseCategoryImg}
->>>>>>> origin/sakthivel
                   alt="Category"
                   className="w-full h-40 object-cover rounded"
                 />
@@ -446,36 +459,36 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 >
                   <input {...getInputProps()} />
                   {uploadedFile ? (
-                   <div className="flex flex-col items-center">
-                   <img
-                     src={URL.createObjectURL(uploadedFile)}
-                     alt="Uploaded Course"
-                     className="h-20 w-20 object-cover rounded border"
-                   />
-                   <p className="text-green-600 font-metropolis font-semibold mt-2">
-                     {uploadedFile.name}
-                   </p>
-                 </div>
-               ) :
-                 /* ✅ Show Existing Course Image from API (if available) */
-                 newCategory.coursecategoryImg ? (
-                   <div className="flex flex-col items-center">
-                     <img
-                       src={typeof newCategory.coursecategoryImg === "string"
-                         ? newCategory.coursecategoryImg
-                         : URL.createObjectURL(newCategory.coursecategoryImg)}
-                       alt="Course"
-                       className="h-20 w-20 object-cover rounded border"
-                     />
-                     <p className="text-gray-500 font-metropolis font-semibold mt-2">
-                       Existing Image
-                     </p>
-                   </div>
-                 ) : (
-                    <p className="text-gray-400 font-semibold">
-                      Drag & drop a file here, or click to select one
-                    </p>
-                  )}
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={URL.createObjectURL(uploadedFile)}
+                        alt="Uploaded Course"
+                        className="h-20 w-20 object-cover rounded border"
+                      />
+                      <p className="text-green-600 font-metropolis font-semibold mt-2">
+                        {uploadedFile.name}
+                      </p>
+                    </div>
+                  ) :
+                    /* Show Existing Course Image from API (if available) */
+                    newCategory.coursecategoryImg ? (
+                      <div className="flex flex-col items-center">
+                        <img
+                          src={typeof newCategory.coursecategoryImg === "string"
+                            ? newCategory.coursecategoryImg
+                            : URL.createObjectURL(newCategory.coursecategoryImg)}
+                          alt="Course"
+                          className="h-20 w-20 object-cover rounded border"
+                        />
+                        <p className="text-gray-500 font-metropolis font-semibold mt-2">
+                          Existing Image
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 font-semibold">
+                        Drag & drop a file here, or click to select one
+                      </p>
+                    )}
                 </div>
               </div>
               <div className="flex justify-end space-x-2">

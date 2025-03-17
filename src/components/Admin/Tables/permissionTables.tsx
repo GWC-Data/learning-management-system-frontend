@@ -1,10 +1,12 @@
 import { Button } from "../../ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Edit, Trash } from "lucide-react";
+import { Edit } from "lucide-react";
+import remove from '../../../assets/delete.png';
 
 import {
   fetchPermissionsApi,
@@ -68,7 +70,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
     return newErrors;
   };
 
-  
+
   {/* pagination */ }
   const recordsPerPage = 10;
   const totalPages = Math.ceil(permissions.length / recordsPerPage);
@@ -82,7 +84,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
   const fetchPermissionsData = async () => {
     try {
       const permissionsData = await fetchPermissionsApi();
-      console.log("Fetched Permissions:", permissionsData); 
+      console.log("Fetched Permissions:", permissionsData);
       if (Array.isArray(permissionsData)) {
         setPermissions([...permissionsData]); // Ensure state updates
         console.log("Updated Permissions State:", permissionsData);
@@ -97,15 +99,15 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchPermissionsData();
   }, []);
-  
+
   useEffect(() => {
     console.log("Rendering PermissionTable with permissions:", permissions);
   }, [permissions]); // Track re-renders when permissions change
-  
+
 
   const addNewPermission = () => {
     setEditing(false);
@@ -262,18 +264,35 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
         width: 200,
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
-            <Button
-              onClick={() => editPermission(params)}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => confirmDelete(params)}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-700"
-            >
-              <Trash className="h-5 w-5" />
-            </Button>
+            <TooltipProvider>
+              <div className="flex space-x-2">
+                {/* Edit Permission Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => editPermission(params)}
+                      className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                    >
+                      <Edit className="h-6 w-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit Permission</TooltipContent>
+                </Tooltip>
+
+                {/* Delete Permission Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => confirmDelete(params)}
+                      className="text-red-600 bg-white p-2 rounded hover:bg-white"
+                    >
+                       <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Permission</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         ),
         editable: false,
@@ -301,7 +320,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
       </div>
 
       <div
-        className="ag-theme-quartz text-left"
+        className="ag-theme-quartz text-left font-poppins"
         style={{ height: "calc(100vh - 180px)", width: "89%" }}
       >
         <AgGridReact
@@ -346,9 +365,9 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
             <h2 className="text-xl font-metropolis font-semibold mb-4">
-              {editing ? "Edit Permission" : "Add New Permission"}
+              {editing ? "Edit Permission" : "Add NewPermission"}
             </h2>
             <form>
               <div className="mb-4">
@@ -357,7 +376,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newPermission.action}
                   onChange={(e) =>
                     setNewPermission({
@@ -373,7 +392,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full h-24 border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newPermission.description}
                   onChange={(e) =>
                     setNewPermission({
@@ -389,7 +408,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newPermission.groupName}
                   onChange={(e) =>
                     setNewPermission({
@@ -400,20 +419,20 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
                 />
               </div>
               <div className="flex justify-end space-x-2">
+              <Button
+                  onClick={handleFormSubmit}
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                >
+                  {editing ? "Update Permission" : "Create NewPermission"}
+                </Button>
                 <Button
                   onClick={handleModalClose}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   Cancel
-                </Button>
-                <Button
-                  onClick={handleFormSubmit}
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-                >
-                  {editing ? "Update" : "Create"}
                 </Button>
               </div>
             </form>
@@ -436,20 +455,20 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
               ?
             </p>
             <div className="flex justify-end space-x-2">
+            <Button
+                onClick={deletePermissionData}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
               <Button
                 onClick={closeDeleteModal}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
-              </Button>
-              <Button
-                onClick={deletePermissionData}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
               </Button>
             </div>
           </div>

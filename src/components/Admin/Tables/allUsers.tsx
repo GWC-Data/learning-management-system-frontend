@@ -106,7 +106,7 @@ const AllUsers: React.FC = () => {
 
       <div className="flex flex-wrap gap-4 font-metropolis font-semibold">
         {roles.map((role) => {
-          const normalizedRoleName = role.name.toLowerCase(); // Normalize the role name
+          const normalizedRoleName = role.name.toLowerCase(); 
           return (
             <SidebarButton
               key={role.name}

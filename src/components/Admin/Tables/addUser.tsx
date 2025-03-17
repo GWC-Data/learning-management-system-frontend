@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { createUserApi } from "@/helpers/api/userApi";
 import { fetchRolesApi } from "@/helpers/api/roleApi";
+import { Calendar } from "../../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
+import { format } from "date-fns";
 
 interface Role {
   id: string;
@@ -25,10 +28,10 @@ const AddUser = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
- 
+
   // Get auth token from localStorage
   const getToken = () => localStorage.getItem("authToken");
- 
+
   // Fetch roles on component mount
   useEffect(() => {
     const fetchRoles = async () => {
@@ -40,8 +43,6 @@ const AddUser = () => {
       try {
         const roleResponse = await fetchRolesApi();
         console.log("Fetched Roles:", roleResponse);
-        console.log("Type of Roles:", typeof roleResponse);
-        console.log("Is Array?", Array.isArray(roleResponse));
         setRoles(roleResponse.role);
       } catch (error) {
         console.error("Error fetching roles:", error);
@@ -88,7 +89,7 @@ const AddUser = () => {
           "Password must contain at least one special character.";
       }
     }
- 
+
     setErrors(newErrors);
     // Show errors in toast notifications
     Object.entries(newErrors).forEach(([field, message]) => {
@@ -96,7 +97,7 @@ const AddUser = () => {
     });
     return newErrors;
   };
- 
+
   // Handle form submission
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,16 +112,27 @@ const AddUser = () => {
     }
     const userData = { ...newUser };
     try {
-      const response = await createUserApi(userData); 
-      const createdUser = response.newUser;
- 
+      const response = await createUserApi(userData);
+      console.log("Full API Response:", response);
+    
+      // Extract the correct user object
+      const createdUser = response?.user;
+    
+      if (!createdUser) {
+        console.error("API response does not contain user:", response);
+        throw new Error("User creation failed. No user data returned.");
+      }
+    
       toast.success("User added successfully!");
-      // Redirect based on the user's role
-      if (createdUser.role && createdUser.role.name === "Admin") {
+    
+      // Ensure role exists before accessing it
+      const userRole = createdUser.role?.name;
+    
+      if (userRole === "admin") {
         navigate("/admin/allUsers/admin", { state: { user: createdUser } });
-      } else if (createdUser.role && createdUser.role.name === "Sales") {
+      } else if (userRole === "sales") {
         navigate("/admin/allUsers/sales", { state: { user: createdUser } });
-      } else if (createdUser.role && createdUser.role.name === "Trainer") {
+      } else if (userRole === "trainer") {
         navigate("/admin/allUsers/trainer", { state: { user: createdUser } });
       } else {
         navigate("/admin/allUsers/trainee", { state: { user: createdUser } });
@@ -129,8 +141,8 @@ const AddUser = () => {
       console.error("Error creating user:", error);
       toast.error("Failed to create user. Please try again later.");
     }
-  };
- 
+};  
+
   // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -141,19 +153,19 @@ const AddUser = () => {
       [name]: value,
     }));
   };
- 
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-[600px]">
         <h2 className="text-xl font-metropolis font-semibold mb-4">Add New User</h2>
         <form>
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            <div >
               <label className="block font-metropolis font-medium">First Name <span className="text-red-500">*</span></label>
               <input
                 type="text"
                 name="firstName"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                 value={newUser.firstName}
                 onChange={handleInputChange}
               />
@@ -163,7 +175,7 @@ const AddUser = () => {
               <input
                 type="text"
                 name="lastName"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                 value={newUser.lastName}
                 onChange={handleInputChange}
               />
@@ -173,7 +185,7 @@ const AddUser = () => {
               <input
                 type="email"
                 name="email"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                 value={newUser.email}
                 onChange={handleInputChange}
               />
@@ -183,7 +195,7 @@ const AddUser = () => {
               <input
                 type="tel"
                 name="phoneNumber"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                 value={newUser.phoneNumber}
                 onChange={handleInputChange}
               />
@@ -193,7 +205,7 @@ const AddUser = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                 value={newUser.password}
                 onChange={handleInputChange}
               />
@@ -210,20 +222,39 @@ const AddUser = () => {
               </button>
             </div>
             <div>
-              <label className="block font-metropolis font-medium">Date of Joining <span className="text-red-500">*</span></label>
-              <input
-                type="date"
-                name="dateOfJoining"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
-                value={newUser.dateOfJoining}
-                onChange={handleInputChange}
-              />
+              <label className="block font-metropolis font-medium">
+                Date of Joining <span className="text-red-500">*</span>
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold text-left"
+                  >
+                    {newUser.dateOfJoining
+                      ? format(new Date(newUser.dateOfJoining), "PPP") // Format date
+                      : "Select Date"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={newUser.dateOfJoining ? new Date(newUser.dateOfJoining) : undefined}
+                    onSelect={(date) =>
+                      setNewUser((prevState) => ({
+                        ...prevState,
+                        dateOfJoining: date ? date.toISOString().split("T")[0] : "",
+                      }))
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <label className="block font-metropolis font-medium">Role <span className="text-red-500">*</span></label>
               <select
                 name="roleId"
-                className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                 value={newUser.roleId}
                 onChange={handleInputChange}
               >
@@ -240,22 +271,22 @@ const AddUser = () => {
               </select>
             </div>
           </div>
-          <div className="flex justify-end space-x-2 mt-4">
+          <div className="flex justify-end space-x-2 mt-5">
+            <Button
+              type="button"
+              onClick={handleFormSubmit}
+              className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2
+                transition-all duration-500 ease-in-out
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+            >
+              Create NewUser
+            </Button>
             <Button
               onClick={() => navigate("/admin/allUsers")}
               className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
             >
               Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleFormSubmit}
-              className="bg-custom-gradient-btn text-white px-4 py-2
-                transition-all duration-500 ease-in-out
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-            >
-              Submit
             </Button>
           </div>
         </form>

@@ -29,31 +29,39 @@ const EnrolledCourses: React.FC = () => {
   const fetchBatchId = useSelector(
     (state: any) => state.batchTrainee.batchTrainees
   );
+  console.log('FetchBatchId',fetchBatchId)
   const fetchBatch = useSelector((state: any) => state.batch.batches);
+  console.log('fetchBatch',fetchBatch)
   const loading = useSelector((state: any) => state.batch.loading);
 
   // Keep track of fetched batch IDs to prevent duplicate calls
-  const fetchedBatchIdsRef = useRef(new Set<number>());
+  const fetchedBatchIdsRef = useRef(new Set<String>());
 
   // Dispatch action to fetch batch IDs on component mount
   useEffect(() => {
-    const userId = parseInt(localStorage.getItem("userId") || "0", 10);
-    console.log("Fetching Batch IDs for User:", userId); // ✅ Debug
+    const userId = localStorage.getItem("userId") ?? ""; // Provide a fallback empty string
+  
+    if (!userId) {
+      console.error("User ID not found in localStorage");
+      return; // Prevent dispatching an invalid request
+    }
+  
+    console.log("Fetching Batch IDs for User:", userId);
     dispatch(fetchBatchIdByTraineeIdRequest(userId));
   }, [dispatch]);
-
+  
   // Dispatch action to fetch batch details when batch IDs are available
   useEffect(() => {
     if (fetchBatchId?.length > 0) {
       console.log("Fetched Batch IDs:", fetchBatchId); // ✅ Debug
       const uniqueBatchIds = fetchBatchId.filter(
-        (batchId: number) => !fetchedBatchIdsRef.current.has(batchId)
+        (batchId: string) => !fetchedBatchIdsRef.current.has(batchId)
       );
 
       if (uniqueBatchIds.length > 0) {
         console.log("Fetching Batch Data for IDs:", uniqueBatchIds); // ✅ Debug
         dispatch(fetchBatchesByIdRequest(uniqueBatchIds));
-        uniqueBatchIds.forEach((batchId: number) =>
+        uniqueBatchIds.forEach((batchId: string) =>
           fetchedBatchIdsRef.current.add(batchId)
         );
       }
@@ -64,8 +72,8 @@ const EnrolledCourses: React.FC = () => {
   const enrolledCourses = fetchBatch.map((batch: any) => ({
     id: batch.id,
     batchName: batch.batchName,
-    startDate: new Date(batch.startDate),
-    endDate: new Date(batch.endDate),
+    startDate: new Date(batch.startDate.value),
+    endDate: new Date(batch.endDate.value),
     course: batch.course.courseName,
     courseId: batch.course.id,
     courseImg: batch.course.courseImg,

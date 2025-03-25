@@ -117,6 +117,7 @@ import { useSelector } from "react-redux";
 const CourseHeader: React.FC = () => {
   // Fetch batch data from Redux store
   const batch = useSelector((state: any) => state.batch.batchDataByName);
+  console.log('batch',batch);
 
   if (!batch || !batch.course) {
     return <div className="text-center text-gray-500">Loading batch data...</div>;

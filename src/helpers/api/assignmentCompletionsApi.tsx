@@ -30,7 +30,7 @@ export const fetchAssignmentCompletionsApi = async () => {
 };
 
 // Read assignment completion by ID
-export const fetchAssignmentCompletionsByIdApi = async (id: number) => {
+export const fetchAssignmentCompletionsByIdApi = async (id: string) => {
   try {
     console.log("AssignmentCompletionId", id);
     const response = await apiClient.get(`/assignment-completion/${id}`);
@@ -44,7 +44,7 @@ export const fetchAssignmentCompletionsByIdApi = async (id: number) => {
 
 // Update an existing assignment completion
 export const updateAssignmentCompletionsApi = async (
-  id: number,
+  id: string,
   updatedAssignmentCompletion: any
 ) => {
   try {
@@ -61,7 +61,7 @@ export const updateAssignmentCompletionsApi = async (
 };
 
 // Delete an assignment completion
-export const deleteAssignmentCompletionsApi = async (id: number) => {
+export const deleteAssignmentCompletionsApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/assignment-completion/${id}`);
     console.log("deleteAssignmentCompletionApi", response.data);
@@ -71,3 +71,4 @@ export const deleteAssignmentCompletionsApi = async (id: number) => {
     throw error;
   }
 };
+

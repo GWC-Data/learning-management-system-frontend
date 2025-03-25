@@ -15,7 +15,7 @@ export const fetchBatchModuleScheduleFailure = (error: any) => ({
 });
 
 // ✅ Action to fetch batch module schedule by ID
-export const fetchBatchModuleScheduleByIdRequest = (id: number) => ({
+export const fetchBatchModuleScheduleByIdRequest = (id: string) => ({
   type: types.FETCH_BATCH_MODULE_SCHEDULE_BY_ID_REQUEST,
   payload: id,
 });
@@ -31,7 +31,7 @@ export const fetchBatchModuleScheduleByIdFailure = (error: string) => ({
 });
 
 // Fetch by Batch ID
-export const fetchBatchModuleScheduleByBatchIdRequest = (batchId: number) => {
+export const fetchBatchModuleScheduleByBatchIdRequest = (batchId: string) => {
   console.log("BatchId Dispatched:", batchId);
   return{
     type: types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_REQUEST,
@@ -40,7 +40,7 @@ export const fetchBatchModuleScheduleByBatchIdRequest = (batchId: number) => {
 };
 
 export const fetchBatchModuleScheduleByBatchIdSuccess = (
-  batchId: number,
+  batchId: string,
   batchModuleSchedules: any
 ) => ({
   type: types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_SUCCESS,
@@ -72,7 +72,7 @@ export const createBatchModuleScheduleFailure = (error: any) => ({
 
 // Update
 export const updateBatchModuleScheduleRequest = (
-  id: number,
+  id: string,
   updatedBatchModuleSchedule: any
 ) => ({
   type: types.UPDATE_BATCH_MODULE_SCHEDULE_REQUEST,
@@ -92,12 +92,12 @@ export const updateBatchModuleScheduleFailure = (error: any) => ({
 });
 
 // Delete
-export const deleteBatchModuleScheduleRequest = (id: number) => ({
+export const deleteBatchModuleScheduleRequest = (id: string) => ({
   type: types.DELETE_BATCH_MODULE_SCHEDULE_REQUEST,
   payload: id,
 });
 
-export const deleteBatchModuleScheduleSuccess = (id: number) => ({
+export const deleteBatchModuleScheduleSuccess = (id: string) => ({
   type: types.DELETE_BATCH_MODULE_SCHEDULE_SUCCESS,
   payload: id,
 });

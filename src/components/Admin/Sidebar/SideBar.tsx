@@ -8,7 +8,13 @@ import {
   Key,
   Book,
   MountainSnow,
-  Sheet
+  Sheet,
+  Activity,
+  BookOpen,
+  Calendar,
+  File,
+  ClipboardList,
+  BriefcaseBusiness 
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -156,7 +162,7 @@ const Sidebar: React.FC = () => {
                   to="/admin/attendance"
                   isActive={location.pathname === "/admin/attendance"}
                 />
-{/* 
+              {/* 
                 <SidebarButton
                   icon={<ClipboardList />}
                   label="Batch Management"
@@ -170,6 +176,14 @@ const Sidebar: React.FC = () => {
                   to="/admin/manage-batch-schedules"
                   isActive={location.pathname === "/admin/manage-batch-schedules"}
                 />  */}
+
+                 <SidebarButton
+                  icon={<BriefcaseBusiness  />} 
+                  label="Job Board"
+                  to="/admin/job-board"
+                  isActive={location.pathname === "/admin/job-board"}
+                /> 
+
               </div>
             )}
           </div>

@@ -23,9 +23,9 @@ export const fetchCourseModuleApi = async () => {
   }
 };
 
-//Read modules by id
 
-export const fetchCourseModulebyIdApi = async (moduleId: number) => {
+//Read modules by id
+export const fetchCourseModulebyIdApi = async (moduleId: string) => {
   try {
     const response = await apiClient.get(`/coursemodule/${moduleId}`);
     console.log("response", response.data);
@@ -36,7 +36,7 @@ export const fetchCourseModulebyIdApi = async (moduleId: number) => {
   }
 };
 
-export const fetchCourseModulebyCourseIdApi = async (courseId: number) => {
+export const fetchCourseModulebyCourseIdApi = async (courseId: string) => {
   try {
     const response = await apiClient.get(`/coursemodule/${courseId}`);
     console.log("response", response.data.modules);
@@ -49,7 +49,7 @@ export const fetchCourseModulebyCourseIdApi = async (courseId: number) => {
 
 // Update an existing course category
 export const updateCourseModuleApi = async (
-  id: number,
+  id: string,
   updatedCourseModule: any
 ) => {
   try {
@@ -63,7 +63,7 @@ export const updateCourseModuleApi = async (
 };
 
 // Delete a course category
-export const deleteCourseModuleApi = async (id: number) => {
+export const deleteCourseModuleApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/module/${id}`);
     return response.data;

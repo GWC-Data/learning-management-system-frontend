@@ -1,42 +1,73 @@
 import apiClient from "../rootApi/apiClient";
 
-// Create a new Batch
+// Create a new Attendance
 export const createAttendanceApi = async (newAttendance: any) => {
-    try {
-      const response = await apiClient.post('/attendance', newAttendance);
-      console.log("responseattendance", response.data)
-      return response.data;
-    } catch (error) {
-      console.error('Error creating batch', error);
-      throw error;
-    }
-  };
-
-export const getAttendanceUserByIdApi = async (userId: number) => {
   try {
-    const response = await apiClient.get(`/attendance/${userId}`);
-    console.log('response', response.data);
+    const response = await apiClient.post('/attendance', newAttendance, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    });
+    console.log("responseattendance", response.data)
     return response.data;
+  } catch (error) {
+    console.error('Error creating batch', error);
+    throw error;
+  }
+};
+
+export const getAttendanceByUserIdApi = async (userId: string) => {
+  try {
+    const response = await apiClient.get(`/attendance`, {
+      params: { userId }, // Pass userId as a query parameter
+    });
+
+    console.log('response', response.data.attendanceRecords);
+    return response.data.attendanceRecords;
   } catch (error) {
     console.error('Error getting attendance user by id', error);
     throw error;
   }
-}
+};
 
-  // Read all Batches
-export const fetchAttendanceApi = async () => {
+export const getAttendanceFilterByIdApi = async (
+  userId: string,
+  classId?: string,
+  batchId?: string
+) => {
+  try {
+    // ✅ Dynamically build query parameters
+    const queryParams = new URLSearchParams();
+    if (userId) queryParams.append("userId", userId);
+    if (classId) queryParams.append("classId", classId);
+    if (batchId) queryParams.append("batchId", batchId);
+
+    // ✅ Make API call with dynamic query params
+    const response = await apiClient.get(`/attendance?${queryParams.toString()}`);
+    console.log('✅ Attendance Response:', response.data);
+
+    // ✅ Return response data without modifying any state
+    return response.data;
+  } catch (error) {
+    console.error('❌ Error getting attendance by filters', error);
+    throw error;
+  }
+};
+
+  // Read all Attendance
+  export const fetchAttendanceApi = async () => {
     try {
       const response = await apiClient.get('/attendance');
-      console.log("read all batches", response.data);
+      console.log("attendacneApi", response.data);
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch Batches', error);
+      console.error('Failed to fetch attendance', error);
       throw error;
     }
   };
 
-  // Delete a course category
-export const deleteAttendanceApi = async (id: number) => {
+  // Delete a Attendance
+export const deleteAttendanceApi = async (id: string) => {
     try {
       const response = await apiClient.delete(`/attendance/${id}`);
       return response.data;
@@ -47,10 +78,14 @@ export const deleteAttendanceApi = async (id: number) => {
   };
   
   
-// Create a new Batch
+// Create a new Attendance File
 export const createAttendanceFileApi = async (newAttendanceFile: any) => {
   try {
-    const response = await apiClient.post('/attendance-file', newAttendanceFile);
+    const response = await apiClient.post('/attendance-file', newAttendanceFile, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    });
     console.log("responseattendance", response.data)
     return response.data;
   } catch (error) {
@@ -59,7 +94,7 @@ export const createAttendanceFileApi = async (newAttendanceFile: any) => {
   }
 };
 
-export const getAttendanceFileByIdApi = async (id: number) => {
+export const getAttendanceFileByIdApi = async (id: string) => {
 try {
   const response = await apiClient.get(`/attendance-file/${id}`);
   console.log('response', response.data);
@@ -83,9 +118,13 @@ export const fetchAttendanceFileApi = async () => {
 };
 
   // update Batches
-export const updateAttendanceFileApi = async (id: number) => {
+export const updateAttendanceFileApi = async (id: string) => {
   try {
-    const response = await apiClient.get(`/attendance-file/${id}`);
+    const response = await apiClient.get(`/attendance-file/${id}`, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    });
     console.log("updateAttendanceFile", response.data);
     return response.data;
   } catch (error) {
@@ -95,7 +134,7 @@ export const updateAttendanceFileApi = async (id: number) => {
 };
 
 // Delete a course category
-export const deleteAttendanceFileApi = async (id: number) => {
+export const deleteAttendanceFileApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/attendance-file/${id}`);
     return response.data;

@@ -4,9 +4,10 @@ import apiClient from "../rootApi/apiClient";
 export const createBatchApi = async (newBatch: any) => {
   try {
     const response = await apiClient.post("/batch", newBatch);
+    console.log("Batch creation response:", response);
     return response.data;
-  } catch (error) {
-    console.error("Error creating batch", error);
+  } catch (error:any) {
+    console.error("Error creating batch", error.response?.data || error.message);
     throw error;
   }
 };
@@ -23,9 +24,10 @@ export const fetchBatchApi = async () => {
   }
 };
 
-export const fetchBatchByIdApi = async (batchId: number) => {
+export const fetchBatchByIdApi = async (batchId: string) => {
   try {
     const response = await apiClient.get(`/batch/${batchId}`);
+    console.log(response.data.batch)
     return response.data.batch || [];
   } catch (error) {
     console.error("Failed to fetch batch by id", error);
@@ -36,6 +38,7 @@ export const fetchBatchByIdApi = async (batchId: number) => {
 export const fetchBatchByBatchNameApi = async (batchName: String) => {
   try {
     const response = await apiClient.get(`/batchbyName/${batchName}`);
+    console.log('FetchBatchbyName', response.data.batch)
     return response.data.batch || [];
   } catch (error) {
     console.error("Failed to fetch batch by id", error);
@@ -44,7 +47,7 @@ export const fetchBatchByBatchNameApi = async (batchName: String) => {
 }; 
 
 // Update an existing Batch
-export const updateBatchApi = async (id: number, updatedBatch: any) => {
+export const updateBatchApi = async (id: string, updatedBatch: any) => {
   try {
     const response = await apiClient.put(`/batch/${id}`, updatedBatch);
     console.log("update batch", response.data);
@@ -56,7 +59,7 @@ export const updateBatchApi = async (id: number, updatedBatch: any) => {
 };
 
 // Delete a course category
-export const deleteBatchApi = async (id: number) => {
+export const deleteBatchApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/batch/${id}`);
     return response.data;

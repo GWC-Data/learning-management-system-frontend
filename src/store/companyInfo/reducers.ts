@@ -26,6 +26,8 @@ const initialState: CompanyInfoState = {
   deleteStatus: null,
 };
 
+//data, loading, error, 
+
 const companyInfosReducer = (state = initialState, action: any): CompanyInfoState => {
   switch (action.type) {
     // GET All

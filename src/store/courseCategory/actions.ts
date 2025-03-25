@@ -53,7 +53,7 @@ export const updateCourseCategoryFailure = (error: string) => ({
 });
 
 // DELETE: Remove Course Category
-export const deleteCourseCategoryRequest = (courseCategoryId: number) => ({
+export const deleteCourseCategoryRequest = (courseCategoryId: string) => ({
   type: types.DELETE_COURSECATEGORY_REQUEST,
   payload: courseCategoryId,
 });

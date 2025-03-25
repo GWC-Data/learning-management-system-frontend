@@ -73,7 +73,7 @@ export function* updateCourseCategorySaga(action: {
 // DELETE
 export function* deleteCourseCategorySaga(action: {
   type: string;
-  payload: number;
+  payload: any;
 }): Generator<any, void, any> {
   try {
     yield call(deleteCourseCategoryApi, action.payload);

@@ -28,7 +28,7 @@ export function* fetchBatchModuleSchedulesSaga(): Generator<any, void, any> {
 // ✅ Saga to fetch batch module schedule by ID
 export function* fetchBatchModuleScheduleByIdSaga(action: {
     type: string;
-    payload: number;
+    payload: string;
   }): Generator<any, void, any> {
     try {
       const response: any = yield call(fetchBatchModuleScheduleByIdApi, action.payload);
@@ -46,7 +46,7 @@ export function* fetchBatchModuleScheduleByIdSaga(action: {
 // ✅ GET BATCH MODULE SCHEDULES BY BATCH ID
 export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
   type: string;
-  payload: number;
+  payload: string;
 }): Generator<any, void, any> {
   try {
     console.log('batchId',action.payload);
@@ -105,7 +105,7 @@ export function* updateBatchModuleScheduleSaga(action: {
 // ✅ DELETE BATCH MODULE SCHEDULE
 export function* deleteBatchModuleScheduleSaga(action: {
   type: string;
-  payload: number;
+  payload: string;
 }): Generator<any, void, any> {
   try {
     yield call(deleteBatchModuleScheduleApi, action.payload);

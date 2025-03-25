@@ -25,7 +25,7 @@ export const fetchCompanyInfosApi = async () => {
 };
 
 // Read a companyInfo by id
-export const fetchCompanyInfoByIdApi = async (cmpyInfoId: number) => {
+export const fetchCompanyInfoByIdApi = async (cmpyInfoId: string) => {
   try {
     console.log("fetchCompanyInfoByIdApi", cmpyInfoId);
     const response = await apiClient.get(`/companyinfo/${cmpyInfoId}`);
@@ -54,7 +54,7 @@ export const updateCompanyInfoApi = async (
 };
 
 // Delete a companyInfo
-export const deleteCompanyInfoApi = async (cmpyInfoId: number) => {
+export const deleteCompanyInfoApi = async (cmpyInfoId: string) => {
   try {
     const response = await apiClient.delete(`/companyinfo/${cmpyInfoId}`);
     return response.data;

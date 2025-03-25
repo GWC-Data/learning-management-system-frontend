@@ -15,8 +15,8 @@ export const createPermissionApi = async (newPermission: any) => {
 export const fetchPermissionsApi = async () => {
   try {
     const response = await apiClient.get("/permissions");
-    console.log("resp", response.data);
-    return response.data.permissions || [];
+    console.log("API Response:", response.data);
+    return response.data.permission || []; // Fix: Ensure correct key
   } catch (error) {
     console.error("Failed to fetch permissions", error);
     throw error;

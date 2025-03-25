@@ -4,10 +4,12 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Edit, Trash } from "lucide-react";
+import { Edit } from "lucide-react";
+import remove from '../../../assets/delete.png';
 import { ColDef } from "ag-grid-community";
 import Select from 'react-select';
-
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
+import Breadcrumb from "./breadcrumb";
 import {
   createCourseModuleApi,
   fetchCourseModuleApi,
@@ -20,13 +22,13 @@ import { useSearchParams } from "react-router-dom";
 // TypeScript types for the component props
 interface CourseModuleTableProps {
   editable?: boolean;
-  courseId?: number; 
+  courseId?: string;
 }
 
 // TypeScript types for course module data
 interface CourseModuleData {
-  id: number;
-  courseId: number;
+  id: string;
+  courseId: string;
   moduleName: string;
   moduleDescription: string;
   courseName?: string;
@@ -36,7 +38,7 @@ interface CourseModuleData {
 
 // TypeScript types for course options
 interface CourseOption {
-  id: number;
+  id: string;
   courseName: string;
 }
 
@@ -49,11 +51,12 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [courseOptions, setCourseOptions] = useState<CourseOption[]>([]);
   const [newModule, setNewModule] = useState<CourseModuleData>({
-    id: 0,
-    courseId: 0,
+    id: "",
+    courseId: "",
     moduleName: "",
     moduleDescription: "",
     createdByUserName: "",
@@ -64,9 +67,8 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
     null
   );
   const [searchParams] = useSearchParams();
-    const courseId = Number(searchParams.get("courseId")); 
-  
-  const [currentPage, setCurrentPage] = useState(1);
+  const courseId = String(searchParams.get("courseId"));
+
 
   {/* pagination */ }
   const recordsPerPage = 15;
@@ -78,23 +80,23 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
     setCurrentPage(newPage);
   };
 
-  // const validateFields = () => {
-  //   const newErrors: Record<string, string> = {};
+  const validateFields = () => {
+    const newErrors: Record<string, string> = {};
 
-  //   if (!newModule.courseId) newErrors.courseId = "Course is required.";
-  //   if (!newModule.moduleName)
-  //     newErrors.moduleName = "Module name is required.";
-  //   if (!newModule.moduleDescription)
-  //     newErrors.moduleDescription = "Module description is required.";
+    if (!newModule.courseId) newErrors.courseId = "Course is required.";
+    if (!newModule.moduleName)
+      newErrors.moduleName = "Module name is required.";
+    if (!newModule.moduleDescription)
+      newErrors.moduleDescription = "Module description is required.";
 
-  //   setErrors(newErrors);
+    setErrors(newErrors);
 
-  //   Object.entries(newErrors).forEach(([field, message]) => {
-  //     toast.error(`${field}: ${message}`);
-  //   });
+    Object.entries(newErrors).forEach(([field, message]) => {
+      toast.error(`${field}: ${message}`);
+    });
 
-  //   return newErrors;
-  // };
+    return newErrors;
+  };
 
   // Fetch course modules and map course names
   const fetchCourseModules = async () => {
@@ -104,50 +106,79 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
       return;
     }
 
+    setLoading(true); // ✅ Ensure loading state is set before fetching
+
     try {
+      // ✅ Fetch courses
       const courses = await fetchCourseApi();
-      const mappedCourse = courses.map((course: any) => ({
-        id: course.id,
-        courseName: course.courseName,
-     }))
+      console.log("Courses API Response:", courses);
 
-      setCourseOptions(mappedCourse)
+      if (!Array.isArray(courses)) {
+        console.error("Invalid course response format:", courses);
+        toast.error("Failed to load courses.");
+        return;
+      }
 
+      // ✅ Convert courses array into a map for easy lookup
+      const courseMap = courses.reduce((acc: Record<string, string>, course: any) => {
+        acc[course.courseId] = course.courseName; // Ensure correct field names
+        return acc;
+      }, {});
+
+      setCourseOptions(
+        courses.map((course: any) => ({
+          id: course.courseId,
+          courseName: course.courseName,
+        }))
+      );
+
+      // ✅ Fetch modules
       const modules = await fetchCourseModuleApi();
+      console.log("Modules API Response:", modules);
+
+      if (!Array.isArray(modules)) {
+        console.error("Invalid module response format:", modules);
+        toast.error("Failed to load modules.");
+        return;
+      }
+
       const mappedModules = modules.map((module: any) => ({
-        id: module.id,
+        id: module.moduleId,
         courseId: module.courseId,
         moduleName: module.moduleName,
         moduleDescription: module.moduleDescription,
         sequence: module.sequence,
-        createdByUserName: module.user
-          ? `${module.user.firstName} ${module.user.lastName}`
-          : "Unknown",
-        courseName: mappedCourse[module.courseId] || "Unknown Course",
+        createdByUserName: module.createdByUserName,
+        courseName: courseMap[module.courseId] || "Unknown Course",
       }));
 
-          // If a courseId prop was passed, filter the modules for that course.
-    const filteredModules = mappedModules.filter((m: any) => m.courseId === courseId)
+      console.log("Mapped Modules:", mappedModules);
+      console.log("courseId", courseId);
+
+      const filteredModules = mappedModules.filter((m: any) => m.courseId === courseId)
+      console.log("Filtered Modules:", filteredModules);
 
       setCourseModules(filteredModules);
     } catch (error) {
-      console.error("Failed to fetch course modules", error);
+      console.error("Failed to fetch course modules:", error);
       toast.error("Failed to fetch course modules. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔹 2. Fetch data on mount
   useEffect(() => {
     fetchCourseModules();
   }, []);
+
 
   // Open modal to add a new course module
   const addNewRow = () => {
     setEditing(false);
     setNewModule({
-      id: 0,
-      courseId: 0,
+      id: "",
+      courseId: "",
       moduleName: "",
       moduleDescription: "",
       createdByUserName: "",
@@ -166,8 +197,8 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setNewModule({
-      id: 0,
-      courseId: 0,
+      id: "",
+      courseId: "",
       moduleName: "",
       moduleDescription: "",
       createdByUserName: "",
@@ -177,8 +208,8 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
   // Handle form submission (Create or Update)
   const handleFormSubmit = async () => {
-    // const validationErrors = validateFields();
-    // if (Object.keys(validationErrors).length > 0) return;
+    const validationErrors = validateFields();
+    if (Object.keys(validationErrors).length > 0) return;
 
     const token = getToken();
     if (!token) {
@@ -217,7 +248,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
       setModuleToDelete(course);
       setIsDeleteModalOpen(true);
     }
-  }; 
+  };
 
   const handleDeleteCourseModule = async () => {
     if (!moduleToDelete) {
@@ -267,70 +298,88 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
         field: "actions",
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
-            <Button
-              onClick={() => editCourseModule(params.data)}
-              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
-            >
-              <Edit className="h-5 w-4" />
-            </Button>
-            <Button
-              onClick={() => confirmDeleteCourseModule(params.data)}
-              className=" text-red-600 bg-white p-2 rounded hover:bg-white"
-            >
-              <Trash className="h-5 w-4" />
-            </Button>
+            <TooltipProvider>
+              {/* Edit Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => editCourseModule(params.data)}
+                    className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                  >
+                    <Edit className="h-6 w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit CourseModule</TooltipContent>
+              </Tooltip>
+
+              {/* Delete Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => confirmDeleteCourseModule(params.data)}
+                    className="text-red-600 bg-white p-2 rounded hover:bg-white"
+                  >
+                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete CourseModule</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         ),
       },
     ]);
   }, [courseModules]);
-  
+
 
   const onRowDragEnd = async (event: any) => {
     const draggedIndex = event.oldIndex;
     const targetIndex = event.newIndex;
-    
+
     if (draggedIndex === targetIndex) return;
-    
+
     const newModules = [...courseModules];
     const [draggedModule] = newModules.splice(draggedIndex, 1);
     newModules.splice(targetIndex, 0, draggedModule);
-    
+
     // Update sequences
     const updatedModules = newModules.map((module, index) => ({
-        ...module,
-        sequence: index + 1
+      ...module,
+      sequence: index + 1
     }));
 
     try {
-        // Update frontend state immediately
-        setCourseModules(updatedModules);
-        
-        // Update the dragged module with its new sequence
-        const draggedModuleData = updatedModules[targetIndex];
-        await updateCourseModuleApi(draggedModuleData.id, {
-            courseId: draggedModuleData.courseId,
-            moduleName: draggedModuleData.moduleName,
-            moduleDescription: draggedModuleData.moduleDescription,
-            sequence: draggedModuleData.sequence
-        });
+      // Update frontend state immediately
+      setCourseModules(updatedModules);
 
-        toast.success("Module order updated successfully!");
-        
-        // Refresh the data
-        await fetchCourseModules();
-        
+      // Update the dragged module with its new sequence
+      const draggedModuleData = updatedModules[targetIndex];
+      await updateCourseModuleApi(draggedModuleData.id, {
+        courseId: draggedModuleData.courseId,
+        moduleName: draggedModuleData.moduleName,
+        moduleDescription: draggedModuleData.moduleDescription,
+        sequence: draggedModuleData.sequence
+      });
+
+      toast.success("Module order updated successfully!");
+
+      // Refresh the data
+      await fetchCourseModules();
+
     } catch (error) {
-        console.error("Failed to update module order:", error);
-        toast.error("Failed to update module order. Please try again.");
-        await fetchCourseModules(); // Refresh to ensure correct state
+      console.error("Failed to update module order:", error);
+      toast.error("Failed to update module order. Please try again.");
+      await fetchCourseModules(); // Refresh to ensure correct state
     }
-};
+  };
 
   return (
     <>
       <div className="flex-1 p-4 mt-10 ml-20">
-        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1105px]">
+        <div className="text-gray-600 text-lg mb-4">
+          <Breadcrumb />
+        </div>
+        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1120px]">
           <div className="flex flex-col">
             <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
               Course Modules
@@ -358,6 +407,14 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                 <strong>{moduleToDelete.moduleName}</strong>?
               </p>
               <div className="flex justify-end space-x-2 mt-4">
+              <Button
+                  onClick={handleDeleteCourseModule}
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                >
+                  Delete
+                </Button>
                 <Button
                   onClick={handleCancelDelete}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
@@ -365,21 +422,13 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                 >
                   Cancel
                 </Button>
-                <Button
-                  onClick={handleDeleteCourseModule}
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-                >
-                  Delete
-                </Button>
               </div>
             </div>
           </div>
         )}
 
         <div
-          className="ag-theme-quartz"
+          className="ag-theme-quartz font-poppins"
           style={{ height: "70vh", width: "88%" }}
         >
           <AgGridReact
@@ -401,16 +450,39 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
           />
         </div>
 
+        {/* Pagination Controls */}
+        <div className="flex justify-center items-center mt-4">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
+              }`}
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 border-t border-b text-gray-700">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+            className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
+              }`}
+          >
+            Next
+          </button>
+        </div>
+
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-              <h2 className="text-xl font-metropolis font-semibold mb-4 text-center">
+              <h2 className="text-xl font-metropolis font-semibold mb-4 ">
                 {editing ? "Edit Module" : "Add New Module"}
               </h2>
               <form>
                 <div className="mb-4">
                   <label className="block font-metropolis font-medium mb-2">
-                    Course
+                    Course <span className="text-red-500">*</span>
                   </label>
                   <Select
                     options={courseOptions.map((course) => ({
@@ -426,10 +498,10 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                     onChange={(selectedOption) => {
                       setNewModule({
                         ...newModule,
-                        courseId: selectedOption ? selectedOption.value : 0,
+                        courseId: selectedOption ? selectedOption.value : "",
                       });
                     }}
-                    className="w-full rounded font-metropolis p-2 text-gray-400 font-semibold"
+                    className="w-full rounded font-metropolis font-semibold text-gray-400"
                     placeholder="Select Course"
                     isSearchable={true}
                   />
@@ -441,7 +513,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                 </div>
                 <div className="mb-4">
                   <label className="block font-metropolis font-medium mb-2">
-                    Module Name
+                    Module Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -465,7 +537,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                     Description
                   </label>
                   <textarea
-                    className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                    className="w-full h-40 border rounded font-metropolis p-2 text-gray-400 font-semibold"
                     value={newModule.moduleDescription}
                     onChange={(e) =>
                       setNewModule({
@@ -483,11 +555,11 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
                 <div className="flex justify-end space-x-4">
                   <Button
                     onClick={handleFormSubmit}
-                    className="bg-custom-gradient-btn text-white px-4 py-2 
+                    className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
                 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                   >
-                    {editing ? "Update" : "Create"}
+                    {editing ? "Update Module" : "Create Module"}
                   </Button>
                   <Button
                     onClick={handleModalClose}

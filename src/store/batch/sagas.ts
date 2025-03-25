@@ -26,7 +26,7 @@ export function* fetchBatchesSaga(): Generator<any, void, any> {
 }
 
 // GET BY ID
-export function* fetchBatchByIdSaga(action: { type: string; payload: number }): Generator<any, void, any> {
+export function* fetchBatchByIdSaga(action: { type: string; payload: string }): Generator<any, void, any> {
   try {
     console.log("Fetching batch for batchId:", action.payload);
     const response: any = yield call(fetchBatchByIdApi, action.payload);
@@ -43,7 +43,7 @@ export function* fetchBatchByIdSaga(action: { type: string; payload: number }): 
 }
 
 // Fetch multiple batches by ID
-export function* fetchBatchesByIdSaga(action: { type: string; payload: number[] }): Generator<any, void, any> {
+export function* fetchBatchesByIdSaga(action: { type: string; payload: string[] }): Generator<any, void, any> {
   try {
     console.log("Saga Triggered - Batch IDs:", action.payload);
     const responses: any[] = yield all(action.payload.map((batchId) => call(fetchBatchByIdApi, batchId)));

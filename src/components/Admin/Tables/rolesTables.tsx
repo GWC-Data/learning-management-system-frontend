@@ -1,16 +1,18 @@
 import { Button } from "../../ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { Badge } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Edit, Trash } from "lucide-react";
+import { Edit } from "lucide-react";
+import remove from '../../../assets/delete.png';
 import axios from "axios";
-import { 
-  createRoleApi, 
-  deleteRoleApi, 
-  updateRoleApi 
+import {
+  createRoleApi,
+  deleteRoleApi,
+  updateRoleApi
 } from "@/helpers/api/roleApi";
 
 // TypeScript interfaces
@@ -52,7 +54,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
 
   const validateFields = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!newRole.name) newErrors.name = 'RoleName is required.';
     if (!newRole.description) newErrors.description = 'description is required.';
     if (!newRole.permissions) newErrors.permissions = 'Atleast choose any one Permission';
@@ -82,32 +84,29 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Check if the response is an array
-      if (Array.isArray(permissionResponse.data)) {
-        const permissionsData = permissionResponse.data.map((perm: any) => ({
-          id: perm.id, // Ensure 'id' exists in the response
-          action: perm.action, // Assuming 'action' exists in each permission
-        }));
-        setAvailablePermissions(permissionsData); // Now the data includes 'id' and 'action'
+      console.log("API Response:", permissionResponse.data); // Debugging
+
+      // Check if response has 'permission' array
+      if (
+        permissionResponse.data &&
+        Array.isArray(permissionResponse.data.permission)
+      ) {
+        setAvailablePermissions(
+          permissionResponse.data.permission.map((perm: any) => ({
+            id: perm.id,
+            action: perm.action,
+          }))
+        );
       } else {
-        // If it's not an array, check if it's an object and handle accordingly
-        if (permissionResponse.data && permissionResponse.data.permissions) {
-          const permissionsData = permissionResponse.data.permissions.map(
-            (perm: any) => ({
-              id: perm.id, // Ensure 'id' exists in the response
-              action: perm.action, // Assuming 'action' exists
-            })
-          );
-          setAvailablePermissions(permissionsData); // Now the data includes 'id' and 'action'
-        } else {
-          setAvailablePermissions([]);
-        }
+        console.warn("Unexpected API response format", permissionResponse.data);
+        setAvailablePermissions([]);
       }
     } catch (error) {
       console.error("Failed to fetch permissions", error);
       toast.error("Failed to fetch permissions. Please try again later.");
     }
   };
+
 
   // Fetch roles - Now only fetching roles, not permissions
   const fetchRoles = async () => {
@@ -122,17 +121,28 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const rolesData = rolesResponse.data.map((role: any) => ({
+      console.log("Roles API Response:", rolesResponse.data);
+
+      // Ensure we access the correct key
+      const rolesArray = rolesResponse.data.role; // Notice `.role` here
+
+      if (!Array.isArray(rolesArray)) {
+        throw new Error("Invalid roles data structure");
+      }
+
+      const rolesData = rolesArray.map((role: any) => ({
         id: role.id,
         name: role.name,
         description: role.description,
-        permissions: role.permissions.map((perm: any) => ({
-          groupName: perm.groupName,
-          action: perm.action,
-        })),
+        permissions: Array.isArray(role.permissions)
+          ? role.permissions.map((perm: any) => ({
+            groupName: perm.groupName,
+            action: perm.action,
+          }))
+          : [],
       }));
 
-      setRoles(rolesData || []);
+      setRoles(rolesData);
     } catch (error) {
       console.error("Failed to fetch roles", error);
       toast.error("Failed to fetch roles. Please try again later.");
@@ -295,18 +305,35 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         width: 200,
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
-            <Button
-              onClick={() => editRole(params)}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => confirmDeleteRole(params)}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-700"
-            >
-              <Trash className="h-5 w-5" />
-            </Button>
+            <TooltipProvider>
+              <div className="flex space-x-2">
+                {/* Edit Role Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => editRole(params)}
+                      className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                    >
+                      <Edit className="h-6 w-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit Role</TooltipContent>
+                </Tooltip>
+
+                {/* Delete Role Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => confirmDeleteRole(params)}
+                      className="text-red-600 bg-white p-2 rounded hover:bg-white"
+                    >
+                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Role</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         ),
       },
@@ -333,8 +360,8 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
       </div>
 
       <div
-        className="ag-theme-quartz text-left"
-        style={{ height: "calc(100vh - 180px)", width: "93%" }}
+        className="ag-theme-quartz text-left font-poppins"
+        style={{ height: "calc(100vh - 180px)", width: "91.5%" }}
       >
         <AgGridReact
           rowSelection="multiple"
@@ -360,10 +387,10 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
             </h2>
             <form>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Role Name</label>
+                <label className="block font-metropolis font-medium">Role Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis p-2 mt-1 text-gray-400 font-semibold"
                   value={newRole.name}
                   onChange={(e) =>
                     setNewRole({ ...newRole, name: e.target.value })
@@ -374,7 +401,7 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                 <label className="block font-metropolis font-medium">Description</label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newRole.description}
                   onChange={(e) =>
                     setNewRole({ ...newRole, description: e.target.value })
@@ -382,10 +409,10 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Permissions</label>
+                <label className="block font-metropolis font-medium">Permissions <span className="text-red-500">*</span></label>
                 <select
                   multiple
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full h-48 border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newRole.permissions.map((perm) => perm.action || "")} // Ensure this is mapped correctly
                   onChange={(e) => {
                     // Get selected option values (action strings)
@@ -424,19 +451,19 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
               </div>
               <div className="flex justify-end space-x-2">
                 <Button
+                  onClick={handleFormSubmit}
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                >
+                  {editing ? "Update Role" : "Create Role"}
+                </Button>
+                <Button
                   onClick={handleModalClose}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   Cancel
-                </Button>
-                <Button
-                  onClick={handleFormSubmit}
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-                >
-                  {editing ? "Update" : "Create"}
                 </Button>
               </div>
             </form>
@@ -444,34 +471,34 @@ const ManageRoles = ({ editable = true }: RoleTableProps) => {
         </div>
       )}
 
-      {isDeleteModalOpen && roleToDelete &&(
+      {isDeleteModalOpen && roleToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
             <h2 className="text-xl font-metropolis font-semibold mb-4">Confirm Delete</h2>
             <p className="font-metropolis font-medium">
-              Are you sure you want to delete the Role 
+              Are you sure you want to delete the Role{" "}
               <strong>
-              {roleToDelete?.name?.charAt(0).toUpperCase() + 
-              roleToDelete?.name?.slice(1).toLowerCase() || 'this role'}
-                </strong>
-                ?
-                
+                {roleToDelete?.name?.charAt(0).toUpperCase() +
+                  roleToDelete?.name?.slice(1).toLowerCase() || 'this role'}
+              </strong>
+              ?
+
             </p>
             <div className="flex justify-end space-x-2 mt-4">
+              <Button
+                onClick={handleDeleteRole}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
               <Button
                 onClick={handleCancelDelete}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteRole}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
               </Button>
             </div>
           </div>

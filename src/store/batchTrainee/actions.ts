@@ -1,7 +1,7 @@
 import * as types from "./actionTypes";
 
 // GET: Fetch BatchId By TraineeId
-export const fetchBatchIdByTraineeIdRequest = (traineeId: number) => ({
+export const fetchBatchIdByTraineeIdRequest = (traineeId: string) => ({
   type: types.FETCH_BATCHIDBYTRAINEEID_REQUEST,
   payload: traineeId,
 });

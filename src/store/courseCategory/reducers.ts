@@ -2,7 +2,7 @@
 import * as types from "./actionTypes";
 
 interface CourseCategory {
-  id: number;
+  id: string;
   [key: string]: any;
 }
 

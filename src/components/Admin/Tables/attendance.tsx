@@ -1,50 +1,73 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, SetStateAction } from "react";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
-import { toast } from "sonner";
-import Select from 'react-select';
-import { Card } from "@/components/ui/card"; // ShadCN Card
-import { createAttendanceApi, createAttendanceFileApi, fetchAttendanceApi, fetchAttendanceFileApi } from "@/helpers/api/attendance";
-import { fetchUsersApi } from "@/helpers/api/userApi";
-import { fetchBatchApi } from "@/helpers/api/batchApi";
-import { fetchCourseModuleApi } from "@/helpers/api/courseModuleApi";
-import { fetchClassForModuleApi } from "@/helpers/api/classForModuleApi";
-import { fetchCourseApi } from "@/helpers/api/courseApi";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "../../ui/button";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
+import { format } from "date-fns";
+import { toast } from "react-toastify";
+import Select from "react-select";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  getAttendanceFilterByIdApi,
+  createAttendanceFileApi,
+  fetchAttendanceApi,
+  fetchAttendanceFileApi,
+  createAttendanceApi,
+} from "@/helpers/api/attendance";
+import { fetchUsersApi } from '@/helpers/api/userApi';
+import { fetchBatchApi } from '@/helpers/api/batchApi';
+import { fetchCourseModuleApi } from '@/helpers/api/courseModuleApi';
+import { fetchClassForModuleApi } from '@/helpers/api/classForModuleApi';
+import { fetchCourseApi } from '@/helpers/api/courseApi';
 
 interface Attendance {
   percentage: string;
   attendance: string;
-  duration: string;
+  duration: number;
   lastLeave: string;
   firstJoin: string;
   teamsRole: string;
   email: string;
   userName: string;
-  userId: number;
-  id: number;
-  batchId: number;
+  userId: string;
+  id: string;
+  batchId: string;
   batchName: string;
-  moduleId: number;
+  moduleId: string;
   moduleName: string;
-  courseId: number;
+  courseId: string;
   courseName: string;
-  classId: number;
+  classId: string;
   classTitle: string;
   excelFile: string;
-  attendanceFileId: number;
+  attendanceFileId: string;
   teamsAttendanceFile: string;
 }
 
-// interface AttendanceFile {
-//   id: number;
-//   teamsAttendanceFile: string;
-// }
+interface AttendanceFile {
+  id: string;
+  teamsAttendanceFile: string;
+  attendanceDate: string;
+  classId: string;
+  classTitle: string;
+}
 
 type DataRow = { [key: string]: string | number };
+
 const getToken = () => localStorage.getItem("authToken");
 
 const Attendance: React.FC = () => {
@@ -58,26 +81,37 @@ const Attendance: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<Attendance[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fileDownloaded, setFileDownloaded] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [attendanceFile, setAttendanceFile] = useState<File | null>(null);
+  const [excelFile, setExcelFile] = useState<File | null>(null);
   const [users, setUsers] = useState<Attendance[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-  const [attendanceDataFile, setAttendanceDataFile] = useState<Attendance[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isNewAttendanceModalOpen, setIsNewAttendanceModalOpen] = useState(false);
+  const [attendanceDataFile, setAttendanceDataFile] = useState<AttendanceFile[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [batches, setBatches] = useState<Attendance[]>([]);
   const [modules, setModules] = useState<Attendance[]>([]);
   const [courses, setCourses] = useState<Attendance[]>([]);
   const [classes, setClasses] = useState<Attendance[]>([]);
+  const [newAttendanceFile, setNewAttendanceFile] = useState<AttendanceFile>({
+    id: "",
+    classId: "",
+    classTitle: "",
+    attendanceDate: "",
+    teamsAttendanceFile: "",
+  });
   const [newAttendance, setNewAttendance] = useState<Attendance>({
-    id: 0,
-    userId: 0,
+    id: "",
+    userId: "",
     userName: "",
-    batchId: 0,
+    batchId: "",
     batchName: "",
-    moduleId: 0,
+    moduleId: "",
     moduleName: "",
-    courseId: 0,
+    courseId: "",
     courseName: "",
-    classId: 0,
+    classId: "",
     classTitle: "",
     excelFile: "",
     email: "",
@@ -86,78 +120,185 @@ const Attendance: React.FC = () => {
     firstJoin: "",
     lastLeave: "",
     percentage: "",
-    attendanceFileId: 0,
+    attendanceFileId: "",
     teamsAttendanceFile: "",
-    duration: "",
-
+    duration: 0,
   });
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  // Filter states
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
 
-      try {
-        const responseFile = await fetchAttendanceFileApi();
-        const existingFile = responseFile; // Assuming the API returns the file info
-        if (existingFile && existingFile.teamsAttendanceFile) {
-          toast.error("Attendance file already exists in the database.");
-          return;
-        }
-      } catch (error) {
-        console.error("Error fetching attendance file:", error);
-        toast.error("Failed to check if the file exists.");
-        return;
+  // Filtered data
+  const filteredData = attendanceData.filter((row) => {
+    return (
+      (!selectedUserId || row.userId.toString() === selectedUserId) &&
+      (!selectedClassId || row.classId.toString() === selectedClassId) &&
+      (!selectedBatchId || row.batchId.toString() === selectedBatchId) &&
+      (!selectedCourseId || row.courseId.toString() === selectedCourseId) &&
+      (!selectedModuleId || row.moduleId.toString() === selectedModuleId)
+    );
+  });
+
+  
+  {/* pagination */ }
+  const recordsPerPage = 10;
+  const totalPages = Math.ceil(attendanceData.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const currentData = attendanceData.slice(startIndex, startIndex + recordsPerPage);
+
+  const handlePageChange = (newPage: SetStateAction<number>) => {
+    setCurrentPage(newPage);
+  };
+
+  const fetchAttendanceById = async (
+    userId?: string | null,
+    classId?: string | null,
+    batchId?: string | null,
+    courseId?: string | null,
+    moduleId?: string | null
+  ) => {
+    try {
+      // Build query params based on provided values
+      const queryParams = new URLSearchParams();
+      if (userId) queryParams.append("userId", userId);
+      if (classId) queryParams.append("classId", classId);
+      if (batchId) queryParams.append("batchId", batchId);
+      if (courseId) queryParams.append("courseId", courseId);
+      if (moduleId) queryParams.append("moduleId", moduleId);
+
+      // Call the API with dynamic query parameters
+      const response = await getAttendanceFilterByIdApi(
+        `?${queryParams.toString()}`
+      );
+
+      // Check if attendance data exists
+      if (response.data && response.data.attendanceRecords.length > 0) {
+        setAttendanceData(response.data.attendanceRecords);
+      } else {
+        toast.info("No attendance records found for the selected filters.");
+        setAttendanceData([]);
       }
+    } catch (error) {
+      console.error("Error fetching attendance by filters:", error);
+      toast.error("Failed to fetch attendance data.");
+    }
+  };
 
-      setIsFileUploaded(true);
-      console.log("File selected:", file.name);
+  // Handle filter change
+  const handleFilterChange = (
+    filterType: string,
+    value: string | null
+  ) => {
+    switch (filterType) {
+      case "userId":
+        setSelectedUserId(value);
+        break;
+      case "classId":
+        setSelectedClassId(value);
+        break;
+      case "batchId":
+        setSelectedBatchId(value);
+        break;
+      case "courseId":
+        setSelectedCourseId(value);
+        break;
+      case "moduleId":
+        setSelectedModuleId(value);
+        break;
+      default:
+        break;
+    }
+  };
 
-      const reader = new FileReader();
+  // Apply filters
+  const applyFilters = () => {
+    fetchAttendanceById(
+      selectedUserId,
+      selectedClassId,
+      selectedBatchId,
+      selectedCourseId,
+      selectedModuleId
+    );
+  };
 
-      reader.onloadend = async () => {
-        let base64File = reader.result as string;
+  // Reset filters
+  const resetFilters = () => {
+    setSelectedUserId(null);
+    setSelectedClassId(null);
+    setSelectedBatchId(null);
+    setSelectedCourseId(null);
+    setSelectedModuleId(null);
+    fetchAttendance();
+  };
 
-        // Ensure that the base64 string includes the MIME type (you can adapt it to the file type)
-        if (base64File.startsWith('data:')) {
-          base64File = base64File.split(',')[1]; // Just the raw base64 content
-        }
+  const handleAttendanceFileUpload = async () => {
+    // Ensure valid data before proceeding
+    if (!newAttendanceFile.classId || !newAttendanceFile.attendanceDate || !attendanceFile) {
+      toast.error("Please fill all fields and upload the file.");
+      return;
+    }
 
-        // Log and check the base64 string
-        console.log("Base64 Content:", base64File);
+    setIsUploading(true);
 
-        // Dynamically set the MIME type for CSV files
-        const mimeType = file.type; // Default to CSV if MIME type is missing
+    try {
+      // Create FormData object
+      const formData = new FormData();
+      formData.append("classId", newAttendanceFile.classId);
+      formData.append("attendanceDate", newAttendanceFile.attendanceDate);
+      formData.append("teamsAttendanceFile", attendanceFile);
 
-        // Creating a correctly formatted payload
-        const newAttendanceFile = {
-          teamsAttendanceFile: `data:${mimeType};base64,${base64File}`,
-        };
+      await createAttendanceFileApi(formData);
 
-        try {
-          const response = await createAttendanceFileApi(newAttendanceFile);
-          console.log("Attendance file uploaded successfully:", response);
-          toast.success("AttendanceFile uploaded successfully & Stored in DB");
-        } catch (error) {
-          console.error("Error uploading attendance file:", error);
-        }
-
-        // Parsing the file as CSV (assuming CSV file)
-        if (file.type === 'text/csv') {
-          Papa.parse(file, {
-            complete: (result) => {
-              console.log("CSV Parsing completed:", result);
+      if (attendanceFile.type === "text/csv") {
+        Papa.parse(attendanceFile, {
+          complete: (result) => {
+            console.log("CSV Parsing completed:", result);
+            if (result.data && Array.isArray(result.data)) {
               const data = result.data as DataRow[];
-              setCsvData(data);
               processCsvData(data);
-            },
-            header: true,
-          });
-        } else {
-          console.error("Unsupported file type for CSV parsing.");
-        }
+              setIsFileUploaded(true);
+              toast.success(`Parsed ${data.length} rows successfully.`);
+            } else {
+              toast.error("Failed to parse CSV data");
+            }
+          },
+          header: true,
+          error: (error) => {
+            console.error("Error parsing CSV:", error);
+            toast.error("Failed to parse CSV file");
+          }
+        });
+      } else {
+        toast.error("Please upload a CSV file");
       };
 
-      reader.readAsDataURL(file);
+      setShowSuccessModal(true);
+
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        setIsUploading(false);
+      }, 3000);
+
+      setNewAttendanceFile({
+        id: "",
+        classId: "",
+        classTitle: "",
+        attendanceDate: "",
+        teamsAttendanceFile: "",
+      });
+      setAttendanceFile(null);
+      setIsFileUploaded(true);
+      setIsUploadModalOpen(false);
+      toast.success("Attendance file uploaded to GCP successfully.");
+    } catch (error) {
+      console.error("Error uploading attendance file:", error);
+      toast.error("Failed to upload attendance file.");
+      setIsUploading(false);
+      setShowSuccessModal(false)
     }
   };
 
@@ -166,6 +307,7 @@ const Attendance: React.FC = () => {
 
     const extractedSummary: Record<string, string> = {};
 
+    // Extract summary information
     data.forEach((row) => {
       if (row["1. Summary"]?.toString().trim() === "Meeting title") {
         extractedSummary["Meeting title"] = row[""]?.toString().trim() || "";
@@ -229,7 +371,7 @@ const Attendance: React.FC = () => {
       data = data.slice(participantsRowIndex + 1); // Keep only rows AFTER "2. Participants"
     }
 
-    console.log("data", data);
+    console.log("Filtered data after participants section:", data);
 
     // Ensure the next row becomes the header
     let finalHeaders: string[] = [];
@@ -266,8 +408,6 @@ const Attendance: React.FC = () => {
       // Update headers in the state after processing
       setCsvHeaders(finalHeaders);
     }
-
-    console.log("haha", data);
 
     // Regex to find "3. In-Meeting Activities"
     const activitiesRegex = /^3\.\s*In-Meeting Activities/;
@@ -324,30 +464,124 @@ const Attendance: React.FC = () => {
     console.log("Final Grouped Data (With Attendance):", finalData);
 
     setProcessedData(finalData);
+    setIsFileUploaded(false);
+    setFileDownloaded(true);
   };
 
   // Function to export displayed data to Excel
+  // const handleDownloadExcel = () => {
+  //   if (processedData.length === 0) {
+  //     toast.error("No data available to export.");
+  //     return;
+  //   }
+
+  //   try {
+  //     // Create a new workbook and worksheet
+  //     const wb = XLSX.utils.book_new();
+  //     const ws = XLSX.utils.json_to_sheet(processedData);
+
+  //     // Append worksheet to workbook
+  //     XLSX.utils.book_append_sheet(wb, ws, "Processed Data");
+
+  //     // Create and download Excel file
+  //     XLSX.writeFile(wb, `Attendance_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+  //     toast.success("Excel file downloaded successfully");
+
+  //     setNewAttendanceFile({
+  //       id: "",
+  //       classId: "",
+  //       classTitle: "",
+  //       attendanceDate: "",
+  //       teamsAttendanceFile: "",
+  //     });
+  //     setAttendanceFile(null);
+  //     setIsFileUploaded(false);
+  //   } catch (error) {
+  //     console.error("Error downloading Excel:", error);
+  //     toast.error("Failed to download Excel file");
+  //   }
+  // };
+
+  // const handleDownloadExcel = () => {
+  //   if (processedData.length === 0) {
+  //     toast.error("No data available to export.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const wb = XLSX.utils.book_new();
+  //     const ws = XLSX.utils.json_to_sheet(processedData);
+
+  //     XLSX.utils.book_append_sheet(wb, ws, "Processed Data");
+  //     XLSX.writeFile(wb, `Attendance_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+  //     toast.success("Excel file downloaded successfully.");
+
+  //     // ✅ Clear State After Download
+  //     setNewAttendanceFile({
+  //       id: "",
+  //       classId: "",
+  //       classTitle: "",
+  //       attendanceDate: "",
+  //       teamsAttendanceFile: "",
+  //     });
+  //     setAttendanceFile(null);
+  //     setIsFileUploaded(false);
+  //   } catch (error) {
+  //     console.error("Error downloading Excel:", error);
+  //     toast.error("Failed to download Excel file.");
+  //   }
+  // };
+
   const handleDownloadExcel = () => {
     if (processedData.length === 0) {
-      alert("No data available to export.");
+      toast.error("No data available to export.");
+      console.log("download", processedData);
       return;
     }
 
-    // Create a new workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(processedData);
+    try {
+      // ✅ Convert CSV Data to Excel Sheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(processedData);
 
-    // Append worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Processed Data");
+      // Append Sheet to Workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Attendance Data");
 
-    // Create and download Excel file
-    XLSX.writeFile(wb, "Processed_Data.xlsx");
+      // Generate File Name with Date
+      XLSX.writeFile(wb, `Attendance_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
 
-    // Set fileDownloaded to true after the file is downloaded
-    setFileDownloaded(true);
+      // Show Success Toast
+      toast.success("Excel file downloaded successfully.");
+
+      //Clear State After Download (Only Reset Processed Data)
+      setProcessedData([]);
+      setCsvData([]);
+      setAttendanceFile(null);
+
+      // Reset Other States After Download
+      setNewAttendanceFile({
+        id: "",
+        classId: "",
+        classTitle: "",
+        attendanceDate: "",
+        teamsAttendanceFile: "",
+      });
+
+      // Optional: Keep Button Enabled Until a New File is Uploaded
+      toast.success("You can now upload a new attendance file.");
+    } catch (error) {
+      console.error("Error downloading Excel:", error);
+      toast.error("Failed to download Excel file.");
+    }
   };
+
+
   // Function to convert "MMm SSs" or "HHh MMm SSs" into total seconds
   const convertDurationToSeconds = (duration: string): number => {
+    if (!duration) return 0;
+
     const regex = /(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:(\d+)s)?/;
     const matches = duration.match(regex);
 
@@ -366,7 +600,8 @@ const Attendance: React.FC = () => {
     const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
 
-    return `${hours > 0 ? hours + "h " : ""}${minutes > 0 ? minutes + "m " : ""}${remainingSeconds}s`;
+    return `${hours > 0 ? hours + "h " : ""}${minutes > 0 || hours > 0 ? minutes + "m " : ""
+      }${remainingSeconds}s`;
   };
 
   const fetchAttendance = async () => {
@@ -375,106 +610,129 @@ const Attendance: React.FC = () => {
       toast.error("You must be logged in to view batches.");
       return;
     }
+
     try {
       const responseAttendance = await fetchAttendanceApi();
-      const attendance = responseAttendance.attendance.map((a: any) => {
-        const userName = a.user ? `${a.user.firstName} ${a.user.lastName}` : "Unknown";
-        const trainees = a.trainees
-          ? a.trainees.map((trainee: any) => `${trainee.firstName} ${trainee.lastName}`).join(", ")
-          : userName; // Fall back to `userName` if `trainees` is undefined or empty
+      console.log("responseAttendance", responseAttendance);
 
-        return {
-          id: a.id,
-          userId: a.userId || 0,
-          userName: trainees, // User name will be from trainees or fallback to user info
-          batchId: a.batchId || 0,
-          batchName: a.batch?.batchName || "N/A",
-          moduleId: a.moduleId || 0,
-          moduleName: a.module?.moduleName || "N/A",
-          courseId: a.courseId || 0,
-          courseName: a.course?.courseName || "N/A",
-          classId: a.classId || 0,
-          classTitle: a.class?.classTitle || 'N/A',
-          attendanceFileId: a.attendanceFileId || 0,
-          teamsAttendanceFile: a.teamsAttendanceFile || "",
-          email: a.email,
-          teamsRole: a.teamsRole,
-          firstJoin: a.firstJoin,
-          lastLeave: a.lastLeave,
-          duration: a.duration,
-          attendance: a.attendance,
-          percentage: a.percentage
-        };
-      });
-      console.log("finalizeddata", attendance);
+      // Format attendance data
+      const attendance = Array.isArray(responseAttendance?.attendance)
+        ? responseAttendance.attendance.map((a: any) => {
+          const userName = a.userName || "Unknown";
+          console.log("userName", userName);
 
+          return {
+            id: a.attendanceId || 0,
+            userId: a.userId || 0,
+            userName: userName,
+            batchId: a.batchId || 0,
+            batchName: a.batchName || "N/A",
+            moduleId: a.moduleId || 0,
+            moduleName: a.moduleName || "N/A",
+            courseId: a.courseId || 0,
+            courseName: a.courseName || "N/A",
+            classId: a.classId || 0,
+            classTitle: a.classTitle || "N/A",
+            attendanceFileId: a.attendanceFileId || 0,
+            teamsAttendanceFile: a.teamsAttendanceFile || "",
+            email: a.email || "N/A",
+            teamsRole: a.teamsRole || "N/A",
+            firstJoin: a.firstJoin?.value || a.firstJoin || "N/A",
+            lastLeave: a.lastLeave?.value || a.lastLeave || "N/A",
+            duration: a.duration || 0,
+            attendance: a.attendance ? "Present" : "Absent",
+            percentage: a.percentage || "N/A",
+          };
+        })
+        : [];
+
+      console.log("Finalized Attendance Data:", attendance);
+
+      // Fetch users data
       const responseUser = await fetchUsersApi();
-      const users = responseUser.Users
-        .filter((user: any) => ["trainee", "trainer"].includes(user.role.name.toLowerCase())) // Filter by role
+      const users = responseUser.users
+        .filter((user: any) =>
+          ["trainee", "trainer"].includes(user.roleName.toLowerCase())
+        )
         .map((trainee: any) => ({
           id: trainee.id,
-          userName: `${trainee.firstName} ${trainee.lastName}`.trim(), // Full Name
+          userName: `${trainee.firstName} ${trainee.lastName}`.trim(),
         }));
 
       setUsers(users);
       console.log("Filtered Users", users);
 
+      // Fetch batch data
       const batchResponse = await fetchBatchApi();
-      const batches = batchResponse.map((batch: { id: any; batchName: any; }) => ({
-        id: batch.id,
-        batchName: batch.batchName,
-      }));
+      console.log("batchResponse", batchResponse);
+      const batches = batchResponse.batch.map(
+        (batch: { id: string; batchName: any }) => ({
+          id: batch.id,
+          batchName: batch.batchName,
+        })
+      );
       setBatches(batches);
-      console.log("batchResponse", batchResponse)
+      console.log("batches", batches);
 
+      // Fetch class data
       const classResponse = await fetchClassForModuleApi();
-      console.log("classResponse", classResponse); // Debugging
-     
-      const classMap = Array.isArray(classResponse?.data?.classes)
-        ? classResponse.data.classes.map((c: { id: any; classTitle: any }) => ({
-            id: c.id,
-            classTitle: c.classTitle,
-          }))
+      console.log("classResponse", classResponse);
+
+      const classMap = Array.isArray(classResponse?.classes)
+        ? classResponse.classes.map(
+          (c: { classId: string; classTitle: string }) => ({
+            id: c.classId,
+            classTitle: c.classTitle
+          })
+        )
         : [];
-     
+
       setClasses(classMap);
+      console.log("classResponse", classMap);
 
+      // Fetch module data
       const moduleResponse = await fetchCourseModuleApi();
-      const modules = moduleResponse.map((module: { id: any; moduleName: any; }) => ({
-        id: module.id,
-        moduleName: module.moduleName,
-      }));
+      console.log("moduleResponssssse", moduleResponse)
+      const modules = moduleResponse.map(
+        (module: { moduleId: any; moduleName: any }) => ({
+          id: module.moduleId,
+          moduleName: module.moduleName,
+        })
+      );
       setModules(modules);
-      console.log("moduleRespos", moduleResponse)
+      console.log("moduleResponse", moduleResponse);
 
+      // Fetch course data
       const courseResponse = await fetchCourseApi();
+      console.log("courseressssss", courseResponse);
       const course = courseResponse.map((course: any) => ({
-        id: course.id,
+        id: course.courseId,
         courseName: course.courseName,
       }));
       setCourses(course);
-      console.log("course", courseResponse)
+      console.log("course", courseResponse);
 
+      // Fetch attendance file data
       const response = await fetchAttendanceFileApi();
       console.log("Fetched Attendance Data:", response);
 
       // Ensure unique entries
       const uniqueFiles = response.attendanceFile.filter(
-        (file: { id: any; }, index: any, self: any[]) => self.findIndex(t => t.id === file.id) === index
+        (file: { id: any }, index: any, self: any[]) =>
+          self.findIndex((t) => t.id === file.id) === index
       );
 
       setAttendanceDataFile(uniqueFiles);
-
-      setAttendanceData(attendance)
+      setAttendanceData(attendance);
     } catch (error) {
-      toast.error('Failed to fetch data')
-      console.log("getting error attendance", error)
+      toast.error("Failed to fetch data");
+      console.log("getting error attendance", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetchAttendance();
-  }, [])
+  }, []);
 
   const handleSubmitAttendance = async () => {
     const token = getToken();
@@ -483,12 +741,14 @@ const Attendance: React.FC = () => {
       return;
     }
 
+    // Check if batch, module, and course are selected
     if (!newAttendance.batchId || !newAttendance.moduleId || !newAttendance.courseId) {
       toast.error("Please select batch, module, and course.");
       return;
     }
 
-    if (!secondFileUploaded) {
+    // Check if Excel file is available
+    if (!excelFile) {
       toast.error("Please upload an attendance file.");
       return;
     }
@@ -496,188 +756,479 @@ const Attendance: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await createAttendanceApi({
-        batchId: newAttendance.batchId,
-        moduleId: newAttendance.moduleId,
-        courseId: newAttendance.courseId,
-        classId: newAttendance.classId,
-        excelFile: newAttendance.excelFile,
-        attendanceFileId: newAttendance.attendanceFileId,
-      });
+      const formData = new FormData();
+      formData.append("batchId", newAttendance.batchId);
+      formData.append("moduleId", newAttendance.moduleId);
+      formData.append("courseId", newAttendance.courseId);
+      formData.append("classId", newAttendance.classId);
+      formData.append("attendanceFileId", newAttendance.attendanceFileId);
+      formData.append("excelFile", excelFile);
+      await createAttendanceApi(formData);
 
       toast.success("Attendance Created Successfully");
-
+      fetchAttendance();
+      setIsNewAttendanceModalOpen(false);
+      setExcelFile(null);
     } catch (error) {
       console.error("Error creating attendance:", error);
-      toast.error('Failed to create attendance');
+      toast.error("Failed to create attendance: " + (error || "Unknown error"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAttendanceFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
-    setSelectedFile(file);
+    setAttendanceFile(file);
+    setSecondFileUploaded(false)
 
     if (file) {
-      setSecondFileUploaded(true); // Set this new state when the second file is uploaded
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        const base64String = reader.result as string;
-
-        // Logging the base64 string
-        console.log("Converted Base64 String:", base64String);
-
-        setNewAttendance((prev) => ({
-          ...prev,
-          excelFile: base64String,
-        }));
-      };
-
-      reader.readAsDataURL(file);
+      console.log("Selected Attendance File:", file.name);
     }
   };
 
-  const getFileName = (base64String: string, date: string | number | Date, batchName: string) => {
-    if (!base64String) return "Unknown File";
 
-    const mimeType = base64String.split(";")[0].split(":")[1]; // Extract MIME type
-    const extension = mimeType.split("/")[1]; // Get file extension (csv, xlsx)
-    const formattedDate = new Date(date).toLocaleDateString(); // Format date
+  const handleExcelFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
+    setExcelFile(file);
+    setSecondFileUploaded(true)
 
-    return `📊 ${batchName}_Attendance_${formattedDate}.${extension}`;
+    if (file) {
+      console.log("Selected Excel File:", file.name);
+    }
   };
 
-
   return (
-    <div className="h-[1200px] w-full flex flex-col p-8">
+    <div className="h-full w-full flex flex-col p-8">
       <div className="flex flex-col items-center w-full h-full">
-        {/* First CSV Uploader Section */}
-        <Card className="w-full max-w-5xl p-6 shadow-xl bg-white rounded-xl">
-          <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-            CSV Uploader (Append & Download Excel)
-          </h1>
+        <div className="w-full max-w-7xl flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Attendance Management</h1>
+          <div className="flex space-x-4">
+            <Button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="bg-[#6e2b8b] text-white py-2 px-4 rounded-lg shadow hover:bg-[#4b1e69] transition-all"
+            >
+              Upload Attendance File
+            </Button>
+            <Button
+              onClick={() => setIsNewAttendanceModalOpen(true)}
+              className="bg-[#6e2b8b] text-white py-2 px-4 rounded-lg shadow hover:bg-[#4b1e69] transition-all"
+            >
+              New Attendance
+            </Button>
+          </div>
+        </div>
 
-          <div className="flex flex-col items-center space-y-4">
-            <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" id="file-upload-1" />
-            <label htmlFor="file-upload-1" className="w-full">
-              <div className="w-full flex items-center justify-center h-32 border-2 border-dashed border-[#6e2b8b] rounded-lg cursor-pointer bg-[#eadcf1] hover:bg-[#d5afe3]">
-                <p className="text-gray-700 font-medium">
-                  Drag & Drop or Click to Upload CSV
-                </p>
-              </div>
-            </label>
+        <Card className="w-full mb-6 p-6 shadow-md bg-white rounded-xl">
+          <h2 className="text-xl font-semibold mb-4 text-gray-700">Filter Options</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            {/* Batch Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Batch</label>
+              <Select
+                options={batches.map((b) => ({
+                  value: b.id,
+                  label: b.batchName,
+                }))}
+                value={
+                  selectedBatchId
+                    ? {
+                      value: selectedBatchId,
+                      label: batches.find((b) => b.id === selectedBatchId)?.batchName,
+                    }
+                    : null
+                }
+                onChange={(selectedOption) => handleFilterChange("batchId", selectedOption ? selectedOption.value : null)}
+                className="w-full"
+                placeholder="Select Batch"
+                isClearable
+              />
+            </div>
+
+            {/* Class Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
+              <Select
+                options={classes.map((c) => ({
+                  value: c.id,
+                  label: c.classTitle,
+                }))}
+                value={
+                  selectedClassId
+                    ? {
+                      value: selectedClassId,
+                      label: classes.find((c) => c.id === selectedClassId)?.classTitle,
+                    }
+                    : null
+                }
+                onChange={(selectedOption) => handleFilterChange("classId", selectedOption ? selectedOption.value : null)}
+                className="w-full"
+                placeholder="Select Class"
+                isClearable
+              />
+            </div>
+
+            {/* Module Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Module</label>
+              <Select
+                options={modules.map((m) => ({
+                  value: m.id,
+                  label: m.moduleName,
+                }))}
+                value={
+                  selectedModuleId
+                    ? {
+                      value: selectedModuleId,
+                      label: modules.find((m) => m.id === selectedModuleId)?.moduleName,
+                    }
+                    : null
+                }
+                onChange={(selectedOption) => handleFilterChange("moduleId", selectedOption ? selectedOption.value : null)}
+                className="w-full"
+                placeholder="Select Module"
+                isClearable
+              />
+            </div>
+
+            {/* User Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">User</label>
+              <Select
+                options={users.map((u) => ({
+                  value: u.id,
+                  label: u.userName,
+                }))}
+                value={
+                  selectedUserId
+                    ? {
+                      value: selectedUserId,
+                      label: users.find((u) => u.id === selectedUserId)?.userName,
+                    }
+                    : null
+                }
+                onChange={(selectedOption) => handleFilterChange("userId", selectedOption ? selectedOption.value : null)}
+                className="w-full"
+                placeholder="Select User"
+                isClearable
+              />
+            </div>
           </div>
 
-          {/* Download Excel Button */}
-          <div className="mt-6 flex justify-center gap-4">
-            {!fileDownloaded && processedData.length > 0 && (
-              <button
-                onClick={handleDownloadExcel}
-                className="bg-[#6e2b8b] text-white py-2 px-4 rounded-lg shadow hover:bg-[#4b1e69] transition-all"
-              >
-                Download as Excel
-              </button>
-            )}
-            {fileDownloaded && (
-              <Button
-                onClick={() => setIsOpen(true)}
-                className="bg-[#6e2b8b] text-white py-2 px-4 rounded-lg shadow hover:bg-[#4b1e69] transition-all"
-              >
-                Upload Attendance
-              </Button>
-            )}
+          {/* Filter Buttons */}
+          <div className="flex justify-end space-x-3">
+            <Button
+              onClick={resetFilters}
+              className="bg-gray-200 text-gray-800 hover:bg-gray-300 transition-all"
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={applyFilters}
+              className="bg-[#6e2b8b] text-white hover:bg-[#4b1e69] transition-all"
+            >
+              Apply Filters
+            </Button>
           </div>
         </Card>
 
-        {/* Separated Form and Second Upload Section */}
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogContent className="max-w-5xl">
+        {/* Upload Attendance File Modal */}
+        <Dialog open={isUploadModalOpen} onOpenChange={setIsUploadModalOpen}>
+          <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle className="text-center text-2xl font-bold text-gray-800">
-                Upload Attendance
+                Upload Attendance File
+              </DialogTitle>
+            </DialogHeader>
+
+            {/* Teams Attendance File Upload Form */}
+            <Card className="w-full max-w-5xl p-6 shadow-xl bg-white rounded-xl mb-8">
+              {/* Class ID Dropdown */}
+              <div className="flex flex-col space-y-2 mb-4">
+                <label htmlFor="classId" className="text-gray-700 font-medium">
+                  Class <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  options={classes.map((c) => ({
+                    value: c.id,
+                    label: c.classTitle
+                  }))}
+                  value={
+                    newAttendanceFile.classId
+                      ? {
+                        value: newAttendanceFile.classId,
+                        label:
+                          classes.find((c) => c.id === newAttendanceFile.classId)
+                            ?.classTitle || "Unknown Class"
+                      }
+                      : null
+                  }
+                  onChange={(selectedOption) =>
+                    setNewAttendanceFile({
+                      ...newAttendanceFile,
+                      classId: selectedOption ? selectedOption.value : ""
+                    })
+                  }
+                  className="w-full rounded font-metropolis text-gray-700"
+                  placeholder="Select Class"
+                  isSearchable
+                />
+              </div>
+
+              {/* Attendance Date Input */}
+              <div className="flex flex-col space-y-2 mb-4">
+                <label htmlFor="attendanceDate" className="text-gray-700 font-medium">
+                  Attendance Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  id="attendanceDate"
+                  value={newAttendanceFile.attendanceDate}
+                  onChange={(e) =>
+                    setNewAttendanceFile((prev) => ({
+                      ...prev,
+                      attendanceDate: e.target.value
+                    }))
+                  }
+                  className="border rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#6e2b8b]"
+                />
+              </div>
+
+              {/* File Upload */}
+              <div className="mb-4">
+                <input
+                  type="file"
+                  accept=".csv, .xlsx"
+                  onChange={handleAttendanceFileChange}
+                  className="hidden"
+                  id="file-upload-1"
+                />
+                <label htmlFor="file-upload-1" className="w-full">
+                  <div className="w-full flex items-center justify-center h-32 border-2 border-dashed border-[#6e2b8b] rounded-lg cursor-pointer bg-[#eadcf1] hover:bg-[#d5afe3]">
+                    {attendanceFile ? (
+                      <p className="text-gray-700 font-medium">
+                        ✅ File Selected: {attendanceFile.name}
+                      </p>
+                    ) : (
+                      <p className="text-gray-700 font-medium">
+                        Drag & Drop or Click to Upload Teams Attendance CSV
+                      </p>
+                    )}
+                  </div>
+                </label>
+
+                {attendanceFile && (
+                  <div className="mt-2 text-sm text-gray-600 flex justify-start">
+                    <strong>📁 Selected File:</strong>&nbsp;
+                    <span className="text-[#6e2b8b] font-semibold">
+                      {attendanceFile.name}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Button */}
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={handleAttendanceFileUpload}
+                  disabled={
+                    !newAttendanceFile.classId ||
+                    !newAttendanceFile.attendanceDate ||
+                    !attendanceFile
+                  }
+                  className={`px-6 py-2 text-white rounded-lg font-medium transition-all 
+              ${newAttendanceFile.classId &&
+                      newAttendanceFile.attendanceDate &&
+                      attendanceFile
+                      ? "bg-[#6e2b8b] hover:bg-[#53206e]"
+                      : "bg-gray-300 cursor-not-allowed"
+                    }`}
+                >
+                  Upload File
+                </button>
+              </div>
+
+              {/* Enable Download Button Only When File is Uploaded */}
+              {fileDownloaded && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={handleDownloadExcel}
+                    className="bg-[#6e2b8b] text-white py-2 px-4 rounded-lg shadow hover:bg-[#4b1e69] transition-all"
+                  >
+                    📥 Download Processed Excel
+                  </button>
+                </div>
+              )}
+            </Card>
+
+            {/* Loading Modal (While Uploading) */}
+            {isUploading && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+                  <svg
+                    className="animate-spin h-12 w-12 text-[#6e2b8b]"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    ></path>
+                  </svg>
+                  <p className="mt-4 text-gray-700 font-medium">Uploading file... Please wait</p>
+                </div>
+              </div>
+            )}
+
+            {/* Success Modal (After File Uploaded) */}
+            {showSuccessModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+                  <svg
+                    className="text-green-500 h-16 w-16"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <h2 className="text-2xl font-bold text-gray-800 mt-4">File Uploaded Successfully!</h2>
+                  <p className="text-gray-500 text-sm mt-2">
+                    Your attendance file has been uploaded successfully.
+                  </p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* New Attendance Modal */}
+        <Dialog open={isNewAttendanceModalOpen} onOpenChange={setIsNewAttendanceModalOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-center text-2xl font-bold text-gray-800">
+                New Attendance
               </DialogTitle>
             </DialogHeader>
 
             {/* Attendance Upload Form */}
             <Card className="w-full max-w-5xl p-6 shadow-xl bg-white rounded-xl">
-              {/* Batch Selection */}
+              {/* Batch and Course Selection */}
               <div className="flex gap-4 mb-2">
-              <div className="mb-4">
-                <label className="block font-metropolis font-medium">Batches</label>
-                <Select
-                  options={batches.map((b) => ({ value: b.id, label: b.batchName }))}
-                  value={newAttendance.batchId ? { value: newAttendance.batchId, label: batches.find((b) => b.id === newAttendance.batchId)?.batchName } : null}
-                  onChange={(selectedOption) => setNewAttendance({ ...newAttendance, batchId: selectedOption ? selectedOption.value : 0 })}
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
-                  placeholder="Select Batch"
-                  isSearchable
-                />
-              </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block font-medium mb-1">Batches <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    options={batches.map((b) => ({
+                      value: b.id,
+                      label: b.batchName,
+                    }))}
+                    value={
+                      newAttendance.batchId
+                        ? {
+                          value: newAttendance.batchId,
+                          label: batches.find((b) => b.id === newAttendance.batchId)
+                            ?.batchName,
+                        }
+                        : null
+                    }
+                    onChange={(selectedOption) => {
+                      setNewAttendance({
+                        ...newAttendance,
+                        batchId: selectedOption ? selectedOption.value : "",
+                      });
+                    }}
+                    className="w-full"
+                    placeholder="Select Batch"
+                    isSearchable
+                  />
+                </div>
 
-              {/* Course Selection */}
-              <div className="mb-4">
-                <label className="block font-metropolis font-medium">Courses</label>
-                <Select
-                  options={courses.map((c) => ({ value: c.id, label: c.courseName }))}
-                  value={newAttendance.courseId ? { value: newAttendance.courseId, label: courses.find((c) => c.id === newAttendance.courseId)?.courseName } : null}
-                  onChange={(selectedOption) => setNewAttendance({ ...newAttendance, courseId: selectedOption ? selectedOption.value : 0 })}
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
-                  placeholder="Select Course"
-                  isSearchable
-                />
-              </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block font-medium mb-1">Courses <span className="text-red-500">*</span>
+                  </label>
+                  <Select
+                    options={courses.map((c) => ({
+                      value: c.id,
+                      label: c.courseName,
+                    }))}
+                    value={
+                      newAttendance.courseId
+                        ? { value: newAttendance.courseId, label: courses.find((c) => c.id === newAttendance.courseId)?.courseName } : null}
+                    onChange={(selectedOption) => setNewAttendance({ ...newAttendance, courseId: selectedOption ? selectedOption.value : "" })}
+                    className="w-full rounded font-metropolis text-gray-700"
+                    placeholder="Select Course"
+                    isSearchable
+                  />
+                </div>
               </div>
               {/* Module Selection */}
               <div className="flex gap-4 mb-2">
-              <div className="mb-4">
-                <label className="block font-metropolis font-medium">Modules</label>
-                <Select
-                  options={modules.map((m) => ({ value: m.id, label: m.moduleName }))}
-                  value={newAttendance.moduleId ? { value: newAttendance.moduleId, label: modules.find((c) => c.id === newAttendance.moduleId)?.moduleName } : null}
-                  onChange={(selectedOption) => setNewAttendance({ ...newAttendance, moduleId: selectedOption ? selectedOption.value : 0 })}
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
-                  placeholder="Select Module"
-                  isSearchable
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block font-metropolis font-medium">Class</label>
-                <Select
-                  options={modules.map((m) => ({ value: m.id, label: m.moduleName }))}
-                  value={newAttendance.moduleId ? { value: newAttendance.moduleId, label: modules.find((c) => c.id === newAttendance.moduleId)?.moduleName } : null}
-                  onChange={(selectedOption) => setNewAttendance({ ...newAttendance, moduleId: selectedOption ? selectedOption.value : 0 })}
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
-                  placeholder="Select Module"
-                  isSearchable
-                />
-              </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block font-metropolis font-medium">Modules <span className="text-red-500">*</span></label>
+                  <Select
+                    options={modules.map((m) => ({ value: m.id, label: m.moduleName }))}
+                    value={newAttendance.moduleId ? { value: newAttendance.moduleId, label: modules.find((c) => c.id === newAttendance.moduleId)?.moduleName } : null}
+                    onChange={(selectedOption) => setNewAttendance({ ...newAttendance, moduleId: selectedOption ? selectedOption.value : "" })}
+                    className="w-full rounded font-metropolis text-gray-700"
+                    placeholder="Select Module"
+                    isSearchable
+                  />
+                </div>
+                <div className="mb-4 w-1/2">
+                  <label className="block font-metropolis font-medium">Class <span className="text-red-500">*</span></label>
+                  <Select
+                    options={classes.map((m) => ({ value: m.id, label: m.classTitle }))}
+                    value={newAttendance.classId ? { value: newAttendance.classId, label: classes.find((c) => c.id === newAttendance.classId)?.classTitle } : null}
+                    onChange={(selectedOption) => setNewAttendance({ ...newAttendance, classId: selectedOption ? selectedOption.value : "" })}
+                    className="w-full rounded font-metropolis text-gray-700"
+                    placeholder="Select Class"
+                    isSearchable
+                  />
+                </div>
               </div>
               {/* Attendance File Dropdown */}
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Attendance File</label>
+                <label className="block font-metropolis font-medium">
+                  Attendance File <span className="text-red-500">*</span>
+                </label>
                 <Select
                   options={attendanceDataFile.map((file) => ({
                     value: file.id,
-                    label: getFileName(file.teamsAttendanceFile, file.attendanceFileId, file.batchName),
+                    label: ` ${file.classTitle}`,
                   }))}
                   value={
                     newAttendance.attendanceFileId
                       ? {
                         value: newAttendance.attendanceFileId,
-                        label: getFileName(
-                          attendanceDataFile.find((f) => f.id === newAttendance.attendanceFileId)?.teamsAttendanceFile || "",
-                          newAttendance.attendanceFileId,
-                          attendanceDataFile.find((f) => f.id === newAttendance.attendanceFileId)?.batchName || "Unknown Batch"
-                        ),
+                        label: ` ${attendanceDataFile.find((f) => f.id === newAttendance.attendanceFileId)?.classTitle || "No Class Title"
+                          }`,
                       }
                       : null
                   }
                   onChange={(selectedOption) =>
-                    setNewAttendance({ ...newAttendance, attendanceFileId: selectedOption ? selectedOption.value : 0 })
+                    setNewAttendance({
+                      ...newAttendance,
+                      attendanceFileId: selectedOption ? selectedOption.value : "",
+                    })
                   }
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
+                  className="w-full rounded font-metropolis text-gray-700"
                   placeholder="Select Attendance File"
                   isSearchable
                 />
@@ -685,71 +1236,140 @@ const Attendance: React.FC = () => {
 
               {/* File Upload Input */}
               <div className="mb-4">
-                <input type="file" accept=".csv, .xlsx" onChange={handleFileChange} className="hidden" id="file-upload-2" />
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  accept=".csv, .xlsx"
+                  onChange={handleExcelFileChange}
+                  className="hidden"
+                  id="file-upload-2"
+                />
+
+                {/* File Upload Label */}
                 <label htmlFor="file-upload-2" className="cursor-pointer">
                   <div className="w-full flex items-center justify-center h-32 border-2 border-dashed border-[#6e2b8b] rounded-lg bg-[#eadcf1] hover:bg-[#d5afe3]">
                     <p className="text-gray-700 font-medium">
-                      Click to Upload Attendance File (CSV or Excel)
+                      {excelFile ? (
+                        <>
+                          ✅ Uploaded File: <span className="text-[#6e2b8b] font-semibold">
+                            {excelFile.name}
+                          </span>
+                        </>
+                      ) : (
+                        "Upload Attendance File (CSV or Excel)"
+                      )}
                     </p>
                   </div>
                 </label>
+
+                {/* File Name Display (Optional - Below Upload Box) */}
+                {excelFile && (
+                  <div className="mt-2 text-sm text-gray-600">
+                    <strong>📁 Selected File:</strong> {excelFile.name}
+                  </div>
+                )}
               </div>
 
               {/* Submit Button */}
-              {secondFileUploaded && (
-                <div className="mt-6 flex justify-center">
-                  <button
-                    onClick={handleSubmitAttendance}
-                    disabled={isSubmitting}
-                    className={`bg-[#6e2b8b] text-white py-2 px-6 rounded-lg shadow 
-                ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#4b1e69]'} 
-                transition-all`}
-                  >
-                    {isSubmitting ? 'Submitting...' : 'Submit Attendance'}
-                  </button>
-                </div>
-              )}
+              <div className="mt-6 flex justify-center">
+                <button
+                  onClick={handleSubmitAttendance}
+                  disabled={isSubmitting || !excelFile}
+                  className={`bg-[#6e2b8b] text-white py-2 px-6 rounded-lg shadow 
+              ${(isSubmitting || !excelFile) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#4b1e69]'} 
+              transition-all`}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Attendance'}
+                </button>
+              </div>
             </Card>
           </DialogContent>
         </Dialog>
 
-        <div className="overflow-x-auto mt-4 p-2 border-2 border-gray-300 rounded-lg shadow-md bg-gray-50">
-          <Table className="text-sm">
+        <div className="overflow-x-auto mt-4 p-2 border-2 border-gray-300 rounded-lg shadow-md bg-gray-50 max-w-8xl mx-auto font-poppins">
+          <Table className="text-xs w-full">
             <TableCaption>Attendance Data</TableCaption>
+
             <TableHeader className="bg-[#6e2b8b] text-white">
               <TableRow>
-                <TableHead className="py-2 px-3 text-white">User</TableHead>
-                <TableHead className="py-2 px-3 text-white">Batch</TableHead>
-                <TableHead className="py-2 px-3 text-white">Module</TableHead>
-                <TableHead className="py-2 px-3 text-white">Course</TableHead>
-                <TableHead className="py-2 px-3 text-white">Email</TableHead>
-                <TableHead className="py-2 px-3 text-white">Role</TableHead>
-                <TableHead className="py-2 px-3 text-white">First Join</TableHead>
-                <TableHead className="py-2 px-3 text-white">Last Leave</TableHead>
-                <TableHead className="py-2 px-3 text-white">Duration</TableHead>
-                <TableHead className="py-2 px-3 text-white">Attendance</TableHead>
-                <TableHead className="py-2 px-3 text-white">Participation Rate</TableHead>
+                <TableHead className="py-1 px-2 w-36 text-white">User</TableHead>
+                <TableHead className="py-1 px-2 text-white">Batch Name</TableHead>
+                <TableHead className="py-1 px-2 text-white">Class Title</TableHead>
+                <TableHead className="py-1 px-2 text-white">Course Name</TableHead>
+                <TableHead className="py-1 px-2 text-white">Module Name</TableHead>
+                <TableHead className="py-1 px-2 text-white">Email</TableHead>
+                <TableHead className="py-1 px-2 text-white">Teams Role</TableHead>
+                <TableHead className="py-1 px-2 text-white">First Join</TableHead>
+                <TableHead className="py-1 px-2 text-white">Last Leave</TableHead>
+                <TableHead className="py-1 px-2 text-white">Duration</TableHead>
+                <TableHead className="py-1 px-2 text-white">Attendance</TableHead>
+                <TableHead className="py-1 px-2 text-white">Participation Rate</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {attendanceData.map((row, index) => (
-                <TableRow key={index} className="border-b">
-                  <TableCell className="py-1 px-3">{row.userName || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.batchName || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.moduleName || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.courseName || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.email || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.teamsRole || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.firstJoin || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.lastLeave || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.duration || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.attendance || "N/A"}</TableCell>
-                  <TableCell className="py-1 px-3">{row.percentage || "N/A"}</TableCell>
+              {filteredData.map((row, index) => (
+                <TableRow key={index} className="border-b hover:bg-gray-100 transition-all">
+                  <TableCell className="py-1 px-2">{row.userName || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.batchName || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.classTitle || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.courseName || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.moduleName || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.email || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.teamsRole || "N/A"}</TableCell>
+
+                  {/* Formatted First Join Date */}
+                  <TableCell className="py-1 px-2">
+                    {row.firstJoin
+                      ? format(new Date(row.firstJoin), "dd MMM yyyy, hh:mm a")
+                      : "N/A"}
+                  </TableCell>
+
+                  {/*Formatted Last Leave Date */}
+                  <TableCell className="py-1 px-2">
+                    {row.lastLeave
+                      ? format(new Date(row.lastLeave), "dd MMM yyyy, hh:mm a")
+                      : "N/A"}
+                  </TableCell>
+
+                  {/*Duration Converted to Minutes & Seconds */}
+                  <TableCell className="py-1 px-2">
+                    {row.duration
+                      ? `${Math.floor(row.duration / 60)} minutes ${row.duration % 60} seconds`
+                      : "N/A"}
+                  </TableCell>
+
+                  <TableCell className="py-1 px-2">{row.attendance || "N/A"}</TableCell>
+                  <TableCell className="py-1 px-2">{row.percentage || "N/A"}%</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+
+        {/* Pagination Controls */}
+      <div className="flex justify-center items-center mt-4">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 border-t border-b text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Next
+        </button>
+      </div>
+
       </div>
     </div>
   );

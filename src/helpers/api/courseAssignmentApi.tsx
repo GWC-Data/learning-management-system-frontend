@@ -5,8 +5,11 @@ export const createCourseAssignmentApi = async (newCourseAssignment: any) => {
   try {
     const response = await apiClient.post(
       "/courseAssignment",
-      newCourseAssignment
-    );
+      newCourseAssignment, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating course", error);
@@ -27,12 +30,13 @@ export const fetchCourseAssignmentApi = async () => {
 };
 
 // Read all courseAssignment by batchId
-export const fetchCourseAssignmentbybatchIdApi = async (batchId: number) => {
+export const fetchCourseAssignmentbybatchIdApi = async (batchId: string) => {
   try {
     console.log("BatchId", batchId);
     const response = await apiClient.get(`/courseAssignmentRecords/${batchId}`);
-    console.log("fetchcourseassignmentApi", response.data.records);
-    return response.data.records || [];
+    console.log("fetchcourseassignmentApi", response.data.courseAssignments);
+    return response.data.courseAssignments
+     || [];
   } catch (error) {
     console.error("Failed to fetch courses", error);
     throw error;
@@ -41,14 +45,17 @@ export const fetchCourseAssignmentbybatchIdApi = async (batchId: number) => {
 
 // Update an existing course
 export const updateCourseAssignmentApi = async (
-  id: number,
+  id: string,
   updateAssignment: any
 ) => {
   try {
     const response = await apiClient.put(
       `/courseAssignment/${id}`,
-      updateAssignment
-    );
+      updateAssignment, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     console.log("updateCourseAssignmentApi", response.data);
     return response.data;
   } catch (error) {
@@ -58,7 +65,7 @@ export const updateCourseAssignmentApi = async (
 };
 
 // Delete a course
-export const deleteCourseAssignmentApi = async (id: number) => {
+export const deleteCourseAssignmentApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/courseAssignment/${id}`);
     console.log("deleteCourseAssignment", response.data);

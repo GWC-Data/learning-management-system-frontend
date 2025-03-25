@@ -68,7 +68,7 @@ const DashboardHeader: React.FC = () => {
     <div className="grid grid-cols-1 mt-4 poppins-regular">
       <div className="bg-gray-700 p-6 text-white w-[1320px] h-[340px] rounded-lg ml-4 grid grid-cols-2 md:grid-cols-1">
         <div>
-          <h1 className="text-4xl font-bold mb-5">Welcome back, Mr. {name}</h1>
+          <h1 className="text-4xl font-bold mb-5">Welcome back, {name}</h1>
           <p className="mb-4 text-xl">
             Track, manage, and forecast your platform performance
           </p>

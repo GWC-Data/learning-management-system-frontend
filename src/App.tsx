@@ -19,6 +19,9 @@ const App: React.FC = () => {
     const authenticateWithToken = async () => {
       const token = localStorage.getItem("authToken");
       const userId = localStorage.getItem("userId");
+      console.log('authToken',token);
+      console.log('userId',userId);
+      
 
       if (token && userId) {
         try {
@@ -30,8 +33,8 @@ const App: React.FC = () => {
             setIsAuthenticated(true);
             setUserRole(user.role);
             setUserName(fullName);
-            localStorage.setItem("isAuthenticated", "true");
-            localStorage.setItem("userName", fullName);
+         
+          
           }
         } catch (error) {
           console.error("Token validation failed:", error);
@@ -45,9 +48,7 @@ const App: React.FC = () => {
     authenticateWithToken();
   }, []);
 
-  if (loading) {
-    return <div className="text-center mt-20">Loading...</div>;
-  }
+ 
 
   return (
     <>

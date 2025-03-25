@@ -1,14 +1,14 @@
 import apiClient from "../rootApi/apiClient";
 
 // Create a new assignment completion
-export const createAssignmentCompletionsApi = async (formData: FormData) => {
+export const createAssignmentCompletionsApi = async (
+  newAssignmentCompletion: any
+) => {
   try {
-    const response = await apiClient.post("/assignment-completion", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // Axios will handle this correctly
-      },
-    });
-
+    const response = await apiClient.post(
+      "/assignment-completion",
+      newAssignmentCompletion
+    );
     console.log("createAssignmentCompletionsApi", response.data);
     return response.data;
   } catch (error) {
@@ -16,7 +16,6 @@ export const createAssignmentCompletionsApi = async (formData: FormData) => {
     throw error;
   }
 };
-
 
 // Read all assignment completions
 export const fetchAssignmentCompletionsApi = async () => {
@@ -31,7 +30,7 @@ export const fetchAssignmentCompletionsApi = async () => {
 };
 
 // Read assignment completion by ID
-export const fetchAssignmentCompletionsByIdApi = async (id: number) => {
+export const fetchAssignmentCompletionsByIdApi = async (id: string) => {
   try {
     console.log("AssignmentCompletionId", id);
     const response = await apiClient.get(`/assignment-completion/${id}`);
@@ -45,7 +44,7 @@ export const fetchAssignmentCompletionsByIdApi = async (id: number) => {
 
 // Update an existing assignment completion
 export const updateAssignmentCompletionsApi = async (
-  id: number,
+  id: string,
   updatedAssignmentCompletion: any
 ) => {
   try {
@@ -62,7 +61,7 @@ export const updateAssignmentCompletionsApi = async (
 };
 
 // Delete an assignment completion
-export const deleteAssignmentCompletionsApi = async (id: number) => {
+export const deleteAssignmentCompletionsApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/assignment-completion/${id}`);
     console.log("deleteAssignmentCompletionApi", response.data);
@@ -72,3 +71,4 @@ export const deleteAssignmentCompletionsApi = async (id: number) => {
     throw error;
   }
 };
+

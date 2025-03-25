@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef } from "ag-grid-community";
 import { toast } from "react-toastify";
-import { Edit, Eye, Trash } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
+import remove from '../../../assets/delete.png';
 import { Button } from "../../ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -17,7 +19,7 @@ import {
 import { fetchRolesApi } from "@/helpers/api/roleApi";
 
 interface User {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -30,12 +32,12 @@ interface User {
   dateOfJoining?: string;
   accountStatus: "active" | "suspended" | "inactive";
   lastLogin?: string;
-  roleId: number;
+  roleId: string;
   roleName: string;
 }
 
 interface Role {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -46,12 +48,22 @@ const UserManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<User | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   const getToken = () => localStorage.getItem("authToken");
 
-  // Fetch users and roles, filtering by the roleName in the URL
+  {/* pagination */ }
+  const recordsPerPage = 10;
+  const totalPages = Math.ceil(userData.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const currentData = userData.slice(startIndex, startIndex + recordsPerPage);
+
+  const handlePageChange = (newPage: SetStateAction<number>) => {
+    setCurrentPage(newPage);
+  };
+
   const fetchUsersAndRoles = async (roleName: string) => {
     const token = getToken();
     if (!token) {
@@ -61,51 +73,60 @@ const UserManagement: React.FC = () => {
 
     try {
       const response = await fetchUsersApi();
-      const responseUsers = response.Users; // Access the `Users` property
-      console.log("userResp", responseUsers);
+      const responseUsers = response?.users ?? []; // Ensure array structure
+      console.log("All Users:", responseUsers); // Debugging log
 
-      if (response && Array.isArray(responseUsers)) {
-        const filteredUsers = responseUsers.filter(
-          (user: { role: any; roleName: string }) =>
-            user.role.name.toLowerCase() === roleName.toLowerCase() // Filter by dynamic roleName
-        );
-        setUserData(filteredUsers);
-        console.log("fileterdUsers", filteredUsers);
-      } else {
-        console.error("Unexpected data format:", response);
-        toast.error("Unexpected response format from the server.");
-      }
+      // Filter users by roleName
+      const filteredUsers =
+        roleName && roleName.trim() !== ""
+          ? responseUsers.filter(
+            (user: { roleName?: string }) =>
+              user.roleName?.toLowerCase() === roleName.toLowerCase()
+          )
+          : responseUsers;
 
+      console.log("Filtered Users for Role:", filteredUsers); // Debugging log
+      setUserData(filteredUsers);
+
+      // Fetch roles
       const roleResponse = await fetchRolesApi();
-      console.log("roleResponse", roleResponse);
-      setRoles(roleResponse); // Set available roles
+      console.log("Roles:", roleResponse); // Debugging log
+
+      if (roleResponse?.role && Array.isArray(roleResponse.role)) {
+        setRoles(roleResponse.role);
+      } else {
+        console.error("Unexpected roles data format:", roleResponse);
+        toast.error("Unexpected roles response format.");
+      }
     } catch (error: any) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch users or roles.");
     }
   };
 
+  // Fetch users when roleName changes
   useEffect(() => {
     setSelectedUser(null);
     setFormData(null);
     setIsModalOpen(false);
 
-    if (roleName) {
-      fetchUsersAndRoles(roleName); // Fetch filtered users for the role
-    }
+    fetchUsersAndRoles(roleName || ""); // Fetch all users if roleName is not provided
   }, [roleName]);
+
 
   // Column Definitions for AgGridReact
   const colDefs: ColDef[] = [
     { headerName: "First Name", field: "firstName" },
     { headerName: "Last Name", field: "lastName" },
-    { headerName: "Email", field: "email" },
-    { headerName: "Role", field: "role.name" },
+    { headerName: "Email", field: "email", width: 260 },
+    { headerName: "Role", field: "roleName" },
     {
       headerName: "Date of Birth",
       field: "dateOfBirth",
       valueFormatter: (params) =>
-        params.value ? format(new Date(params.value), "yyyy-MM-dd") : "",
+        params.value?.value
+          ? format(new Date(params.value?.value), "dd-MM-yyyy") // Format as DD-MM-YYYY
+          : "",
     },
     { headerName: "Phone Number", field: "phoneNumber" },
     { headerName: "Address", field: "address" },
@@ -114,10 +135,12 @@ const UserManagement: React.FC = () => {
       headerName: "Date of Joining",
       field: "dateOfJoining",
       valueFormatter: (params) =>
-        params.value ? format(new Date(params.value), "yyyy-MM-dd") : "",
+        params.value?.value
+          ? format(new Date(params.value.value), "dd-MM-yyyy") // Format as DD-MM-YYYY
+          : "",
     },
     { headerName: "Account Status", field: "accountStatus" },
-    { headerName: "Last Login", field: "lastLogin" },
+    // { headerName: "Last Login", field: "lastLogin" },
     {
       headerName: "Actions",
       editable: false,
@@ -126,22 +149,39 @@ const UserManagement: React.FC = () => {
         const { data } = params;
         return (
           <div className="flex space-x-2">
-            <Button
+            {/* <Button
               className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white">
               <Eye className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => handleEditClick(data)}
-              className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => confirmDeleteUser(data)}
-              className="bg-white text-red-600 p-2 rounded hover:bg-white"
-            >
-              <Trash className="h-5 w-5" />
-            </Button>
+            </Button> */}
+            <TooltipProvider>
+              <div className="flex space-x-2">
+                {/* Edit User Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => handleEditClick(data)}
+                      className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                    >
+                      <Edit className="h-6 w-6" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit User</TooltipContent>
+                </Tooltip>
+
+                {/* Delete User Button */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => confirmDeleteUser(data)}
+                      className="bg-white text-red-600 p-2 rounded hover:bg-white"
+                    >
+                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Delete User</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         );
       },
@@ -152,7 +192,6 @@ const UserManagement: React.FC = () => {
     setSelectedUser(user);
     setFormData({
       ...user,
-      dateOfBirth: user.dateOfBirth ? format(new Date(user.dateOfBirth), 'yyyy-MM-dd') : '',
     });
     setIsModalOpen(true); // Open the modal
   };
@@ -163,14 +202,14 @@ const UserManagement: React.FC = () => {
     setFormData((prev) => prev ? { ...prev, [name]: value } : null);
   };
 
-  // Edit user
   const editUser = (userToEdit: User) => {
     if (!formData) {
       toast.error("Form data is missing!");
       return;
     }
 
-    console.log('formdata', formData);
+    console.log('Form Data:', formData);
+
     // Prepare updated user data with the formData
     const updatedUser = {
       ...userToEdit,
@@ -182,9 +221,7 @@ const UserManagement: React.FC = () => {
       address: formData?.address,
       qualification: formData?.qualification,
       accountStatus: formData?.accountStatus,
-      dateOfJoining: formData?.dateOfJoining
-        ? format(new Date(formData?.dateOfJoining), "yyyy-MM-dd")
-        : userToEdit.dateOfJoining,
+      dateOfJoining: formData?.dateOfJoining,
     };
 
     const token = getToken();
@@ -193,10 +230,11 @@ const UserManagement: React.FC = () => {
       return;
     }
 
-    console.log("Updating user with data:", updatedUser);
+    console.log("Updating user with ID:", userToEdit.id);
+    console.log("Request Payload:", updatedUser);
 
     axios
-      .put(`/users/${userToEdit.id}`, updatedUser, {
+      .put(`/userForAdmin/${userToEdit.id}`, updatedUser, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -214,7 +252,11 @@ const UserManagement: React.FC = () => {
       })
       .catch((error) => {
         console.error("Error updating user:", error);
-        toast.error(error.response?.data?.message || "Failed to update user.");
+        if (error.response?.status === 404) {
+          toast.error("User not found or endpoint does not exist.");
+        } else {
+          toast.error(error.response?.data?.message || "Failed to update user.");
+        }
       });
   };
 
@@ -400,11 +442,11 @@ const UserManagement: React.FC = () => {
               <div className="flex justify-end space-x-2">
                 <Button
                   type="submit"
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
                   transition-all duration-500 ease-in-out 
                   rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
-                  Save Changes
+                  Update User
                 </Button>
                 <Button
                   type="button"
@@ -435,19 +477,19 @@ const UserManagement: React.FC = () => {
             ?
             <div className="flex justify-end space-x-2 mt-4">
               <Button
+                onClick={handleDeleteUser}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
+              <Button
                 onClick={handleCancelDelete}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
-              </Button>
-              <Button
-                onClick={handleDeleteUser}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
               </Button>
             </div>
           </div>
@@ -456,7 +498,7 @@ const UserManagement: React.FC = () => {
 
       {/* Ag-Grid Table */}
       <div
-        className="ag-theme-quartz text-left"
+        className="ag-theme-quartz text-left font-poppins "
         style={{ height: "calc(100vh - 180px)", width: "100%" }}
       >
         <AgGridReact
@@ -474,6 +516,29 @@ const UserManagement: React.FC = () => {
           }}
           animateRows
         />
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center mt-4">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 border-t border-b text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Next
+        </button>
       </div>
     </div>
   );

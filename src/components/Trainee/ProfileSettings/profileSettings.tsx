@@ -6,6 +6,7 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import CameraIcon from "../../../icons/photo-camera.png";
+import LoadingSpinner from "@/components/loadingSpinner";
 
 interface FormErrors {
   [key: string]: string;
@@ -245,11 +246,9 @@ const ProfileSettings: React.FC = () => {
 
       // Only append profilePic if a new file has been selected
       if (profilePic && profilePicChanged) {
-        console.log("Appending profilePic to FormData:", profilePic);
-        formData.append("profilePic", profilePic);
-        
-        // Add a flag to indicate profile picture was changed
-        formData.append("profilePicChanged", "true");
+        console.log("Appending profilePic to FormData:", profilePic.name, profilePic.type, profilePic.size);
+        // Make sure the file name is correct
+        formData.append("profilePic", profilePic, profilePic.name);
       }
 
       console.log("FormData before sending:");
@@ -315,8 +314,11 @@ const ProfileSettings: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div className="text-center p-8">Loading profile data...</div>;
+    return (
+        <LoadingSpinner timeout={8000} />
+    );
   }
+  
 
   if (error) {
     return <div className="text-center p-8 text-red-500">Error: {error}</div>;

@@ -17,7 +17,7 @@ export const createUserApi = async (userData: any) => {
 export const fetchUsersApi = async () => {
   try {
     const response = await apiClient.get("/users");
-    console.log("resp", response.data.Users);
+    console.log("resp", response.data);
     return response.data || [];
   } catch (error) {
     console.error("Failed to fetch users", error);
@@ -69,6 +69,18 @@ export const updateUserApi = async (userId: number, userData: any) => {
 //   }
 // };
 
+// Update an existing user
+export const updateUserAdminApi = async (userId: string, userData: any) => {
+  try {
+    console.log("userrDataaa", userData);
+    const response = await apiClient.put(`/userForAdmin/${userId}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating user data", error);
+    throw error;
+  }
+};
+
 //Update TraineeUser Api
 export const updateTraineeUserApi = async (userId: string, formData: FormData) => {
   try {
@@ -79,6 +91,8 @@ export const updateTraineeUserApi = async (userId: string, formData: FormData) =
       },
     });
 
+    console.log("API Response Data:", response.data); // Log the response data
+
     return response;
   } catch (error) {
     console.error("API Error in updateTraineeUserApi:", error);
@@ -86,8 +100,8 @@ export const updateTraineeUserApi = async (userId: string, formData: FormData) =
   }
 };
 
-// Delete a course
-export const deleteUserApi = async (userId: number) => {
+// Delete a User
+export const deleteUserApi = async (userId: string) => {
   try {
     const response = await apiClient.delete(`/users/${userId}`);
     return response.data;
@@ -96,3 +110,4 @@ export const deleteUserApi = async (userId: number) => {
     throw error;
   }
 };
+

@@ -48,6 +48,7 @@ export default defineConfig({
 
       "/classbyModule": "http://localhost:5050",
 
+      "/jobs-all": "http://localhost:5050",
        
       "/attendance": "http://localhost:5050",
  

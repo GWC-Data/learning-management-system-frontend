@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import { Button } from "../../ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef } from "ag-grid-community";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { Edit, Trash } from "lucide-react";
+import { Edit, File, Trash } from "lucide-react";
 import { AiFillCloseCircle } from "react-icons/ai";
 import Select from 'react-select'
 
@@ -25,14 +24,14 @@ interface CourseAssignmentProps {
 }
 
 interface CourseAssignment {
-  id: number;
-  batchId: number;
-  courseId: number; // Ensure courseId exists here
+  id: string;
+  batchId: string;
+  courseId: string; // Ensure courseId exists here
   batchName: string;
   courseName: string;
   courseAssignmentQuestionName: string;
-  courseAssignmentQuestionFile: string;
-  trainerId: number;
+  courseAssignmentQuestionFile: File | string;
+  trainerId: string;
   trainerName: string;
   totalMarks: number;
   assignStartDate: string;
@@ -57,19 +56,20 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
   const [isPdfModalOpen, setIsPdfModalOpen] = useState(false); // State for PDF modal
   const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(null);
   const [course, setCourse] = useState<Option[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [assignemntsToDelete, setAssignemntsToDelete] = useState<CourseAssignment | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [trainer, setTrainer] = useState<Option[]>([]);
   const [editingAssignment, setEditingAssignment] = useState(false);
   const [newAssignment, setNewAssignment] = useState<CourseAssignment>({
-    id: 0,
-    batchId: 0,
+    id: "",
+    batchId: "",
     batchName: "",
-    courseId: 0,
+    courseId: "",
     courseName: "",
     courseAssignmentQuestionName: "",
     courseAssignmentQuestionFile: "",
-    trainerId: 0,
+    trainerId: "",
     trainerName: "",
     totalMarks: 0,
     assignStartDate: "",
@@ -85,6 +85,16 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
   const closePdfModal = () => {
     setPdfFileUrl(null);
     setIsPdfModalOpen(false); // Close PDF modal
+  };  
+
+    {/* pagination */ }
+  const recordsPerPage = 10;
+  const totalPages = Math.ceil(courseAssignments.length / recordsPerPage);
+  const startIndex = (currentPage - 1) * recordsPerPage;
+  const currentData = courseAssignments.slice(startIndex, startIndex + recordsPerPage);
+
+  const handlePageChange = (newPage: SetStateAction<number>) => {
+    setCurrentPage(newPage);
   };
 
   const fetchCourseAssignments = async () => {
@@ -96,33 +106,40 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
 
     try {
       const data = await fetchCourseAssignmentApi();
-      const assignment = data?.data.map((a: any) => ({
+      console.log("fetchcourseAssignemtnApi", data);
+
+      const assignment = data?.courseAssignments?.courseAssignments.map((a: any) => ({
         id: a.id,
-        batchId: a.batchId || 0,
-        batchName: a.batch?.batchName,
-        courseId: a.courseId || 0,
-        courseName: a.course?.courseName,
+        batchId: a.batch?.id || 0,
+        batchName: a.batch?.batchName || "Unknown",
+        courseId: a.course?.id || 0,
+        courseName: a.course?.courseName || "Unknown",
         courseAssignmentQuestionName: a.courseAssignmentQuestionName || "Unknown",
-        courseAssignmentQuestionFile: a.courseAssignmentQuestionFile || 0,
-        trainerId: a.trainerId || 0,
-        trainerName: a.trainer ? `${a.trainer.firstName} ${a.trainer.lastName}` : "Unknown",
+        courseAssignmentQuestionFile: a.courseAssignmentQuestionFile || "No file",
+        trainerId: a.trainers?.[0]?.id || 0, // Use trainers array to get the first trainer's ID
+        trainerName: a.trainers?.[0]
+          ? `${a.trainers[0].firstName} ${a.trainers[0].lastName}`
+          : "Unknown",
         totalMarks: a.totalMarks || 0,
-        assignStartDate: a.assignStartDate ? format(new Date(a.assignStartDate), "yyyy-MM-dd") : "",
-        assignEndDate: a.assignEndDate ? format(new Date(a.assignEndDate), "yyyy-MM-dd") : ""
+        assignStartDate: a.assignStartDate?.value,
+        assignEndDate: a.assignEndDate?.value,
       }));
-      console.log('fetchassignment', assignment)
+
+      console.log('fetchassignment', assignment);
 
       const batch = await fetchBatchApi();
-      const batchMap = batch.map((batch: any) => ({
+      console.log("fetchbatchApi", batch);
+      const batchMap = batch.batch?.map((batch: any) => ({
         id: batch.id,
         batchName: batch.batchName
       }));
       setBatch(batchMap);
-      console.log('batches', batchMap)
+      console.log('batchMap', batchMap)
 
       const course = await fetchCourseApi();
-      const courseMap = course?.map((c: any) => ({
-        id: c.id,
+      console.log("fetchCourseApi", course);
+      const courseMap = course.map((c: any) => ({
+        id: c.courseId,
         courseName: c.courseName
       }));
       setCourse(courseMap)
@@ -130,8 +147,8 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
 
       const responseUser = await fetchUsersApi();
       console.log('responseUser', responseUser);
-      const trainer = responseUser.Users.filter(
-        (user: any) => user.role.name === "trainer"
+      const trainer = responseUser.users.filter(
+        (user: any) => user.roleName === "trainer"
       ).map((trainer: any) => ({
         id: trainer.id,
         trainerName: `${trainer.firstName} ${trainer.lastName}`
@@ -151,15 +168,16 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
 
   const addNewRow = () => {
     setIsModalOpen(false)
+    setEditingAssignment(false)
     setNewAssignment({
-      id: 0,
-      batchId: 0,
+      id: "",
+      batchId: "",
       batchName: "",
-      courseId: 0,
+      courseId: "",
       courseName: "",
       courseAssignmentQuestionName: "",
       courseAssignmentQuestionFile: "",
-      trainerId: 0,
+      trainerId: "",
       trainerName: "",
       totalMarks: 0,
       assignStartDate: "",
@@ -171,23 +189,41 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
   const handleEdit = (data: any) => {
     const courseAssignmentEdit = courseAssignments.find((a) => a.id === data.id);
     if (courseAssignmentEdit) {
+      console.log("courseAssignmentEdit", courseAssignmentEdit);
       setEditingAssignment(true);
-      setNewAssignment(courseAssignmentEdit);
+  
+      // ✅ Explicitly set values to avoid empty fields
+      setNewAssignment({
+        id: courseAssignmentEdit.id,
+        batchId: courseAssignmentEdit.batchId,
+        batchName: courseAssignmentEdit.batchName,
+        courseId: courseAssignmentEdit.courseId,
+        courseName: courseAssignmentEdit.courseName, 
+        courseAssignmentQuestionName: courseAssignmentEdit.courseAssignmentQuestionName,
+        courseAssignmentQuestionFile: courseAssignmentEdit.courseAssignmentQuestionFile,
+        totalMarks: courseAssignmentEdit.totalMarks,
+        trainerId: courseAssignmentEdit.trainerId,
+        trainerName: courseAssignmentEdit.trainerName,
+        assignStartDate: courseAssignmentEdit.assignStartDate,
+        assignEndDate: courseAssignmentEdit.assignEndDate,
+      });
+  
       setIsModalOpen(true);
     }
   };
-
+  
+  
   const handleModalClose = () => {
     setIsModalOpen(false);
     setNewAssignment({
-      id: 0,
-      batchId: 0,
+      id: "",
+      batchId: "",
       batchName: "",
-      courseId: 0,
+      courseId: "",
       courseName: "",
       courseAssignmentQuestionName: "",
       courseAssignmentQuestionFile: "",
-      trainerId: 0,
+      trainerId: "",
       trainerName: "",
       totalMarks: 0,
       assignStartDate: "",
@@ -246,7 +282,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
           courseId: newAssignment.courseId,
           courseAssignmentQuestionName: newAssignment.courseAssignmentQuestionName,
           courseAssignmentQuestionFile: newAssignment.courseAssignmentQuestionFile,
-          trainerId: Number(newAssignment.trainerId),
+          trainerId: String(newAssignment.trainerId),
           totalMarks: newAssignment.totalMarks,
           assignStartDate: newAssignment.assignStartDate,
           assignEndDate: newAssignment.assignEndDate
@@ -258,7 +294,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
           courseId: newAssignment.courseId,
           courseAssignmentQuestionName: newAssignment.courseAssignmentQuestionName,
           courseAssignmentQuestionFile: newAssignment.courseAssignmentQuestionFile,
-          trainerId: Number(newAssignment.trainerId),
+          trainerId: String(newAssignment.trainerId),
           totalMarks: newAssignment.totalMarks,
           assignStartDate: newAssignment.assignStartDate,
           assignEndDate: newAssignment.assignEndDate
@@ -277,18 +313,15 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
     setSelectedFile(file);
-
+  
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setNewAssignment((prev) => ({
-          ...prev,
-          courseAssignmentQuestionFile: reader.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
+      setNewAssignment((prev) => ({
+        ...prev,
+        courseAssignmentQuestionFile: file, // Direct file upload without Base64
+      }));
     }
   };
+
 
   useEffect(() => {
     setColDefs([
@@ -307,7 +340,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
               onClick={() => handleViewFile(params.value)}
               className="text-blue-500 underline"
             >
-              View File
+              <File/>
             </button>
           );
         },
@@ -328,10 +361,10 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
             >
               <Eye className="h-5 w-5" />
             </Button> */}
-            <Button onClick={() => handleEdit(params.data)} className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700">
+            <Button onClick={() => handleEdit(params.data)} className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white">
               <Edit className="h-5 w-4" />
             </Button>
-            <Button onClick={() => confirmDeleteAssignment(params.data)} className="bg-red-500 p-2 rounded hover:bg-red-700 text-white">
+            <Button onClick={() => confirmDeleteAssignment(params.data)} className="text-red-600 bg-white hover:bg-white p-2">
               <Trash className="h-5 w-5" />
             </Button>
           </div>
@@ -407,7 +440,8 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
         </div>
       )}
 
-      <div className="ag-theme-quartz" style={{ height: "70vh", width: "94%" }}>
+      <div className="ag-theme-quartz font-poppins" 
+      style={{ height: "70vh", width: "94%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection
@@ -420,15 +454,38 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
         />
       </div>
 
+        {/* Pagination Controls */}
+             <div className="flex justify-center items-center mt-4">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => handlePageChange(currentPage - 1)}
+                className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
+                  }`}
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2 border-t border-b text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => handlePageChange(currentPage + 1)}
+                className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
+                  }`}
+              >
+                Next
+              </button>
+            </div>
+
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-1/4">
+          <div className="bg-white p-6 rounded shadow-lg w-[#800px]">
             <h2 className="text-lg font-semibold mb-4">
               {editingAssignment ? "Edit Assignment" : "Add Assignment"}
             </h2>
             <form>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Batch Name</label>
+                <label className="block font-metropolis font-medium">Batch Name <span className="text-red-500">*</span></label>
                 <Select
                   options={batch.map((b) => ({
                     value: b.id,
@@ -442,42 +499,44 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
                   onChange={(selectedOption) => {
                     setNewAssignment({
                       ...newAssignment,
-                      batchId: selectedOption ? selectedOption.value : 0,
+                      batchId: selectedOption ? selectedOption.value : "",
                     });
                   }}
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
+                  className="w-full rounded font-metropolis text-gray-700"
                   placeholder="Select Batch"
                   isSearchable={true}
                 />
               </div>
 
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Course Name</label>
+                <label className="block font-metropolis font-medium">Course Name <span className="text-red-500">*</span></label>
                 <Select
                   options={course.map((c) => ({
                     value: c.id,
                     label: c.courseName,
                   }))}
-                  value={newAssignment.courseId ? {
-                    value: newAssignment.courseId,
-                    label: course.find((c) => c.id === newAssignment.courseId)?.courseName
-                  }
-                    : null
+                  value={
+                    newAssignment.courseId
+                      ? {
+                        value: newAssignment.courseId,
+                        label: course.find((c) => c.id === newAssignment.courseId)?.courseName,
+                      }
+                      : null
                   }
                   onChange={(selectedOption) => {
                     setNewAssignment({
                       ...newAssignment,
-                      courseId: selectedOption ? selectedOption.value : 0,
+                      courseId: selectedOption ? selectedOption.value : "",
                     });
                   }}
-                  className="w-full rounded p-2 font-metropolis text-gray-700"
+                  className="w-full rounded font-metropolis text-gray-700"
                   placeholder="Select Course"
                   isSearchable={true}
                 />
               </div>
 
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Assignment Name</label>
+                <label className="block font-metropolis font-medium">Assignment Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   placeholder="Assignment Name"
@@ -493,7 +552,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
               </div>
 
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Assignment File</label>
+                <label className="block font-metropolis font-medium">Assignment File <span className="text-red-500">*</span></label>
                 <input
                   type="file"
                   onChange={handleFileChange}
@@ -502,7 +561,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
               </div>
 
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Total Marks</label>
+                <label className="block font-metropolis font-medium">Total Marks <span className="text-red-500">*</span></label>
                 <input
                   type="number"
                   placeholder="Total Marks"
@@ -517,7 +576,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium mb-2">Trainer</label>
+                <label className="block font-metropolis font-medium mb-2">Trainer <span className="text-red-500">*</span></label>
                 <Select
                   options={trainer.map((t) => ({
                     value: t.id, // Trainer ID
@@ -534,7 +593,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
                   onChange={(selectedOption) => {
                     setNewAssignment({
                       ...newAssignment,
-                      trainerId: selectedOption ? selectedOption.value : 0, // Handle null when deselected
+                      trainerId: selectedOption ? selectedOption.value : "", // Handle null when deselected
                     });
                   }}
                   className="w-full rounded font-metropolis text-gray-700"
@@ -542,9 +601,9 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
                   isSearchable={true} // Enables search functionality
                 />
               </div>
-              <div className="flex gap-12">
+              <div className="flex gap-12 mb-4">
                 <div className="mb-4">
-                  <label className="block font-metropolis font-medium">Assignment Uploaded</label>
+                  <label className="block font-metropolis font-medium">Assignment Uploaded <span className="text-red-500">*</span></label>
                   <input
                     type="date"
                     placeholder="Assignment Uploaded"
@@ -560,7 +619,7 @@ const CourseAssignmentsTable = ({ editable = true }: CourseAssignmentProps) => {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block font-metropolis font-medium">Final Submission</label>
+                  <label className="block font-metropolis font-medium">Final Submission <span className="text-red-500">*</span></label>
                   <input
                     type="date"
                     placeholder="Final Submission"

@@ -50,7 +50,7 @@ export const fetchClassForModuleByModuleIdApi = async (moduleId: string) => {
 
 // Update an existing class
 export const updateClassForModuleApi = async (
-  classId: number,
+  classId: string,
   classData: any
 ) => {
   try {
@@ -63,7 +63,7 @@ export const updateClassForModuleApi = async (
 };
 
 // Delete a class
-export const deleteClassForModuleApi = async (classId: number) => {
+export const deleteClassForModuleApi = async (classId: string) => {
   try {
     const response = await apiClient.delete(`/class/${classId}`);
     return response.data;

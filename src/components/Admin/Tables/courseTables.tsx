@@ -6,19 +6,19 @@ import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ColDef } from "ag-grid-community";
 import Select from 'react-select';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { useDropzone } from "react-dropzone";
 import Batch from '../../../assets/Batch.png';
 import Module from '../../../assets/Module.png';
 import remove from '../../../assets/delete.png';
-import { useNavigate, useLocation } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
+import Breadcrumb from "./breadcrumb";
 import {
   createCourseApi,
   fetchCourseApi,
   updateCourseApi,
   deleteCourseApi,
 } from "@/helpers/api/courseApi";
-
 import { fetchCourseCategoryApi } from "@/helpers/api/courseCategoryApi";
 import { fetchCourseModuleApi } from "@/helpers/api/courseModuleApi";
 
@@ -29,12 +29,12 @@ interface CourseTableProps {
 
 // TypeScript types for course data
 interface CourseData {
-  id: number;
+  id: string;
   courseName: string;
   courseDesc: string;
-  courseCategoryId: number;
-  courseCategory: string;
-  courseImg: string;
+  courseCategoryId: string;
+  coursecategoryName: string;
+  courseImg: File | string;
   courseLink: string;
   createdByUserName: string;
   moduleCount: number;
@@ -42,7 +42,7 @@ interface CourseData {
 
 interface courseCategoryOptions {
   id: any;
-  courseCategory: any;
+  coursecategoryName: any;
 }
 
 // Helper to get the token from local storage
@@ -58,65 +58,37 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [courseCategory, setCourseCategory] = useState<courseCategoryOptions[]>([]);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [breadcrumbTrail, setBreadcrumbTrail] = useState<string[]>(["Courses"]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [courseToDelete, setCourseToDelete] = useState<CourseData | null>(null);
   const [newCourse, setNewCourse] = useState<CourseData>({
-    id: 0,
+    id: "",
     courseName: "",
     courseDesc: "",
-    courseCategoryId: 0,
-    courseCategory: "",
+    courseCategoryId: "",
+    coursecategoryName: "",
     courseImg: "",
     courseLink: "",
     createdByUserName: "",
-    moduleCount: 10,
+    moduleCount: 0,
   });
 
-
   const navigate = useNavigate();
-  const location = useLocation();
-
-  // const breadcrumbMap: { [key: string]: string } = {
-  //   "/admin/course": "Courses",
-  //   "/admin/batch-management": "Batch Management",
-  //   "/admin/manage-batch-schedules": "Manage Batch Schedules",
-  // };
-
-  // const breadcrumbLabel = breadcrumbMap[location.pathname] || "Dashboard";
 
   const viewBatch = (data: CourseData) => {
     navigate(`/admin/batch-management?courseId=${data.id}`);
-    setBreadcrumbTrail(["Courses", "Batch Management"]);
   };
 
-
-
-  // Convert file to base64 with prefix
-  const convertFileToBase64 = (file: File) => {
-    const reader = new FileReader();
-    return new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file); // Convert file to base64 with prefix
-    });
-  };
-
-  // When an image is dropped/uploaded
+  //Image upload
   const onDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0]; // Handle single file upload
+    const file = acceptedFiles[0];
     setUploadedFile(file);
-
-    // Convert the file to base64
-    convertFileToBase64(file).then((base64) => {
-      setNewCourse({ ...newCourse, courseImg: base64 });
-    });
+    setNewCourse({ ...newCourse, courseImg: file });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
-    multiple: false, // Single file upload
+    multiple: false,
   });
 
   {/* pagination */ }
@@ -141,34 +113,56 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
       const moduleResponse = await fetchCourseModuleApi();
 
       // Compute highest sequence for each courseId
-      const moduleCountMap: Record<number, number> = {};
+      const moduleCountMap: Record<string, number> = {};
+
       moduleResponse.forEach((module: any) => {
         const { courseId, sequence } = module;
-        if (!moduleCountMap[courseId] || sequence > moduleCountMap[courseId]) {
-          moduleCountMap[courseId] = sequence; // Store the highest sequence
+
+        // Ensure courseId and sequence exist
+        if (!courseId || sequence === undefined) {
+          console.warn("Skipping module due to missing courseId or sequence:", module);
+          return;
+        }
+
+        // Parse the sequence to number (if string)
+        const seqNum = parseInt(sequence, 10) || 0;
+
+        // Check if the current sequence is higher than the stored one
+        if (!moduleCountMap[courseId] || seqNum > moduleCountMap[courseId]) {
+          moduleCountMap[courseId] = seqNum;
         }
       });
 
+      // Map the highest sequence back to the response
+      const modifiedResponse = moduleResponse.map((module: any) => ({
+        ...module,
+        highestSequence: moduleCountMap[module.courseId] || 0,
+      }));
+
+      console.log("Final Response with Highest Sequence:", modifiedResponse);
+
+
       const courses = response.map((course: any) => ({
-        id: course.id,
+        id: course.courseId || "",
         courseName: course.courseName,
         courseDesc: course.courseDesc,
-        courseCategory: course.category?.courseCategory || "Unknown",
-        courseCategoryId: course.courseCategoryId || 0,
+        courseCategory: course.coursecategory?.coursecategoryName || "Unknown",
+        courseCategoryId: course.courseCategoryId || "",
         courseImg: course.courseImg,
         courseLink: course.courseLink,
-        createdByUserName: course.user
-          ? `${course.user.firstName} ${course.user.lastName}`
-          : "Unknown",
-        moduleCount: moduleCountMap[course.id] || 0, // Assign computed module count
+        createdByUserName: course.createdByUserName,
+        moduleCount: moduleCountMap[course.courseId] || 0,
       }));
+
+      console.log("finalized data", courses);
 
       const responseCategory = await fetchCourseCategoryApi();
       const courseCategory = responseCategory.map((category: any) => ({
         id: category.id,
-        courseCategory: category.courseCategory
+        coursecategoryName: category.coursecategoryName
       }));
       setCourseCategory(courseCategory);
+      console.log("coursecateogry", courseCategory);
 
       setCourseData(courses);
     } catch (error) {
@@ -187,15 +181,15 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
   const addNewRow = () => {
     setEditing(false);
     setNewCourse({
-      id: 0,
+      id: "",
       courseName: "",
       courseDesc: "",
-      courseCategoryId: 0,
-      courseCategory: "",
+      courseCategoryId: "",
+      coursecategoryName: "",
       courseImg: "",
       courseLink: "",
       createdByUserName: "",
-      moduleCount: 10
+      moduleCount: 0
     });
     setIsModalOpen(true);
   };
@@ -238,12 +232,12 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     setCourseToDelete(null);
   };
 
-  // Edit a course
-  const editCourse = (data: any) => {
-    const courseToEdit = courseData.find((course) => course.id === data.data.id);
-    if (courseToEdit) {
+  // view a module
+  const viewModule = (data: any) => {
+    const viewModule = courseData.find((course) => course.id === data.data.id);
+    if (viewModule) {
       // Navigate to the course module page with the courseId as a query parameter
-      navigate(`/admin/course-module?courseId=${courseToEdit.id}`);
+      navigate(`/admin/course-module?courseId=${viewModule.id}`);
     }
   };
 
@@ -251,15 +245,15 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setNewCourse({
-      id: 0,
+      id: "",
       courseName: "",
       courseDesc: "",
-      courseCategoryId: 0,
-      courseCategory: "",
+      courseCategoryId: "",
+      coursecategoryName: "",
       courseImg: "",
       courseLink: "",
       createdByUserName: "",
-      moduleCount: 10
+      moduleCount: 0
     });
   };
 
@@ -272,6 +266,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     }
 
     try {
+
       if (editing) {
 
         await updateCourseApi(newCourse.id, {
@@ -304,7 +299,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     handleModalClose();
   };
 
-  // Define column definitions for the grid
+
   useEffect(() => {
     setColDefs([
       { headerName: "Course Name", field: "courseName", editable: false, width: 220 },
@@ -319,28 +314,34 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         width: 180,
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
-            <Button
-              onClick={() => viewBatch(params.data)}
-              className="text-[#6E2B8B] bg-white hover:bg-white p-2"
-            >
-              <img src={Batch} alt="Batch Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-            </Button>
+            <TooltipProvider>
+              <Button onClick={() => viewBatch(params.data)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={Batch} alt="Batch Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>View Batch</TooltipContent>
+                </Tooltip>
+              </Button>
 
-            <Button
-              onClick={() => editCourse(params)}
-              className="text-[#6E2B8B] bg-white hover:bg-white p-2"
-            >
-              <img src={Module} alt="Module Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-            </Button>
+              <Button onClick={() => viewModule(params)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={Module} alt="Module Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>View Module</TooltipContent>
+                </Tooltip>
+              </Button>
 
-            <Button
-              onClick={() => confirmDeleteCourse(params.data)}
-              className="text-red-600 bg-white hover:bg-white p-2"
-            >
-              <img src={remove} alt="remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-            </Button>
-
-
+              <Button onClick={() => confirmDeleteCourse(params.data)} className="text-red-600 bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>Delete Course</TooltipContent>
+                </Tooltip>
+              </Button>
+            </TooltipProvider>
           </div>
         ),
         editable: false,
@@ -353,6 +354,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
 
     <div className="flex-1 p-4 mt-5 ml-20">
       <div className="text-gray-600 text-lg mb-4">
+        <Breadcrumb />
       </div>
       <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">
@@ -380,26 +382,27 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
             </p>
             <div className="flex justify-end space-x-2 mt-4">
               <Button
+                onClick={handleDeleteCourse}
+                className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+              >
+                Delete
+              </Button>
+              <Button
                 onClick={handleCancelDelete}
                 className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
               >
                 Cancel
               </Button>
-              <Button
-                onClick={handleDeleteCourse}
-                className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-              >
-                Delete
-              </Button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="ag-theme-quartz" style={{ height: "70vh", width: "94%" }}>
+      <div className="ag-theme-quartz font-poppins" 
+      style={{ height: "70vh", width: "91%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection
@@ -437,14 +440,14 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
       </div>
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h2 className="text-xl font-metropolis font-semibold">{editing ? "Edit Course" : "Add New Course"}</h2>
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
+            <h2 className="text-xl font-metropolis font-semibold">{editing ? "Edit Course" : "Add NewCourse"}</h2>
             <form>
               <div className="mb-4 mt-4">
-                <label className="block font-metropolis font-medium">Course Name</label>
+                <label className="block font-metropolis font-medium">Course Name <span className="text-red-500">*</span></label>
                 <input
                   type="text"
-                  className="w-full border rounded font-metropolis p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newCourse.courseName}
                   onChange={(e) => setNewCourse({ ...newCourse, courseName: e.target.value })}
                 />
@@ -453,30 +456,30 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                 <label className="block font-metropolis font-medium">Description</label>
                 <input
                   type="text"
-                  className="w-full border rounded p-2 font-metropolis text-gray-400 font-semibold"
+                  className="w-full border rounded mt-1 p-2 font-metropolis text-gray-400 font-semibold"
                   value={newCourse.courseDesc}
                   onChange={(e) => setNewCourse({ ...newCourse, courseDesc: e.target.value })}
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Category</label>
+                <label className="block font-metropolis font-medium">Category <span className="text-red-500">*</span></label>
                 <Select
                   options={courseCategory.map((course) => ({
                     value: course.id,
-                    label: course.courseCategory,
+                    label: course.coursecategoryName,
                   }))}
                   value={
                     newCourse.courseCategoryId
                       ? {
                         value: newCourse.courseCategoryId,
-                        label: courseCategory.find((course) => course.id === newCourse.courseCategoryId)?.courseCategory || "Unknown",
+                        label: courseCategory.find((course) => course.id === newCourse.courseCategoryId)?.coursecategoryName || "Unknown",
                       }
                       : null
                   }
                   onChange={(selectedOption) => {
                     setNewCourse({
                       ...newCourse,
-                      courseCategoryId: selectedOption ? selectedOption.value : 0, // Update `courseCategoryId` with the selected category's `id`
+                      courseCategoryId: selectedOption ? selectedOption.value : "", // Update courseCategoryId with the selected category's id
                     });
                   }}
                   className="w-full rounded mt-1 font-metropolis text-gray-700"
@@ -484,51 +487,69 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                   isSearchable={true}
                 />
               </div>
-              {/* 
+
               <div className="mb-4 mt-4">
-                 <label className="block font-metropolis font-medium">Course Page</label>
-                 <input
+                <label className="block font-metropolis font-medium">Course Page</label>
+                <input
                   type="text"
                   placeholder="paste page URL"
                   className="w-full border mt-1 rounded p-2 font-metropolis text-gray-700"
                   value={newCourse.courseLink}
                   onChange={(e) => setNewCourse({ ...newCourse, courseLink: e.target.value })}
                 />
-              </div> */}
+              </div>
+
               <div className="mb-4">
                 <label className="block font-metropolis font-medium">
-                  Course Image
+                  Course Image <span className="text-red-500">*</span>
                 </label>
                 <div
                   {...getRootProps()}
                   className={`border-2 border-dashed rounded p-4 mt-1 h-28 text-center cursor-pointer 
-                ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
+    ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
                 >
                   <input {...getInputProps()} />
+
+                  {/* ✅ Show Uploaded Image Preview (New File Upload) */}
                   {uploadedFile ? (
-                    <p className="text-green-600 font-metropolis font-semibold mt-6">
-                      {uploadedFile.name}
-                    </p>
-                  ) : newCourse.courseImg ? (
                     <div className="flex flex-col items-center">
                       <img
-                        src={newCourse.courseImg}
-                        alt="Course"
-                        className="h-20 w-20 object-cover rounded"
+                        src={URL.createObjectURL(uploadedFile)}
+                        alt="Uploaded Course"
+                        className="h-20 w-20 object-cover rounded border"
                       />
+                      <p className="text-green-600 font-metropolis font-semibold mt-2">
+                        {uploadedFile.name}
+                      </p>
                     </div>
-                  ) : (
-                    <p className="text-gray-400 font-semibold mt-3">
-                      Drag & drop a file here, or click to select one
-                    </p>
-                  )}
+                  ) :
+                    /* ✅ Show Existing Course Image from API (if available) */
+                    newCourse.courseImg ? (
+                      <div className="flex flex-col items-center">
+                        <img
+                          src={typeof newCourse.courseImg === "string"
+                            ? newCourse.courseImg
+                            : URL.createObjectURL(newCourse.courseImg)}
+                          alt="Course"
+                          className="h-20 w-20 object-cover rounded border"
+                        />
+                        <p className="text-gray-500 font-metropolis font-semibold mt-4">
+                          Existing Image
+                        </p>
+                      </div>
+                    ) : (
+                      /* ✅ Show Placeholder Text When No Image is Uploaded */
+                      <p className="text-gray-400 font-semibold mt-5">
+                        Drag & drop a file here, or click to select one
+                      </p>
+                    )}
                 </div>
               </div>
 
-              <div className="flex space-x-4">
+              <div className="flex justify-end space-x-4">
                 <Button
                   onClick={handleFormSubmit}
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
                 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >

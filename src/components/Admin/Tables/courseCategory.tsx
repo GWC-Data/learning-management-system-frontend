@@ -2,7 +2,8 @@ import { Button } from "../../ui/button";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { toast } from "sonner";
 import { Edit, Trash, Eye } from "lucide-react";
 import { useDropzone } from "react-dropzone";
@@ -24,10 +25,10 @@ interface CourseCategoryTableProps {
 
 // TypeScript types for course category data
 interface CourseCategoryData {
-  id: number;
+  id: string;
   coursecategoryName: string;
   description: string;
-  courseCategoryImg: string;
+  coursecategoryImg: File | string;
 }
 
 const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
@@ -41,6 +42,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -49,10 +51,10 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   const [categoryToDelete, setCategoryToDelete] =
     useState<CourseCategoryData | null>(null);
   const [newCategory, setNewCategory] = useState<CourseCategoryData>({
-    id: 0,
+    id: "",
     coursecategoryName: "",
     description: "",
-    courseCategoryImg: "",
+    coursecategoryImg: "",
   });
 
   useEffect(() => {
@@ -63,11 +65,11 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     const newErrors: Record<string, string> = {};
 
     if (!newCategory.coursecategoryName)
-      newErrors.coursecategoryName = "coursecategoryName is required.";
+      newErrors.courseCategory = "courseCategory is required.";
     if (!newCategory.description)
       newErrors.description = "description is required.";
-    if (!newCategory.courseCategoryImg)
-      newErrors.courseCategoryImg = "courseCategoryImg is required.";
+    if (!newCategory.coursecategoryImg)
+      newErrors.coursecategoryImg = "courseCategoryImg is required.";
 
     setErrors(newErrors);
 
@@ -78,44 +80,39 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     return newErrors;
   };
 
+
+  // {/* pagination */ }
+  // const recordsPerPage = 10;
+  // const totalPages = Math.ceil(newCategory.length / recordsPerPage);
+  // const startIndex = (currentPage - 1) * recordsPerPage;
+  // const currentData = courseCategory.slice(startIndex, startIndex + recordsPerPage);
+
+  // const handlePageChange = (newPage: SetStateAction<number>) => {
+  //   setCurrentPage(newPage);
+  // };
+
+  //image upload
   console.log("Category Data", categoryData);
-
-  // Convert file to base64 with prefix
-  const convertFileToBase64 = (file: File) => {
-    const reader = new FileReader();
-    return new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file); // Convert file to base64 with prefix
-    });
-  };
-
-  // When an image is dropped/uploaded
   const onDrop = (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0]; // Handle single file upload
+    const file = acceptedFiles[0];
     setUploadedFile(file);
-    console.log("file", file);
-
-    // Convert the file to base64
-    convertFileToBase64(file).then((base64) => {
-      setNewCategory({ ...newCategory, courseCategoryImg: base64 });
-    });
+    setNewCategory({ ...newCategory, coursecategoryImg: file });
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
-    multiple: false, // Single file upload
+    multiple: false,
   });
 
   const addNewRow = () => {
     setEditing(false);
     setUploadedFile(null);
     setNewCategory({
-      id: 0,
+      id: "",
       coursecategoryName: "",
       description: "",
-      courseCategoryImg: "",
+      coursecategoryImg: "",
     });
     setIsModalOpen(true);
   };
@@ -134,7 +131,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
 
   const handleDeleteCategoryData = () => {
     if (!categoryToDelete) return;
-    dispatch(deleteCourseCategoryRequest(categoryToDelete.id)); // Dispatch Redux action
+    dispatch(deleteCourseCategoryRequest(categoryToDelete.id));
     setIsDeleteModalOpen(false);
   };
 
@@ -148,9 +145,9 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
     setNewCategory(data);
     setNewCategory({
       id: data.id,
-      coursecategoryName: data.courseCategory,
+      coursecategoryName: data.coursecategoryName,
       description: data.description || "",
-      courseCategoryImg: data.courseCategoryImg
+      coursecategoryImg: data.coursecategoryImg
     });
     setIsModalOpen(true);
   };
@@ -158,10 +155,10 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setNewCategory({
-      id: 0,
+      id: "",
       coursecategoryName: "",
       description: "",
-      courseCategoryImg: "",
+      coursecategoryImg: "",
     });
   };
 
@@ -193,7 +190,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
       },
       {
         headerName: "Category Image",
-        field: "courseCategoryImg",
+        field: "coursecategoryImg",
         cellRenderer: (params: any) => {
           const imageUrl = params.value; // Can be base64 string or object URL
           return imageUrl ? (
@@ -220,24 +217,46 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
         field: "actions",
         cellRenderer: (params: any) => (
           <div className="flex space-x-4">
-            <Button
-              onClick={() => handleViewCategory(params.data)}
-              className="bg-green-500 text-white p-2 rounded hover:bg-green-700"
-            >
-              <Eye className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => editCategory(params.data)}
-              className="bg-blue-500 text-white p-2 rounded hover:bg-blue-700"
-            >
-              <Edit className="h-5 w-5" />
-            </Button>
-            <Button
-              onClick={() => confirmDeleteCategory(params.data)}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-700"
-            >
-              <Trash className="h-5 w-5" />
-            </Button>
+            <TooltipProvider>
+              {/* View Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => handleViewCategory(params.data)}
+                    className="bg-white text-green-500 p-2 rounded hover:bg-white"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View Category</TooltipContent>
+              </Tooltip>
+
+              {/* Edit Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => editCategory(params.data)}
+                    className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                  >
+                    <Edit className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Edit Category</TooltipContent>
+              </Tooltip>
+
+              {/* Delete Button with Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => confirmDeleteCategory(params.data)}
+                    className="text-red-600 bg-white p-2 rounded hover:bg-white"
+                  >
+                    <Trash className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete Category</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         ),
         editable: false,
@@ -247,7 +266,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
 
   return (
     <div className="flex-1 p-4 mt-10 ml-24">
-      <div className="flex items-center justify-between bg-custom-gradient text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1147px]">
+      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1147px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             Course Categories
@@ -264,7 +283,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
         </Button>
       </div>
       <div
-        className="ag-theme-quartz text-left"
+        className="ag-theme-quartz text-left font-poppins"
         style={{ height: "calc(100vh - 180px)", width: "88%" }}
       >
         <AgGridReact
@@ -284,7 +303,30 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
         />
       </div>
 
-      {viewingCategory && (
+      {/* Pagination Controls */}
+      {/* <div className="flex justify-center items-center mt-4">
+        <button
+          disabled={currentPage === 1}
+          onClick={() => handlePageChange(currentPage - 1)}
+          className={`px-4 py-2 rounded-l-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === 1 && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 border-t border-b text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          disabled={currentPage === totalPages}
+          onClick={() => handlePageChange(currentPage + 1)}
+          className={`px-4 py-2 rounded-r-md border bg-gray-300 text-gray-700 hover:bg-gray-400 ${currentPage === totalPages && "cursor-not-allowed opacity-50"
+            }`}
+        >
+          Next
+        </button>
+      </div> */}
+
+      {/* {viewingCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-metropolis font-semibold mb-4">
@@ -310,9 +352,9 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
               <label className="block font-metropolis font-medium">
                 Category Image
               </label>
-              {viewingCategory.courseCategoryImg ? (
+              {viewingCategory.coursecategoryImg ? (
                 <img
-                  src={viewingCategory.courseCategoryImg}
+                  src={viewingCategory.coursecategoryImg}
                   alt="Category"
                   className="w-full h-40 object-cover rounded"
                 />
@@ -330,7 +372,8 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+
       {isDeleteModalOpen && categoryToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
@@ -375,7 +418,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
             <form>
               <div className="mb-4">
                 <label className="block font-metropolis font-medium">
-                  Category Name
+                  Category Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -407,7 +450,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
               </div>
               <div className="mb-4">
                 <label className="block font-metropolis font-medium">
-                  Category Image
+                  Category Image <span className="text-red-500">*</span>
                 </label>
                 <div
                   {...getRootProps()}
@@ -416,21 +459,36 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 >
                   <input {...getInputProps()} />
                   {uploadedFile ? (
-                    <p className="text-green-600 font-metropolis font-semibold mt-6">
-                      {uploadedFile.name}
-                    </p>
-                      ) : newCategory.courseCategoryImg ? (
-                        // Show the existing image when editing
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={URL.createObjectURL(uploadedFile)}
+                        alt="Uploaded Course"
+                        className="h-20 w-20 object-cover rounded border"
+                      />
+                      <p className="text-green-600 font-metropolis font-semibold mt-2">
+                        {uploadedFile.name}
+                      </p>
+                    </div>
+                  ) :
+                    /* Show Existing Course Image from API (if available) */
+                    newCategory.coursecategoryImg ? (
+                      <div className="flex flex-col items-center">
                         <img
-                          src={newCategory.courseCategoryImg}
-                          alt="Company"
-                          className="w-full h-24 object-cover rounded"
+                          src={typeof newCategory.coursecategoryImg === "string"
+                            ? newCategory.coursecategoryImg
+                            : URL.createObjectURL(newCategory.coursecategoryImg)}
+                          alt="Course"
+                          className="h-20 w-20 object-cover rounded border"
                         />
-                      ) : (
-                    <p className="text-gray-400 font-semibold">
-                      Drag & drop a file here, or click to select one
-                    </p>
-                  )}
+                        <p className="text-gray-500 font-metropolis font-semibold mt-2">
+                          Existing Image
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-gray-400 font-semibold">
+                        Drag & drop a file here, or click to select one
+                      </p>
+                    )}
                 </div>
               </div>
               <div className="flex justify-end space-x-2">

@@ -42,7 +42,7 @@ export const fetchBatchModuleScheduleByBatchIdApi = async (id: string) => {
 };
 
 // Read a batch module schedule by id
-export const fetchBatchModuleScheduleByIdApi = async (id: string) => {
+export const fetchBatchModuleScheduleByIdApi = async (id: number) => {
   try {
     const userId = parseInt(id.toString(), 10); // Convert id to integer
     console.log("Fetching schedule for user ID:", userId);

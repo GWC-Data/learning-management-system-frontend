@@ -7,8 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Table as TableIcon, BarChart } from 'lucide-react';
 
 
-import { fetchCourseModuleApi } from '@/helpers/api/courseModuleApi';
-import { fetchAssignmentCompletionsApi } from '@/helpers/api/assignmentCompletionsApi';
+import { fetchCourseModuleApi } from '@/api/courseModuleApi';
+import { fetchAssignmentCompletionsApi } from '@/api/assignmentCompletionsApi';
 
 Chart.register(...registerables);
 
@@ -40,38 +40,28 @@ const TraineesActivityPage: React.FC = () => {
     const fetchModules = async () => {
       try {
         const moduleResponse = await fetchCourseModuleApi();
-  
-        if (!Array.isArray(moduleResponse)) {
-          console.error("Invalid module response:", moduleResponse);
-          return;
-        }
-  
+
         // Extract necessary fields from API response
         const modules = moduleResponse.map((module: any) => ({
           moduleName: module.moduleName,
           daysPresent: module.daysPresent ?? Math.floor(Math.random() * 20) + 1, // Fallback random data
           totalDays: module.totalDays ?? 20, // Assuming totalDays is 20 by default
           gradePercentage: module.gradePercentage ?? Math.floor(Math.random() * 100), // Fallback random grade
-        }));
-  
+        }))
+
         const assignmentsResponse = await fetchAssignmentCompletionsApi();
-        console.log("Assignments API Response:", assignmentsResponse); // Debugging
-  
-        // Ensure `Assignments` exists and is an array before filtering
-        const assignmentCount = Array.isArray(assignmentsResponse?.Assignments)
-          ? assignmentsResponse.Assignments.filter(
-              (assign: any) => assign.courseAssignmentAnswerFile
-            ).length
-          : 0;
-  
-        console.log("Total Assignments Submitted:", assignmentCount);
-  
+        const assignmentCount = assignmentsResponse.Assignments.filter(
+          (assign: any) => assign.courseAssignmentAnswerFile
+        ).length;
+
         setTotalAssignments(assignmentCount);
+        console.log("Total Assignments Submitted:", assignmentCount)
+
         setModuleData(modules);
       } catch (error) {
-        console.error("Error fetching module data:", error);
+        console.error('Error fetching module data:', error);
       }
-    };
+    };// Dummy Assessment Data
     const dummyAssessments = [
       { assessmentName: 'Assessment 1', score: 78 },
       { assessmentName: 'Assessment 2', score: 85 },

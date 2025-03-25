@@ -45,22 +45,22 @@ const AllUsers: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
 
   const getToken = () => localStorage.getItem("authToken");
-
+  
   const fetchRoles = async () => {
     const token = getToken();
     if (!token) {
       console.error("No token found. User must be logged in.");
       return;
     }
-
+  
     try {
       const roleResponse = await fetchRolesApi();
       console.log("Roles API Response:", roleResponse); // Debugging log
-
-      if (Array.isArray(roleResponse)) {
-        const roleData = roleResponse.map((role: { name: string; count: number }) => ({
+  
+      if (roleResponse && Array.isArray(roleResponse.role)) {
+        const roleData = roleResponse.role.map((role: { name: string; count?: number }) => ({
           name: role.name.trim().toLowerCase(), // Normalize names
-          count: role.count,
+          count: role.count ?? 0, // Ensure count exists, default to 0 if undefined
         }));
         setRoles(roleData);
       } else {
@@ -70,11 +70,11 @@ const AllUsers: React.FC = () => {
       console.error("Error fetching roles:", error);
     }
   };
-
+  
   useEffect(() => {
     fetchRoles();
   }, []);
-
+  
   // Role Icons with lowercase keys for better matching
   const roleIcons: Record<string, JSX.Element> = {
     admin: <Shield size={32} />,
@@ -106,7 +106,7 @@ const AllUsers: React.FC = () => {
 
       <div className="flex flex-wrap gap-4 font-metropolis font-semibold">
         {roles.map((role) => {
-          const normalizedRoleName = role.name.toLowerCase(); // Normalize the role name
+          const normalizedRoleName = role.name.toLowerCase(); 
           return (
             <SidebarButton
               key={role.name}

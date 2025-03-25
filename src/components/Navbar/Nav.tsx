@@ -59,6 +59,7 @@ const Nav: React.FC<NavProps> = ({ isAuthenticated, setIsAuthenticated }) => {
       if (response?.profilePic) {
         setProfilePic(response.profilePic);
       }
+      
     } catch (error) {
       console.error("Failed to fetch profile picture:", error);
     }

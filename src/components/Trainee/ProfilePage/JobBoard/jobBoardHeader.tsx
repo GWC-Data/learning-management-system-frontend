@@ -6,7 +6,7 @@ const JobBoardHeader = () => {
       initial={{ opacity: 0, y: -50 }} 
       animate={{ opacity: 1, y: 0 }} 
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="bg-gradient-to-r from-[#6E2B8B] to-[#9A5EB5] text-white py-10 px-8 text-center rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-[1300px]"
+      className="bg-gradient-to-r from-[#6E2B8B] to-[#9A5EB5] text-white py-10 px-8 text-center rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 w-[1320px]"
     >
       <motion.h1 
         initial={{ scale: 0.8 }}

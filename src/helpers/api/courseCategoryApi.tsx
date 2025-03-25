@@ -3,7 +3,11 @@ import apiClient from "../rootApi/apiClient";
 // Create a new course category
 export const createCourseCategoryApi = async (newCategory: any) => {
   try {
-    const response = await apiClient.post("/coursecategory", newCategory);
+    const response = await apiClient.post("/coursecategory", newCategory, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating course category", error);
@@ -15,6 +19,7 @@ export const createCourseCategoryApi = async (newCategory: any) => {
 export const fetchCourseCategoryApi = async () => {
   try {
     const response = await apiClient.get("/coursecategory");
+    console.log("courseCategory", response.data);
     return response.data.coursecategory || [];
   } catch (error) {
     console.error("Failed to fetch course categories", error);
@@ -24,7 +29,7 @@ export const fetchCourseCategoryApi = async () => {
 
 // Read a course category by id
 export const fetchCourseCategoryByIdApi = async (
-  id:number
+  id: string
 ) => {
   try {
     const response = await apiClient.get(`/coursecategory/${id}`);
@@ -37,14 +42,17 @@ export const fetchCourseCategoryByIdApi = async (
 
 // Update an existing course category
 export const updateCourseCategoryApi = async (
-  id: number,
+  id: string,
   updatedCategory: any
 ) => {
   try {
     const response = await apiClient.put(
       `/coursecategory/${id}`,
-      updatedCategory
-    );
+      updatedCategory, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating course category", error);
@@ -53,7 +61,7 @@ export const updateCourseCategoryApi = async (
 };
 
 // Delete a course category
-export const deleteCourseCategoryApi = async (id: number) => {
+export const deleteCourseCategoryApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/coursecategory/${id}`);
     return response.data;

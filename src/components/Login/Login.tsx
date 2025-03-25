@@ -26,11 +26,14 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
       // Log response for debugging
       console.log("Login successful:", response.data);
 
-      const { accessToken, user } = response.data.login;
+      const { accessToken, user, tokenExpiry } = response.data.login;
       console.log("tokennn", accessToken);
 
       // Save token and user data to localStorage
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem("userPassword", password);
       localStorage.setItem("authToken", accessToken);
+      localStorage.setItem("tokenExpiry", tokenExpiry);
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("role", user.role);
       localStorage.setItem("userName", `${user.firstName} ${user.lastName}`);

@@ -15,8 +15,8 @@ export const createCourseModuleApi = async (newCourseModule: any) => {
 export const fetchCourseModuleApi = async () => {
   try {
     const response = await apiClient.get("/module");
-    console.log("response", response.data.modules);
-    return response.data.modules || [];
+    console.log("response", response.data.module);
+    return response.data.module || [];
   } catch (error) {
     console.error("Failed to fetch course module", error);
     throw error;

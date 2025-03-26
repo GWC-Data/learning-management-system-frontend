@@ -28,7 +28,7 @@ type TabContentProps = {
 
 
 const DashboardCard: React.FC<CardProps> = ({ title, value, icon, color }) => {
-  
+
   return (
     <div className="dashboard-card">
       <div className="card-icon" style={{ backgroundColor: `${color}20`, color }}>
@@ -47,13 +47,14 @@ const DashboardContent: React.FC = () => {
   const [batchCount, setBatchCount] = useState<number>(0);
   const [courseCount, setCourseCount] = useState<number>(0);
   const [traineeCount, setTraineeCount] = useState<number>(0);
+  const [mappedAttendance, setMappedAttendance] = useState([])
 
   useEffect(() => {
     const fetchApiData = async () => {
       try {
         const response = await fetchBatchApi();
         console.log("API Response:", response); // Debugging
-  
+
         if (response?.batch && Array.isArray(response.batch)) {
           setBatchCount(response.batch.length);
         } else {
@@ -81,75 +82,81 @@ const DashboardContent: React.FC = () => {
 
       const attendanceApiData = await fetchAttendanceApi();
       console.log("attendance", attendanceApiData);
+      // Ensure data is an array before mapping
+      if (!attendanceApiData?.attendance || !Array.isArray(attendanceApiData.attendance)) {
+        console.error("Invalid attendance API response:", attendanceApiData);
+        return;
+      }
+
+      const attendance = attendanceApiData.attendance
+      .filter((att: any) => att.roleName.toLowerCase() === "trainee") // ✅ Filtering trainers only
+      .map((att: any) => ({
+        name: att.userName,
+        attendance: att.percentage, 
+      }));
+    
+    setMappedAttendance(attendance);    
+      console.log("attendancemapped", attendance);
     };
     fetchApiData();
   }, []);
 
 
-  const traineePerformanceData = [
-    { name: 'John Doe', completion: 85, attendance: 90 },
-    { name: 'Jane Smith', completion: 92, attendance: 95 },
-    { name: 'Michael Lee', completion: 78, attendance: 88 },
-    { name: 'Emily Johnson', completion: 95, attendance: 97 },
-    { name: 'Chris Brown', completion: 80, attendance: 85 },
-  ];
-  
-
   return (
     <div className="dashboard-content">
       <h2 className='font-poppins font-bold text-2xl'>Dashboard Overview</h2>
-      
+
       <div className="cards-container font-poppins mt-4">
-        <DashboardCard 
-          title="Total Batches" 
-          value={batchCount} 
-          icon={<BatchIcon />} 
-          color="#4a6cf7" 
+        <DashboardCard
+          title="Total Batches"
+          value={batchCount}
+          icon={<BatchIcon />}
+          color="#4a6cf7"
         />
-        <DashboardCard 
-          title="Active Courses" 
+        <DashboardCard
+          title="Active Courses"
           value={courseCount}
-          icon={<CourseIcon />} 
-          color="#10b981" 
+          icon={<CourseIcon />}
+          color="#10b981"
         />
-        <DashboardCard 
-          title="Total Trainees" 
+        <DashboardCard
+          title="Total Trainees"
           value={traineeCount}
-          icon={<UserIcon />} 
-          color="#f59e0b" 
+          icon={<UserIcon />}
+          color="#f59e0b"
         />
-        <DashboardCard 
-          title="Completion Rate" 
-          value="0%" 
-          icon={<ReportIcon />} 
-          color="#ef4444" 
+        <DashboardCard
+          title="Completion Rate"
+          value="0%"
+          icon={<ReportIcon />}
+          color="#ef4444"
         />
       </div>
 
       <div className="p-4 bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4">Analytics & Reports</h2>
-      
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Trainee Performance</h3>
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={traineePerformanceData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="completion" fill="#8884d8" name="Completion %" />
-              <Bar dataKey="attendance" fill="#82ca9d" name="Attendance %" />
-            </BarChart>
-          </ResponsiveContainer>
+        <h2 className="text-xl font-bold mb-4">Analytics & Reports</h2>
+
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Trainee Performance</h3>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={mappedAttendance} // Use the mapped attendance data
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" /> {/* Display user names */}
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="attendance" fill="#82ca9d" name="Attendance %" />
+              </BarChart>
+            </ResponsiveContainer>
+
+          </div>
         </div>
       </div>
-    </div>
-      
+
       <div className="dashboard-section mt-8">
         <div className="section-header">
           <h3>Upcoming Deadlines</h3>
@@ -192,7 +199,7 @@ const TabContent: React.FC<TabContentProps> = ({ tabId }) => {
 // Main Admin Dashboard Component
 const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   return (
     <div className="admin-dashboard bg-gray-100">
       <div className="content-wrapper">

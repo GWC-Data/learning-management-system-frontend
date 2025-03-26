@@ -67,7 +67,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
     <>
       {isLoading && <LoadingSpinner timeout={8000} />}{" "}
       {/* Show spinner when loading */}
-      <div className="flex items-center justify-center min-h-screen bg-[#D5AFE3] ">
+      <div className="flex items-center justify-center min-h-screen bg-[#6e2b8b] ">
         {/* Card Container */}
         <div className="relative flex flex-col bg-white space-x-5 rounded-2xl shadow-md md:max-w-[1000px] md:min-w[800px] md:flex-row md:space-y-0 -mt-[50px]">
           <div className="flex flex-col pb-5">

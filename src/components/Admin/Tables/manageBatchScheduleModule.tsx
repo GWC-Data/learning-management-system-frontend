@@ -4,7 +4,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Edit } from "lucide-react";
+import { Edit, Calendar, Users } from "lucide-react";
 import remove from '../../../assets/delete.png';
 import { ColDef } from "ag-grid-community";
 import Select from 'react-select';
@@ -12,17 +12,18 @@ import { format } from "date-fns";
 import Breadcrumb from "./breadcrumb";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import {
-  createBatchModuleScheduleApi,
-  fetchBatchModuleScheduleApi,
-  updateBatchModuleScheduleApi,
-  deleteBatchModuleScheduleApi,
-} from "@/helpers/api/batchModuleScheduleApi";
+  createBatchClassScheduleApi,
+  fetchBatchClassScheduleApi,
+  updateBatchClassScheduleApi,
+  deleteBatchClassScheduleApi,
+} from "@/helpers/api/batchClassScheduleApi";
 import { fetchBatchApi } from "@/helpers/api/batchApi";
 import { fetchCourseModuleApi } from "@/helpers/api/courseModuleApi";
 import { fetchUsersApi } from "@/helpers/api/userApi";
+import { fetchClassForModuleApi } from "@/helpers/api/classForModuleApi";
 import { useSearchParams } from "react-router-dom";
 
-interface BatchModuleScheduleTableProps {
+interface BatchClassScheduleTableProps {
   editable?: boolean;
 }
 
@@ -32,52 +33,77 @@ interface ScheduleData {
   batchName: string;
   moduleId: string;
   moduleName: string;
-  trainerId: string[];
+  classId: string;
+  classTitle: string;
+  trainerIds: string[];
   trainerName: string[];
   startDate: string;
   startTime: string;
   endDate: string;
   endTime: string;
   meetingLink: string;
-  duration: number;
+  assignmentEndDate: string;
+  traineeAssignments?: {
+    traineeId: string;
+    traineeName: string;
+    assignmentEndDate: string | Date;
+  }[];
 }
 
 interface Options {
   id: any;
   batchName: any;
   moduleName: any;
+  classTitle: any;
   trainerName: string;
+}
+
+interface Trainee {
+  id: string;
+  firstName: string;
+  lastName: string;
 }
 
 //get token
 const getToken = () => localStorage.getItem("authToken");
 
-const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableProps) => {
+const BatchClassScheduleTable = ({ editable = true }: BatchClassScheduleTableProps) => {
   const [schedules, setSchedules] = useState<ScheduleData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [colDefs, setColDefs] = useState<ColDef[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [batches, setBatches] = useState<Options[]>([]);
+  const [batches, setBatches] = useState<{ id: string; batchName: string }[]>([]);
   const [modules, setModules] = useState<{ id: string; moduleName: string }[]>([]);
+  const [classes, setClasses] = useState<{ id: string; classTitle: string }[]>([]);
   const [trainers, setTrainers] = useState<Options[]>([]);
   const [errors] = useState<Record<string, string>>({});
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState<ScheduleData | null>(null);
+
+  // New states for assignment extension functionality
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
+  const [trainees, setTrainees] = useState<Trainee[]>([]);
+  const [selectedTrainees, setSelectedTrainees] = useState<string[]>([]);
+  const [newAssignmentEndDate, setNewAssignmentEndDate] = useState("");
+
   const [newSchedule, setNewSchedule] = useState<ScheduleData>({
     id: "",
     batchId: "",
     batchName: "",
     moduleId: "",
     moduleName: "",
-    trainerId: [],
+    classId: "",
+    classTitle: "",
+    trainerIds: [],
     trainerName: [],
     startDate: "",
     startTime: "",
     endDate: "",
     endTime: "",
     meetingLink: "",
-    duration: 0,
+    assignmentEndDate: "",
+    traineeAssignments: []
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -88,8 +114,8 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
   const currentData = schedules.slice(startIndex, startIndex + recordsPerPage);
 
   const [searchParams] = useSearchParams();
-  const batchId = String(searchParams.get("batchId"));
-
+  const batchId = searchParams.get("batchId");
+  console.log("batchId", batchId);
 
   const handlePageChange = (newPage: SetStateAction<number>) => {
     setCurrentPage(newPage);
@@ -103,46 +129,84 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
     }
 
     try {
-      const schedulesResponse = await fetchBatchModuleScheduleApi();
-      console.log('schedulesResponse', schedulesResponse);
+      const schedulesResponse = await fetchBatchClassScheduleApi();
+      console.log("schedulesResponse", schedulesResponse);
+
       // Extract the data array
-      const schedulesData = schedulesResponse?.batchModuleSchedule.batchModuleSchedules || [];
+      const schedulesData = schedulesResponse?.batchClassSchedule?.batchClassSchedules || [];
 
       // Safeguard with Array.isArray
-      const schedules = Array.isArray(schedulesData)
+      const schedules: ScheduleData[] = Array.isArray(schedulesData)
         ? schedulesData.map((schedule: any) => ({
           id: schedule.id,
-          batchId: schedule.batch?.id || 0,
+          batchId: schedule.batch?.id || "",
           batchName: schedule.batch?.batchName || "Unknown Batch",
-          moduleId: schedule.module?.id || 0,
+          moduleId: schedule.module?.id || "",
           moduleName: schedule.module?.moduleName || "Unknown Module",
-          trainerId: schedule.trainers ? schedule.trainers.map((trainers: any) => trainers.id) : [],
-          trainerName: schedule.trainers ? schedule.trainers.map((trainers: any) =>
-            `${trainers.firstName} ${trainers.lastName}`).join(", ") : "Unknown Trainer",
-          startDate: schedule.startDate?.value,
-          startTime: schedule.startTime?.value,
-          endDate: schedule.endDate?.value,
-          endTime: schedule.endTime?.value,
-          meetingLink: schedule.meetingLink,
-          duration: schedule.duration,
+          classId: schedule.class?.id || "",
+          classTitle: schedule.class?.classTitle || "Unknown Class",
+          trainerIds: schedule.trainers ? schedule.trainers.map((trainer: any) => trainer.id) : [],
+          trainerName: schedule.trainers
+            ? schedule.trainers.map((trainer: any) => `${trainer.firstName} ${trainer.lastName}`)
+            : [],
+          startDate: schedule.startDate.value || "",
+          startTime: schedule.startTime.value || "",
+          endDate: schedule.endDate.value || "",
+          endTime: schedule.endTime.value || "",
+          meetingLink: schedule.meetingLink || "",
+          assignmentEndDate: schedule.assignmentEndDate || "",
+          traineeAssignments: schedule.assignments
+            ? schedule.assignments.map((assignment: any) => ({
+              traineeId: assignment.traineeId,
+              traineeName: `${assignment.traineeFirstName} ${assignment.traineeLastName}`,
+              assignmentEndDate: assignment.assignmentEndDate,
+            }))
+            : [],
         }))
         : [];
-      console.log(schedules, 'scheduleresponse')
 
-      const filterSchedule = schedules.filter((sch: any) => sch.batchId === batchId);
+      console.log("scheduleresponse", schedules);
+
+      const filterSchedule = schedules.filter((sch: ScheduleData) => sch.batchId === batchId);
       console.log("filterSchedule", filterSchedule);
 
       const batchResponse = await fetchBatchApi();
       const batchesData = batchResponse?.batch || [];
-      const batches = batchesData.map((batch: { id: any; batchName: any; }) => ({
+      console.log("Fetched Batches Data:", batchesData);
+
+      const batches = batchesData.map((batch: { id: any; batchName: any; trainees: any; }) => ({
         id: batch.id,
         batchName: batch.batchName,
+        trainees: batch.trainees || [], // Ensure trainees exists
       }));
+
       setBatches(batches);
-      console.log("shceduleBatchRes", batches);
+      console.log("Processed Batches:", batches);
+
+      // Check if batchId exists before filtering
+      if (!batchId) {
+        console.error("batchId is undefined or null!");
+        return;
+      }
+
+      // Find the batch with the matching ID
+      const currentBatch = batches.find((b: { id: string; }) => b.id === batchId);
+      console.log("Found Current Batch:", currentBatch);
+
+      if (currentBatch && currentBatch.trainees) {
+        setTrainees(
+          currentBatch.trainees.map((trainee: { id: any; firstName: any; lastName: any; }) => ({
+            id: trainee.id,
+            firstName: trainee.firstName || "",
+            lastName: trainee.lastName || "",
+          }))
+        );
+      } else {
+        console.error("No trainees found for batchId:", batchId);
+      }
+
 
       const moduleResponse = await fetchCourseModuleApi();
-
       const modules = Array.isArray(moduleResponse)
         ? moduleResponse.map((module: { moduleId: string; moduleName: string }) => ({
           id: module.moduleId,
@@ -153,18 +217,28 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
       setModules(modules);
       console.log("scheduleModulesRes", modules);
 
-      const responseUser = await fetchUsersApi();
-      const trainers = responseUser.users.filter(
-        (user: any) => user.roleName === "trainer"
-      ).map((trainer: any) => ({
-        id: trainer.id,
-        trainerName: `${trainer.firstName} ${trainer.lastName}`
+      const classResponse = await fetchClassForModuleApi();
+      console.log("classssssss", classResponse);
+
+      const mappedClasses = classResponse.classes.map((cls: { classId: any; classTitle: any; }) => ({
+        id: cls.classId,
+        classTitle: cls.classTitle,
       }));
+
+      console.log("mappedclassess", mappedClasses);
+      setClasses(mappedClasses);
+
+      const responseUser = await fetchUsersApi();
+      const trainers = responseUser.users
+        .filter((user: any) => user.roleName === "trainer")
+        .map((trainer: any) => ({
+          id: trainer.id,
+          trainerName: `${trainer.firstName} ${trainer.lastName}`,
+        }));
       setTrainers(trainers);
       console.log("trainers", trainers);
+
       setSchedules(filterSchedule);
-
-
     } catch (error) {
       console.error("Failed to fetch schedules", error);
       toast.error("Failed to fetch schedules. Please try again later.");
@@ -179,20 +253,28 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
 
   const addNewSchedule = () => {
     setEditing(false);
+
+    const currentBatch = batches.find(b => b.id === batchId);
+    const currentBatchName = currentBatch ? currentBatch.batchName : "";
+    console.log("currentBatches", currentBatchName);
+
     setNewSchedule({
       id: "",
-      batchId: "",
-      batchName: "",
+      batchId: String(batchId),
+      batchName: currentBatchName,
       moduleId: "",
       moduleName: "",
-      trainerId: [],
+      classId: "",
+      classTitle: "",
+      trainerIds: [],
       trainerName: [],
       startDate: "",
       startTime: "",
       endDate: "",
       endTime: "",
       meetingLink: "",
-      duration: 0,
+      assignmentEndDate: "",
+      traineeAssignments: []
     });
     setIsModalOpen(true);
   };
@@ -201,23 +283,50 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
     console.log("editschedule", schedule);
     setEditing(true);
     setNewSchedule({
-      id: schedule.id,
-      batchId: schedule.batchId,
-      batchName: schedule.batchName,
-      moduleId: schedule.moduleId,
-      moduleName: schedule.moduleName,
-      trainerId: schedule.trainerId,
-      trainerName: schedule.trainerName,
-      startDate: schedule.startDate,
-      startTime: schedule.startTime,
-      endDate: schedule.endDate,
-      endTime: schedule.endTime,
-      meetingLink: schedule.meetingLink,
-      duration: schedule.duration,
+      ...schedule
     });
     setIsModalOpen(true);
   };
 
+  // Open assignment extension modal
+  const openAssignmentModal = () => {
+    setNewAssignmentEndDate(newSchedule.assignmentEndDate || "");
+    setSelectedTrainees([]);
+    setIsAssignmentModalOpen(true);
+  };
+
+  // Handle save assignment changes
+  const handleSaveAssignmentChanges = () => {
+    // Create new trainee assignments or update existing ones
+    const updatedTraineeAssignments = [...(newSchedule.traineeAssignments || [])];
+
+    selectedTrainees.forEach(traineeId => {
+      const existingIndex = updatedTraineeAssignments.findIndex(
+        assignment => assignment.traineeId === traineeId
+      );
+
+      const trainee = trainees.find(t => t.id === traineeId);
+      const traineeName = trainee ? `${trainee.firstName} ${trainee.lastName}` : "";
+
+      if (existingIndex >= 0) {
+        updatedTraineeAssignments[existingIndex].assignmentEndDate = newAssignmentEndDate;
+      } else {
+        updatedTraineeAssignments.push({
+          traineeId,
+          traineeName,
+          assignmentEndDate: newAssignmentEndDate
+        });
+      }
+    });
+
+    setNewSchedule({
+      ...newSchedule,
+      traineeAssignments: updatedTraineeAssignments
+    });
+
+    setIsAssignmentModalOpen(false);
+    toast.success("Assignment end dates updated!");
+  };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -227,14 +336,17 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
       batchName: "",
       moduleId: "",
       moduleName: "",
-      trainerId: [],
+      classId: "",
+      classTitle: "",
+      trainerIds: [],
       trainerName: [],
       startDate: "",
       startTime: "",
       endDate: "",
       endTime: "",
       meetingLink: "",
-      duration: 0,
+      assignmentEndDate: "",
+      traineeAssignments: []
     });
   };
 
@@ -264,12 +376,13 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
     }
 
     try {
-      await deleteBatchModuleScheduleApi(scheduleToDelete.id);
+      await deleteBatchClassScheduleApi(scheduleToDelete.id);
 
       setBatches((prev) =>
         prev.filter((schedule) => schedule.id !== scheduleToDelete.id));
       toast.success("Schedule deleted successfully!");
       fetchSchedules();
+      setIsDeleteModalOpen(false);
     } catch (error) {
       toast.error("Failed to delete schedule. Please try again later.");
     } finally {
@@ -286,29 +399,31 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
 
     try {
       if (editing) {
-        await updateBatchModuleScheduleApi(newSchedule.id, {
+        await updateBatchClassScheduleApi(newSchedule.id, {
           batchId: newSchedule.batchId,
           moduleId: newSchedule.moduleId,
-          trainerIds: newSchedule.trainerId,
+          classId: newSchedule.classId,
+          trainerIds: newSchedule.trainerIds,
           startDate: newSchedule.startDate,
           startTime: newSchedule.startTime,
           endDate: newSchedule.endDate,
           endTime: newSchedule.endTime,
           meetingLink: newSchedule.meetingLink,
-          duration: newSchedule.duration
+          traineeAssignments: newSchedule.traineeAssignments,
         });
         toast.success("Schedule updated successfully!");
       } else {
-        await createBatchModuleScheduleApi({
+        await createBatchClassScheduleApi({
           batchId: newSchedule.batchId,
           moduleId: newSchedule.moduleId,
-          trainerIds: newSchedule.trainerId,
+          trainerIds: newSchedule.trainerIds,
+          classId: newSchedule.classId,
           startDate: newSchedule.startDate,
           startTime: newSchedule.startTime,
           endDate: newSchedule.endDate,
           endTime: newSchedule.endTime,
           meetingLink: newSchedule.meetingLink,
-          duration: newSchedule.duration
+          assignmentEndDate: newSchedule.assignmentEndDate
         });
         toast.success("BatchSchedule created successfully!")
       }
@@ -325,6 +440,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
     setColDefs([
       { headerName: "Batch Name", field: "batchName", editable: false },
       { headerName: "Module Name", field: "moduleName", editable: false },
+      { headerName: "Class Name", field: "classTitle", editable: false },
       { headerName: "Trainers Name", field: "trainerName", editable: false },
       {
         headerName: "Start Date", field: "startDate",
@@ -354,7 +470,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
         editable: false
       },
       {
-        headerName: "Join Link",
+        headerName: "Joining Link",
         field: "meetingLink",
         editable: false,
         cellRenderer: (params: any) => {
@@ -368,7 +484,14 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
           );
         },
       },
-      { headerName: "Duration(hour)", field: "duration", editable: false },
+      {
+        headerName: "AssignmentEndDate", field: "assignmentEndDate",
+        valueFormatter: (params) =>
+          params.value
+            ? format(new Date(params.value), "dd-MM-yyyy")
+            : "N/A",
+        editable: false
+      },
       {
         headerName: "Actions",
         field: "actions",
@@ -414,14 +537,14 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
   }, [schedules]);
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-24">
+    <div className="flex-1 p-4 mt-5 ml-20">
       <div className="text-gray-600 text-lg mb-4">
         <Breadcrumb />
       </div>
-      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1147px]">
+      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">
-          <h2 className="text-2xl font-metropolis font-semibold tracking-wide">Batch Module Schedule</h2>
-          <p className="text-sm font-metropolis font-medium">Manage batch module schedules easily.</p>
+          <h2 className="text-2xl font-metropolis font-semibold tracking-wide">Batch Class Schedule</h2>
+          <p className="text-sm font-metropolis font-medium">Manage batch class schedules easily.</p>
         </div>
         <Button onClick={addNewSchedule} className="bg-yellow-400 text-gray-900 font-metropolis font-semibold px-5 py-2 rounded-md shadow-lg hover:bg-yellow-500 transition duration-300">
           + Add Schedule
@@ -500,68 +623,90 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
         </button>
       </div>
 
+      {/* Schedule Edit/Create Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[550px] max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-metropolis font-semibold mb-4">
-              {editing ? "Edit Schedule" : "Add NewSchedule"}</h2>
+              {editing ? "Edit Schedule" : "Add New Schedule"}
+            </h2>
             <form>
-              <div className="flex gap-4 mb-2 mt-2">
-                <div className="w-1/2">
-                  <label className="block font-metropolis font-medium">Batches <span className="text-red-500">*</span></label>
-                  <Select
-                    options={batches.map((batch) => ({
-                      value: batch.id,
-                      label: batch.batchName,
-                    }))}
-                    value={
-                      newSchedule.batchId
-                        ? {
-                          value: newSchedule.batchId,
-                          label: batches.find((batch) => batch.id === newSchedule.batchId)?.batchName,
-                        }
-                        : null
-                    }
-                    onChange={(selectedOption) => {
-                      setNewSchedule({
-                        ...newSchedule,
-                        batchId: selectedOption ? selectedOption.value : "", // Default to 0 or an appropriate number if null
-                      });
-                    }}
-                    className="w-full rounded font-metropolis text-gray-700 mt-1"
-                    placeholder="Select Batch"
-                    isSearchable={true}
-                  />
+              {/* Batch and Module Info (Read-only when editing) */}
+              {editing && (
+                <div className="mb-4 mt-2">
+                  <div className="bg-gray-100 p-3 rounded-md">
+                    <p className="font-metropolis font-medium text-gray-700">
+                      <span className="font-bold">Batch:</span> {newSchedule.batchName}
+                    </p>
+                    <p className="font-metropolis font-medium text-gray-700 mt-1">
+                      <span className="font-bold">Module:</span> {newSchedule.moduleName}
+                    </p>
+                  </div>
                 </div>
+              )}
 
+              {!editing && (
+              <div className="flex gap-4 mb-2 mt-2">
+                <div className="w-full">
+                  <label className="block font-metropolis font-medium">
+                    Module Name <span className="text-red-500">*</span>
+                  </label> 
+                    <Select
+                      options={modules.map((m) => ({
+                        value: m.id,
+                        label: m.moduleName,
+                      }))}
+                      value={
+                        newSchedule.moduleId
+                          ? {
+                            value: newSchedule.moduleId,
+                            label: modules.find((m) => m.id === newSchedule.moduleId)?.moduleName,
+                          }
+                          : null
+                      }
+                      onChange={(selectedOption) =>
+                        setNewSchedule({
+                          ...newSchedule,
+                          moduleId: selectedOption ? selectedOption.value : "",
+                        })
+                      }
+                      placeholder="Select Module"
+                      className="w-full rounded font-metropolis text-gray-700 mt-1"
+                      isSearchable={true}
+                    />
+                </div>
+              </div>
+                 )}
 
-                <div>
-                  <label className="block font-metropolis font-medium">Modules <span className="text-red-500">*</span></label>                  <Select
-                    options={modules.map((module) => ({
-                      value: module.id,
-                      label: module.moduleName,
+              <div className="flex gap-4 mb-2 mt-2">
+                <div className="w-full">
+                  <label className="block font-metropolis font-medium">Class <span className="text-red-500">*</span></label>
+                  <Select
+                    options={classes.map((cls) => ({
+                      value: cls.id,
+                      label: cls.classTitle,
                     }))}
                     value={
-                      newSchedule.moduleId
+                      newSchedule.classId
                         ? {
-                          value: newSchedule.moduleId,
-                          label: modules.find((module) => module.id === newSchedule.moduleId)?.moduleName,
+                          value: newSchedule.classId,
+                          label: classes.find((cls) => cls.id === newSchedule.classId)?.classTitle,
                         }
                         : null
                     }
                     onChange={(selectedOption) =>
                       setNewSchedule({
                         ...newSchedule,
-                        moduleId: selectedOption ? selectedOption.value : '', // Default to 0 if nothing is selected
+                        classId: selectedOption ? selectedOption.value : '',
                       })
                     }
-                    placeholder="Select Module"
-                    className="w-52 rounded font-metropolis text-gray-700 mt-1"
-                    isSearchable={true} // Enables search functionality
+                    placeholder="Select Class"
+                    className="w-full rounded font-metropolis text-gray-700 mt-1"
+                    isSearchable={true}
                   />
                 </div>
-
               </div>
+
               {/* Trainer Selector */}
               <div className="mb-3 mt-4">
                 <label className="block font-metropolis font-medium">Trainers <span className="text-red-500">*</span></label>
@@ -571,7 +716,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                     value: trainer.id,
                     label: trainer.trainerName,
                   }))}
-                  value={(newSchedule.trainerId || []).map((id) => ({
+                  value={(newSchedule.trainerIds || []).map((id) => ({
                     value: id,
                     label: trainers.find((trainer) => trainer.id === id)?.trainerName || "",
                   }))}
@@ -580,7 +725,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                     const selectedNames = selectedOptions ? selectedOptions.map(option => option.label) : [];
                     setNewSchedule({
                       ...newSchedule,
-                      trainerId: selectedIds,
+                      trainerIds: selectedIds,
                       trainerName: selectedNames,
                     });
                   }}
@@ -602,7 +747,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                     onChange={(e) =>
                       setNewSchedule({ ...newSchedule, startDate: e.target.value })
                     }
-                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
+                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-700"
                   />
                   {errors.StartDate && (
                     <span className="text-red-500 text-sm">
@@ -621,7 +766,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                     onChange={(e) =>
                       setNewSchedule({ ...newSchedule, startTime: e.target.value })
                     }
-                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
+                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-700"
                   />
                   {errors.StartTime && (
                     <span className="text-red-500 text-sm">
@@ -643,7 +788,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                     onChange={(e) =>
                       setNewSchedule({ ...newSchedule, endDate: e.target.value })
                     }
-                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
+                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-700"
                   />
                   {errors.EndDate && (
                     <span className="text-red-500 text-sm">
@@ -662,7 +807,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                     onChange={(e) =>
                       setNewSchedule({ ...newSchedule, endTime: e.target.value })
                     }
-                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
+                    className="w-full border rounded font-metropolis mt-1 p-2 text-gray-700"
                   />
                   {errors.EndTime && (
                     <span className="text-red-500 text-sm">
@@ -674,7 +819,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
 
               {/* Meeting Link */}
               <div className="mb-4">
-                <label className="block font-metropolis font-medium ">
+                <label className="block font-metropolis font-medium">
                   Joining Link <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -683,7 +828,7 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                   onChange={(e) =>
                     setNewSchedule({ ...newSchedule, meetingLink: e.target.value })
                   }
-                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
+                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-700"
                 />
                 {errors.MeetingLink && (
                   <span className="text-red-500 text-sm">
@@ -692,39 +837,34 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
                 )}
               </div>
 
-              {/* Duration */}
-              <div className="mb-4">
-                <label className="block font-metropolis font-medium">
-                  Duration (hours) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={newSchedule.duration}
-                  onChange={(e) =>
-                    setNewSchedule({ ...newSchedule, duration: parseInt(e.target.value) })
-                  }
-                  className="w-full border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
-                />
-                {errors.Duration && (
-                  <span className="text-red-500 text-sm">
-                    {errors.Duration}
-                  </span>
-                )}
-              </div>
+              {/* Assignment Extension Button */}
+              {editing && (
+                <div className="mb-6">
+                  <button
+                    type="button"
+                    onClick={openAssignmentModal}
+                    className="w-full bg-[#eadcf1] text-black hover:bg-[#6E2B8B] hover:text-white p-2 rounded font-metropolis transition-all duration-300 flex items-center justify-center"
+                  >
+                    <Calendar className="mr-2 h-5 w-5" />
+                    Extend Assignment Deadline
+                  </button>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex justify-end space-x-4">
                 <Button
                   onClick={handleFormSubmit}
                   className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+             transition-all duration-500 ease-in-out 
+             rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   {editing ? "Update Schedule" : "Create NewSchedule"}
                 </Button>
                 <Button
                   onClick={handleModalClose}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+             rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   Cancel
                 </Button>
@@ -733,9 +873,118 @@ const BatchModuleScheduleTable = ({ editable = true }: BatchModuleScheduleTableP
           </div>
         </div>
       )}
+
+      {/* Assignment Extension Modal */}
+      {isAssignmentModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[500px] max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-metropolis font-semibold mb-4">
+              Extend Assignment Deadline
+            </h2>
+
+            <div className="mb-5">
+              <div className="bg-gray-100 p-3 rounded-md mb-4">
+                <p className="font-metropolis font-medium text-gray-700">
+                  <span className="font-bold">Class:</span> {classes.find(cls => cls.id === newSchedule.classId)?.classTitle || ""}
+                </p>
+                <p className="font-metropolis font-medium text-gray-700 mt-1">
+                  <span className="font-bold">Batch:</span> {newSchedule.batchName}
+                </p>
+                <p className="font-metropolis font-medium text-gray-700 mt-1">
+                  <span className="font-bold">Module:</span> {newSchedule.moduleName}
+                </p>
+              </div>
+
+              <div className="mb-4">
+                <label className="block font-metropolis font-medium mb-2">
+                  Assignment End Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={newAssignmentEndDate}
+                  onChange={(e) => setNewAssignmentEndDate(e.target.value)}
+                  className="w-full border rounded font-metropolis p-2 text-gray-700"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block font-metropolis font-medium mb-2">
+                  Select Trainees <span className="text-red-500">*</span>
+                </label>
+
+                <div className="mb-2 flex items-center">
+                  <input
+                    type="checkbox"
+                    id="selectAll"
+                    className="mr-2"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedTrainees(trainees.map(t => t.id));
+                      } else {
+                        setSelectedTrainees([]);
+                      }
+                    }}
+                    checked={selectedTrainees.length === trainees.length && trainees.length > 0}
+                  />
+                  <label htmlFor="selectAll" className="font-metropolis font-medium text-gray-700">
+                    Select All Trainees
+                  </label>
+                </div>
+
+                <div className="max-h-48 overflow-y-auto border rounded-md p-2">
+                  {trainees.length > 0 ?
+                    trainees.map((trainee) => (
+                      <div key={trainee.id} className="flex items-center py-1 border-b">
+                        <input
+                          type="checkbox"
+                          id={`trainee-${trainee.id}`}
+                          value={trainee.id}
+                          checked={selectedTrainees.includes(trainee.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedTrainees([...selectedTrainees, trainee.id]);
+                            } else {
+                              setSelectedTrainees(selectedTrainees.filter(id => id !== trainee.id));
+                            }
+                          }}
+                          className="mr-2"
+                        />
+                        <label htmlFor={`trainee-${trainee.id}`} className="font-metropolis text-gray-700">
+                          {trainee.firstName} {trainee.lastName}
+                        </label>
+                      </div>
+                    )) :
+                    <p className="text-gray-500 p-2">No trainees available for this batch</p>
+                  }
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Selected: {selectedTrainees.length} of {trainees.length} trainees
+                </p>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <Button
+                  onClick={handleSaveAssignmentChanges}
+                  disabled={selectedTrainees.length === 0 || !newAssignmentEndDate}
+                  className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-all duration-300 ${(selectedTrainees.length === 0 || !newAssignmentEndDate) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  onClick={() => setIsAssignmentModalOpen(false)}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded transition-all duration-300"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default BatchModuleScheduleTable;
+export default BatchClassScheduleTable;
 

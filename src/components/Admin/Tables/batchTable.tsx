@@ -58,6 +58,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
   const [trainees, setTrainees] = useState<batchOptions[]>([])
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [batchToDelete, setBatchToDelete] = useState<BatchData | null>(null);
+  const [filteredBatches, setFilteredBatches] = useState<any[]>([]);
   const [newBatch, setNewBatch] = useState<BatchData>({
     id: "",
     batchName: "",
@@ -74,6 +75,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchParams] = useSearchParams();
   const courseId = String(searchParams.get("courseId"));
+  console.log("courseId", courseId);
 
   // const courseId = location.state?.courseId;
   // const courseName = location.state?.courseName;
@@ -460,10 +462,10 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-16">
+    <div className="flex-1 p-4 mt-5 ml-20">
       <div className="text-gray-600 text-lg mb-4">
         <Breadcrumb /></div>
-      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1185px]">
+        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             Batches
@@ -514,7 +516,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
       )}
       <div
         className="ag-theme-quartz text-left font-poppins"
-        style={{ height: "calc(100vh - 180px)", width: "91.5%" }}
+        style={{ height: "calc(100vh - 180px)", width: "91%" }}
       >
         <AgGridReact
           rowSelection="multiple"

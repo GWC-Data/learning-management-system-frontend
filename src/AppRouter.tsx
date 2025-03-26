@@ -23,13 +23,14 @@ import ManageRoles from "./components/Admin/Tables/rolesTables";
 import PermissionRoles from "./components/Admin/Tables/permissionTables";
 import BatchTable from "./components/Admin/Tables/batchTable";
 import CourseModuleTable from "./components/Admin/Tables/courseModule";
-import BatchModuleScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
-import AdminCourseAssignments from "./components/Admin/Tables/courseAssignmentTable";
+import BatchClassScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
+// import AdminCourseAssignments from "./components/Admin/Tables/courseAssignmentTable";
 import Attendance from "./components/Admin/Tables/attendance";
-import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
+// import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
 // import Courses from './components/Tables/courseDropdown';
 import TrainersActivityPage from "./components/Admin/Charts/trainersActivityPage";
 import TraineeActivityPage from "./components/Admin/Charts/traineesActivityPage";
+import ClassTable from "./components/Admin/Tables/classTable";
 // import JobBoard from './components/Admin/jobBoard';
 
 import TraineeHome from "./components/Trainee/traineeHome";
@@ -80,21 +81,22 @@ const AppRouter: React.FC<AppRouterProps> = ({
             element={<ManageRoles />}
           />
           <Route path="manage-permissions" element={<PermissionRoles />} />
-          <Route
+          {/* <Route
             path="course-assignment"
             element={<AdminCourseAssignments />}
-          />
+          /> */}
           <Route path="batch-management" element={<BatchTable />} />
           <Route path="course-module" element={<CourseModuleTable />} />
+          <Route path="class" element={<ClassTable />} />
 
           <Route path="trainers-activity" element={<TrainersActivityPage />} />
           <Route path="trainees-activity" element={<TraineeActivityPage />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="company-info" element={<CompanyInfoTable />} />
+          {/* <Route path="company-info" element={<CompanyInfoTable />} /> */}
 
           <Route
             path="manage-batch-schedules"
-            element={<BatchModuleScheduleTable />}
+            element={<BatchClassScheduleTable />}
           />
           <Route path="allUsers" element={<AllUsers />}>
             <Route path=":roleName" element={<UserManagement />} />

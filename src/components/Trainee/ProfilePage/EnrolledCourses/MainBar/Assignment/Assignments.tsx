@@ -21,7 +21,9 @@ const Assignments: React.FC = () => {
   const [pdfFileUrl, setPdfFileUrl] = useState<string | null>(null);
   const [trainerNames, setTrainerNames] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<
+    string | null
+  >(null);
 
   // Fetch assignments on component mount
   const fetchCourseAssignments = async () => {
@@ -153,7 +155,8 @@ const Assignments: React.FC = () => {
                   {assignment.courseAssignmentQuestionName}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Trainer Name: {trainerNames[assignment.trainerId] || "Loading..."}
+                  Trainer Name:{" "}
+                  {trainerNames[assignment.trainerId] || "Loading..."}
                 </p>
               </div>
 
@@ -161,7 +164,9 @@ const Assignments: React.FC = () => {
               <div className="flex gap-4 items-center">
                 {/* Download Section */}
                 <button
-                  onClick={() => handleViewFile(assignment.courseAssignmentQuestionFile)}
+                  onClick={() =>
+                    handleViewFile(assignment.courseAssignmentQuestionFile)
+                  }
                   className="bg-blue-500 text-white py-2 px-4 rounded-lg shadow hover:bg-blue-600 transition-all"
                 >
                   View Questions
@@ -201,7 +206,9 @@ const Assignments: React.FC = () => {
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500">No assignments available at the moment.</p>
+          <p className="text-center text-gray-500">
+            No assignments available at the moment.
+          </p>
         )}
       </div>
 

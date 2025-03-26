@@ -24,7 +24,7 @@ export const fetchJobBoardsApi = async () => {
 };
 
 // Read a JobBoard by id
-export const fetchJobBoardByIdApi = async (jobBoardId: number) => {
+export const fetchJobBoardByIdApi = async (jobBoardId: string) => {
   try {
     console.log("fetchJobBoardByIdApi", jobBoardId);
     const response = await apiClient.get(`/job-board/${jobBoardId}`);
@@ -37,7 +37,7 @@ export const fetchJobBoardByIdApi = async (jobBoardId: number) => {
 
 // Update an existing JobBoard
 export const updateJobBoardApi = async (
-  jobBoardId: number,
+  jobBoardId: string,
   jobBoardData: any
 ) => {
   try {
@@ -53,7 +53,7 @@ export const updateJobBoardApi = async (
 };
 
 // Delete a JobBoard
-export const deleteJobBoardApi = async (jobBoardId: number) => {
+export const deleteJobBoardApi = async (jobBoardId: string) => {
   try {
     const response = await apiClient.delete(`/job-board/${jobBoardId}`);
     return response.data;

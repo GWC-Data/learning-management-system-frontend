@@ -16,6 +16,21 @@ export const createAttendanceApi = async (newAttendance: any) => {
     }
   };
 
+
+  export const getAttendanceByUserIdApi = async (userId: string) => {
+    try {
+      const response = await apiClient.get(`/attendance`, {
+        params: { userId }, // Pass userId as a query parameter
+      });
+  
+      console.log('response', response.data.attendance);
+      return response.data.attendance;
+    } catch (error) {
+      console.error('Error getting attendance user by id', error);
+      throw error;
+    }
+  };
+
   export const getAttendanceFilterByIdApi = async (
     userId: string,
     classId?: string,

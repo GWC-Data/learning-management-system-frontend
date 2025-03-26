@@ -32,8 +32,8 @@ interface CourseData {
   id: string;
   courseName: string;
   courseDesc: string;
-  courseCategoryId: string;
-  coursecategoryName: string;
+  courseCategoryId: string | string[];
+  coursecategoryName: string | string[];
   courseImg: File | string;
   courseLink: string;
   createdByUserName: string;
@@ -42,7 +42,7 @@ interface CourseData {
 
 interface courseCategoryOptions {
   id: any;
-  coursecategoryName: any;
+  coursecategoryName: string;
 }
 
 // Helper to get the token from local storage
@@ -64,7 +64,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
     id: "",
     courseName: "",
     courseDesc: "",
-    courseCategoryId: "",
+    courseCategoryId: [],
     coursecategoryName: "",
     courseImg: "",
     courseLink: "",
@@ -184,7 +184,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
       id: "",
       courseName: "",
       courseDesc: "",
-      courseCategoryId: "",
+      courseCategoryId: [],
       coursecategoryName: "",
       courseImg: "",
       courseLink: "",
@@ -248,7 +248,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
       id: "",
       courseName: "",
       courseDesc: "",
-      courseCategoryId: "",
+      courseCategoryId: [],
       coursecategoryName: "",
       courseImg: "",
       courseLink: "",
@@ -302,7 +302,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
 
   useEffect(() => {
     setColDefs([
-      { headerName: "Course Name", field: "courseName", editable: false, width: 220 },
+      { headerName: "Course Name", field: "courseName", editable: false, width: 220, },
       { headerName: "Description", field: "courseDesc", editable: false, width: 470 },
       //       { headerName: "Course Category", field: "courseCategory", editable: false, width: 250 },
       // { headerName: "Course Image", field: "courseImg", editable: false, width: 200},
@@ -315,21 +315,21 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
             <TooltipProvider>
-              <Button onClick={() => viewBatch(params.data)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <img src={Batch} alt="Batch Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-                  </TooltipTrigger>
-                  <TooltipContent>View Batch</TooltipContent>
-                </Tooltip>
-              </Button>
-
               <Button onClick={() => viewModule(params)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <img src={Module} alt="Module Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
                   </TooltipTrigger>
                   <TooltipContent>View Module</TooltipContent>
+                </Tooltip>
+              </Button>
+
+              <Button onClick={() => viewBatch(params.data)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img src={Batch} alt="Batch Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                  </TooltipTrigger>
+                  <TooltipContent>View Batch</TooltipContent>
                 </Tooltip>
               </Button>
 
@@ -401,8 +401,8 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
         </div>
       )}
 
-      <div className="ag-theme-quartz font-poppins" 
-      style={{ height: "70vh", width: "91%" }}>
+      <div className="ag-theme-quartz font-poppins"
+        style={{ height: "70vh", width: "91%" }}>
         <AgGridReact
           rowSelection="multiple"
           suppressRowClickSelection
@@ -414,8 +414,6 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
           animateRows
         />
       </div>
-
-
       {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-4">
         <button
@@ -462,28 +460,39 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                 />
               </div>
               <div className="mb-4">
-                <label className="block font-metropolis font-medium">Category <span className="text-red-500">*</span></label>
+                <label className="block font-metropolis font-medium">
+                  Category <span className="text-red-500">*</span>
+                </label>
                 <Select
+                  isMulti
                   options={courseCategory.map((course) => ({
                     value: course.id,
                     label: course.coursecategoryName,
                   }))}
                   value={
                     newCourse.courseCategoryId
-                      ? {
-                        value: newCourse.courseCategoryId,
-                        label: courseCategory.find((course) => course.id === newCourse.courseCategoryId)?.coursecategoryName || "Unknown",
-                      }
+                      ? (Array.isArray(newCourse.courseCategoryId)
+                        ? newCourse.courseCategoryId.map(categoryId => ({
+                          value: categoryId,
+                          label: courseCategory.find((course) => course.id === categoryId)?.coursecategoryName || "Unknown"
+                        }))
+                        : {
+                          value: newCourse.courseCategoryId,
+                          label: courseCategory.find((course) => course.id === newCourse.courseCategoryId)?.coursecategoryName || "Unknown"
+                        }
+                      )
                       : null
                   }
-                  onChange={(selectedOption) => {
+                  onChange={(selectedOptions) => {
                     setNewCourse({
                       ...newCourse,
-                      courseCategoryId: selectedOption ? selectedOption.value : "", // Update courseCategoryId with the selected category's id
+                      courseCategoryId: selectedOptions
+                        ? selectedOptions.map((option) => option.value) // Extract values correctly
+                        : [],
                     });
-                  }}
+                  }}                  
                   className="w-full rounded mt-1 font-metropolis text-gray-700"
-                  placeholder="Select Category"
+                  placeholder="Select Categories"
                   isSearchable={true}
                 />
               </div>
@@ -498,14 +507,13 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                   onChange={(e) => setNewCourse({ ...newCourse, courseLink: e.target.value })}
                 />
               </div>
-
               <div className="mb-4">
                 <label className="block font-metropolis font-medium">
                   Course Image <span className="text-red-500">*</span>
                 </label>
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded p-4 mt-1 h-28 text-center cursor-pointer 
+                  className={`border-2 border-dashed rounded p-4 mt-1 h-30 text-center cursor-pointer 
     ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
                 >
                   <input {...getInputProps()} />
@@ -516,7 +524,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                       <img
                         src={URL.createObjectURL(uploadedFile)}
                         alt="Uploaded Course"
-                        className="h-20 w-20 object-cover rounded border"
+                        className="h-24 w-30 object-cover rounded border"
                       />
                       <p className="text-green-600 font-metropolis font-semibold mt-2">
                         {uploadedFile.name}
@@ -539,7 +547,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                       </div>
                     ) : (
                       /* ✅ Show Placeholder Text When No Image is Uploaded */
-                      <p className="text-gray-400 font-semibold mt-5">
+                      <p className="text-gray-400 font-semibold mt-3 p-4">
                         Drag & drop a file here, or click to select one
                       </p>
                     )}

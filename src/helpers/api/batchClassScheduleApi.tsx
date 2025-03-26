@@ -1,13 +1,13 @@
 import apiClient from "../rootApi/apiClient";
 
 // Create a new batch module schedule
-export const createBatchModuleScheduleApi = async (
-  newBatchModuleSchedule: any
+export const createBatchClassScheduleApi = async (
+  newBatchClassSchedule: any
 ) => {
   try {
     const response = await apiClient.post(
-      "/batchModuleSchedule",
-      newBatchModuleSchedule
+      "/batchClassSchedule",
+      newBatchClassSchedule
     );
     return response.data;
   } catch (error) {
@@ -17,9 +17,9 @@ export const createBatchModuleScheduleApi = async (
 };
 
 // Read all batch module schedules
-export const fetchBatchModuleScheduleApi = async () => {
+export const fetchBatchClassScheduleApi = async () => {
   try {
-    const response = await apiClient.get("/batchModuleSchedule");
+    const response = await apiClient.get("/batchClassSchedule");
     console.log("response", response.data);
     return response.data || [];
   } catch (error) {
@@ -29,12 +29,12 @@ export const fetchBatchModuleScheduleApi = async () => {
 };
 
 //Read all batch module schedules by batch id
-export const fetchBatchModuleScheduleByBatchIdApi = async (id: string) => {
+export const fetchBatchClassScheduleByBatchIdApi = async (id: string) => {
   try {
     console.log("Fetching schedule for batch ID:", id);
-    const response = await apiClient.get(`/batchModuleSchedulebybatch/${id}`);
-    console.log("response", response.data.batchModuleSchedule);
-    return response.data.batchModuleSchedule || [];
+    const response = await apiClient.get(`/batchClassSchedulebybatch/${id}`);
+    console.log("response", response.data.batchClassSchedule);
+    return response.data.batchClassSchedule || [];
   } catch (error) {
     console.error("Failed to fetch batch module schedule by batch id", error);
     throw error;
@@ -42,11 +42,11 @@ export const fetchBatchModuleScheduleByBatchIdApi = async (id: string) => {
 };
 
 // Read a batch module schedule by id
-export const fetchBatchModuleScheduleByIdApi = async (id: number) => {
+export const fetchBatchClassScheduleByIdApi = async (id: number) => {
   try {
     const userId = parseInt(id.toString(), 10); // Convert id to integer
     console.log("Fetching schedule for user ID:", userId);
-    const response = await apiClient.get(`/batchModuleSchedule/${userId}`);
+    const response = await apiClient.get(`/batchClassSchedule/${userId}`);
     return response.data || [];
   } catch (error) {
     console.error("Failed to fetch batch module schedule by id", error);
@@ -55,15 +55,15 @@ export const fetchBatchModuleScheduleByIdApi = async (id: number) => {
 };
 
 // Update an batch module schedule
-export const updateBatchModuleScheduleApi = async (
+export const updateBatchClassScheduleApi = async (
   id: string,
-  newBatchModuleSchedule: any
+  newBatchClassSchedule: any
 ) => {
   try {
-    console.log("updatedCourseModule", newBatchModuleSchedule);
+    console.log("updatedCourseModule", newBatchClassSchedule);
     const response = await apiClient.put(
-      `/batchModuleSchedule/${id}`,
-      newBatchModuleSchedule
+      `/batchClassSchedule/${id}`,
+      newBatchClassSchedule
     );
     console.log("response batch module", response.data.data);
     return response.data;
@@ -74,9 +74,9 @@ export const updateBatchModuleScheduleApi = async (
 };
 
 // Delete a batch module schedule
-export const deleteBatchModuleScheduleApi = async (id: string) => {
+export const deleteBatchClassScheduleApi = async (id: string) => {
   try {
-    const response = await apiClient.delete(`/batchModuleSchedule/${id}`);
+    const response = await apiClient.delete(`/batchClassSchedule/${id}`);
     return response.data;
   } catch (error) {
     console.error("Failed to delete course module", error);

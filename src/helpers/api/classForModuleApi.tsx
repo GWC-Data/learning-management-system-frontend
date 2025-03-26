@@ -4,7 +4,11 @@ import apiClient from "../rootApi/apiClient";
 // Create a new class for module
 export const createClassForModuleApi = async (classData: any) => {
   try {
-    const response = await apiClient.post("/class", classData);
+    const response = await apiClient.post("/class", classData,  {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating class", error);
@@ -53,7 +57,11 @@ export const updateClassForModuleApi = async (
   classData: any
 ) => {
   try {
-    const response = await apiClient.put(`/class/${classId}`, classData);
+    const response = await apiClient.put(`/class/${classId}`, classData,  {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error updating class data", error);

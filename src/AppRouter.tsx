@@ -23,24 +23,15 @@ import ManageRoles from "./components/Admin/Tables/rolesTables";
 import PermissionRoles from "./components/Admin/Tables/permissionTables";
 import BatchTable from "./components/Admin/Tables/batchTable";
 import CourseModuleTable from "./components/Admin/Tables/courseModule";
-import BatchModuleScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
-import AdminCourseAssignments from "./components/Admin/Tables/courseAssignmentTable";
+import BatchClassScheduleTable from "./components/Admin/Tables/manageBatchScheduleClass";
 import Attendance from "./components/Admin/Tables/attendance";
-import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
 // import Courses from './components/Tables/courseDropdown';
 import TrainersActivityPage from "./components/Admin/Charts/trainersActivityPage";
 import TraineeActivityPage from "./components/Admin/Charts/traineesActivityPage";
 import JobBoard from './components/Admin/Tables/jobBoardTable';
 
-import TraineeHome from "./components/Trainee/traineeHome";
-import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
-import CoursePage from "./components/Trainee/ProfilePage/EnrolledCourses/CoursePage/coursePage";
-import TraineeDashboard from "./components/Trainee/ProfilePage/Dashboard/DashboardPage/dashboardPage";
-import CodeExecutor from "./components/Trainee/ProfilePage/CodeChallenges/codeExecutor";
-import CalendarManagement from "./components/Trainee/ProfilePage/CalenderManagement/calenderManagement";
-import EnrolledCourses from "./components/Trainee/ProfilePage/EnrolledCourses/enrolledCourses";
-
 import TrainerHelloWorld from "./components/Trainer/TrainerHelloWorld";
+import ClassTable from "./components/Admin/Tables/classTable";
 // import JobBoard from "./components/Trainee/ProfilePage/JobBoard/jobBoard";
 
 
@@ -81,18 +72,17 @@ const AppRouter: React.FC<AppRouterProps> = ({
             element={<ManageRoles />}
           />
           <Route path="manage-permissions" element={<PermissionRoles />} />
-          <Route path="course-assignment" element={<AdminCourseAssignments/>}/>
           <Route path="batch-management" element={<BatchTable />} />
           <Route path="course-module" element={<CourseModuleTable />} />
+          <Route path="class" element={<ClassTable />} />
 
           <Route path="trainers-activity" element={<TrainersActivityPage />} />
           <Route path="trainees-activity" element={<TraineeActivityPage />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="company-info" element={<CompanyInfoTable/>}/>
        
           <Route
             path="manage-batch-schedules"
-            element={<BatchModuleScheduleTable />}
+            element={<BatchClassScheduleTable />}
           />
           <Route path="allUsers" element={<AllUsers />}>
             <Route path=":roleName" element={<UserManagement />} />
@@ -102,24 +92,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
         </Route>
 
           {/* Trainee Protected Routes */}
-          <Route
-            path="/trainee/*"
-            element={
-              <ProtectedRoute allowedRoles={["trainee"]}>
-                <TraineeHome isAuthenticated={isAuthenticated} />
-              </ProtectedRoute>
-            }
-          >
-          <Route path="enrolledCourses" element={<EnrolledCourses />}>
-            <Route path=":courseDetails" element={<CoursePage />} />
-          </Route>
-          {/* <Route path="courses" element={<CoursePage />} /> */}
-          <Route path="dashboard" element={<TraineeDashboard />} />
-          <Route path="code-challenges" element={<CodeExecutor />} />
-          <Route path="job-board" element={<JobBoard/>} />
-          <Route path="calendar-view" element={<CalendarManagement />} />
-          <Route path="settings" element={<UserSettings />} />
-        </Route>
+
 
         {/* Trainer Protected Routes */}
         <Route
@@ -169,3 +142,5 @@ const AppRouter: React.FC<AppRouterProps> = ({
 };
 
 export default AppRouter;
+
+

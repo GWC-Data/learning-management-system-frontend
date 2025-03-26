@@ -1,6 +1,6 @@
 import * as types from "./actionTypes";
 
-interface BatchModuleSchedule {
+interface BatchClassSchedule {
   id: number;
   batchId: number;
   moduleId: number;
@@ -10,9 +10,9 @@ interface BatchModuleSchedule {
   [key: string]: any;
 }
 
-interface BatchModuleScheduleState {
-  batchModuleSchedules: BatchModuleSchedule[];
-  batchModuleSchedulesByBatchId: Record<number, BatchModuleSchedule[]>;
+interface BatchClassScheduleState {
+  batchClassSchedules: BatchClassSchedule[];
+  batchClassSchedulesByBatchId: Record<number, BatchClassSchedule[]>;
   loading: boolean;
   error: string | null;
   submissionStatus: string | null;
@@ -20,9 +20,9 @@ interface BatchModuleScheduleState {
   deleteStatus: string | null;
 }
 
-const initialState: BatchModuleScheduleState = {
-  batchModuleSchedules: [],
-  batchModuleSchedulesByBatchId: {},
+const initialState: BatchClassScheduleState = {
+  batchClassSchedules: [],
+  batchClassSchedulesByBatchId: {},
   loading: false,
   error: null,
   submissionStatus: null,
@@ -30,73 +30,73 @@ const initialState: BatchModuleScheduleState = {
   deleteStatus: null,
 };
 
-const batchModuleScheduleReducer = (
+const batchClassScheduleReducer = (
   state = initialState,
   action: any
-): BatchModuleScheduleState => {
+): BatchClassScheduleState => {
   switch (action.type) {
     // ✅ GET All
-    case types.FETCH_BATCH_MODULE_SCHEDULE_REQUEST:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_REQUEST:
       return { ...state, loading: true, error: null };
-    case types.FETCH_BATCH_MODULE_SCHEDULE_SUCCESS:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_SUCCESS:
       return {
         ...state,
         loading: false,
-        batchModuleSchedules: action.payload,
+        batchClassSchedules: action.payload,
         error: null,
       };
-    case types.FETCH_BATCH_MODULE_SCHEDULE_FAILURE:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
     // ✅ FETCH BATCH MODULE SCHEDULE BY ID
-    case types.FETCH_BATCH_MODULE_SCHEDULE_BY_ID_REQUEST:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_BY_ID_REQUEST:
       return { ...state, loading: true, error: null };
-    case types.FETCH_BATCH_MODULE_SCHEDULE_BY_ID_SUCCESS:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_BY_ID_SUCCESS:
       return {
         ...state,
         loading: false,
-        batchModuleSchedulesByBatchId: action.payload,
+        batchClassSchedulesByBatchId: action.payload,
         error: null,
       };
-    case types.FETCH_BATCH_MODULE_SCHEDULE_BY_ID_FAILURE:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_BY_ID_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
     // ✅ GET by Batch ID
-    case types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_REQUEST:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_REQUEST:
       console.log("haha", state);
       return { ...state, loading: true, error: null };
 
-      case types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_SUCCESS:
+      case types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_SUCCESS:
         console.log("Reducer - Before Update:", JSON.stringify(state, null, 2));
         console.log("Reducer - Action Payload:", JSON.stringify(action.payload, null, 2));
       
         return {
           ...state,
           loading: false,
-          batchModuleSchedulesByBatchId: {
-            ...state.batchModuleSchedulesByBatchId,
-            [action.payload.batchId]: action.payload.batchModuleSchedules || [], // ✅ Ensure it's stored as an array
+          batchClassSchedulesByBatchId: {
+            ...state.batchClassSchedulesByBatchId,
+            [action.payload.batchId]: action.payload.batchClassSchedules || [], // ✅ Ensure it's stored as an array
           },
           error: null,
         };
       
 
-    case types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_FAILURE:
+    case types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_FAILURE:
       console.log(state);
       return { ...state, loading: false, error: action.payload };
 
     // ✅ POST (Add)
-    case types.CREATE_BATCH_MODULE_SCHEDULE_REQUEST:
+    case types.CREATE_BATCH_CLASS_SCHEDULE_REQUEST:
       return { ...state, loading: true, submissionStatus: null, error: null };
-    case types.CREATE_BATCH_MODULE_SCHEDULE_SUCCESS:
+    case types.CREATE_BATCH_CLASS_SCHEDULE_SUCCESS:
       return {
         ...state,
         loading: false,
         submissionStatus: "success",
-        batchModuleSchedules: [...state.batchModuleSchedules, action.payload],
+        batchClassSchedules: [...state.batchClassSchedules, action.payload],
         error: null,
       };
-    case types.CREATE_BATCH_MODULE_SCHEDULE_FAILURE:
+    case types.CREATE_BATCH_CLASS_SCHEDULE_FAILURE:
       return {
         ...state,
         loading: false,
@@ -105,21 +105,21 @@ const batchModuleScheduleReducer = (
       };
 
     // ✅ PUT (Update)
-    case types.UPDATE_BATCH_MODULE_SCHEDULE_REQUEST:
+    case types.UPDATE_BATCH_CLASS_SCHEDULE_REQUEST:
       return { ...state, loading: true, updateStatus: null, error: null };
-    case types.UPDATE_BATCH_MODULE_SCHEDULE_SUCCESS:
+    case types.UPDATE_BATCH_CLASS_SCHEDULE_SUCCESS:
       return {
         ...state,
         loading: false,
         updateStatus: "success",
-        batchModuleSchedules: state.batchModuleSchedules.map((schedule) =>
+        batchClassSchedules: state.batchClassSchedules.map((schedule) =>
           schedule.id === action.payload.id
             ? { ...schedule, ...action.payload }
             : schedule
         ),
         error: null,
       };
-    case types.UPDATE_BATCH_MODULE_SCHEDULE_FAILURE:
+    case types.UPDATE_BATCH_CLASS_SCHEDULE_FAILURE:
       return {
         ...state,
         loading: false,
@@ -128,19 +128,19 @@ const batchModuleScheduleReducer = (
       };
 
     // ✅ DELETE
-    case types.DELETE_BATCH_MODULE_SCHEDULE_REQUEST:
+    case types.DELETE_BATCH_CLASS_SCHEDULE_REQUEST:
       return { ...state, loading: true, deleteStatus: null, error: null };
-    case types.DELETE_BATCH_MODULE_SCHEDULE_SUCCESS:
+    case types.DELETE_BATCH_CLASS_SCHEDULE_SUCCESS:
       return {
         ...state,
         loading: false,
         deleteStatus: "success",
-        batchModuleSchedules: state.batchModuleSchedules.filter(
+        batchClassSchedules: state.batchClassSchedules.filter(
           (schedule) => schedule.id !== action.payload
         ),
         error: null,
       };
-    case types.DELETE_BATCH_MODULE_SCHEDULE_FAILURE:
+    case types.DELETE_BATCH_CLASS_SCHEDULE_FAILURE:
       return {
         ...state,
         loading: false,
@@ -153,4 +153,4 @@ const batchModuleScheduleReducer = (
   }
 };
 
-export default batchModuleScheduleReducer;
+export default batchClassScheduleReducer;

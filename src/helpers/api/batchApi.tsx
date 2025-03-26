@@ -4,12 +4,15 @@ import apiClient from "../rootApi/apiClient";
 export const createBatchApi = async (newBatch: any) => {
   try {
     const response = await apiClient.post("/batch", newBatch);
+    console.log("Batch creation response:", response);
     return response.data;
-  } catch (error) {
-    console.error("Error creating batch", error);
+  } catch (error: any) {
+    console.error("Error creating batch", error.response?.data || error.message);
     throw error;
   }
 };
+
+
 
 // Read all Batches
 export const fetchBatchApi = async () => {

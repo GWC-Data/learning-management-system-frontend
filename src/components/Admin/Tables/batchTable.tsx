@@ -58,6 +58,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
   const [trainees, setTrainees] = useState<batchOptions[]>([])
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [batchToDelete, setBatchToDelete] = useState<BatchData | null>(null);
+  const [filteredBatches, setFilteredBatches] = useState<any[]>([]);
   const [newBatch, setNewBatch] = useState<BatchData>({
     id: "",
     batchName: "",
@@ -74,6 +75,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchParams] = useSearchParams();
   const courseId = String(searchParams.get("courseId"));
+  console.log("courseId", courseId);
 
   // const courseId = location.state?.courseId;
   // const courseName = location.state?.courseName;
@@ -231,16 +233,67 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 
   const confirmDeleteBatch = (data: BatchData) => {
     const batch = batches.find((batch) => batch.id === data.id);
-    if (batch) {
-      setBatchToDelete(batch);
-      setIsDeleteModalOpen(true);
+    
+    if (!batch) {
+        console.log("Error: No batch found with ID", data.id);
+        toast.error("Batch not found!");
+        return;
     }
-  };
+
+    console.log("Batch selected for deletion:", batch);
+    setBatchToDelete(batch);
+    setIsDeleteModalOpen(true);
+};
+
 
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false);
     setBatchToDelete(null);
   };
+
+  // const handleFormSubmit = async () => {
+  //   const token = getToken();
+  //   if (!token) {
+  //     toast.error("You must be logged in to perform this action.");
+  //     return;
+  //   }
+
+  //   try {
+
+  //     if (editing) {
+
+  //       await updateBatchApi(newBatch.id, {
+  //         batchName: newBatch.batchName,
+  //         courseId: newBatch.courseId,
+  //         traineeIds: newBatch.traineeId, // Send as an array
+  //         startDate: newBatch.startDate
+  //           ? format(new Date(newBatch.startDate), "yyyy-MM-dd")
+  //           : "",
+  //         endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
+  //           : ""
+  //       });
+  //       toast.success("Batch updated successfully!");
+
+  //     } else {
+  //       await createBatchApi({
+  //         batchName: newBatch.batchName,
+  //         courseId: newBatch.courseId,
+  //         traineeIds: newBatch.traineeId, // Send as an array
+  //         startDate: newBatch.startDate
+  //           ? format(new Date(newBatch.startDate), "yyyy-MM-dd")
+  //           : "",
+  //         endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
+  //           : ""
+  //       });
+  //       toast.success("Batch created successfully!")
+  //     }
+  //     fetchBatchesData();
+  //   } catch (error) {
+  //     toast.error("Failed to add the batch. Please try again later.");
+  //   } finally {
+  //     handleModalClose();
+  //   }
+  // };
 
   const handleFormSubmit = async () => {
     const token = getToken();
@@ -248,61 +301,69 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
       toast.error("You must be logged in to perform this action.");
       return;
     }
-
+  
     try {
-
+      let response;
+  
       if (editing) {
-
-        await updateBatchApi(newBatch.id, {
+        response = await updateBatchApi(newBatch.id, {
           batchName: newBatch.batchName,
           courseId: newBatch.courseId,
-          traineeIds: newBatch.traineeId, // Send as an array
-          startDate: newBatch.startDate
-            ? format(new Date(newBatch.startDate), "yyyy-MM-dd")
-            : "",
-          endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
-            : ""
+          traineeIds: newBatch.traineeId,
+          startDate: newBatch.startDate ? format(new Date(newBatch.startDate), "yyyy-MM-dd") : "",
+          endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd") : ""
         });
         toast.success("Batch updated successfully!");
-
       } else {
-        await createBatchApi({
+        response = await createBatchApi({
           batchName: newBatch.batchName,
           courseId: newBatch.courseId,
-          traineeIds: newBatch.traineeId, // Send as an array
-          startDate: newBatch.startDate
-            ? format(new Date(newBatch.startDate), "yyyy-MM-dd")
-            : "",
-          endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd")
-            : ""
+          traineeIds: newBatch.traineeId,
+          startDate: newBatch.startDate ? format(new Date(newBatch.startDate), "yyyy-MM-dd") : "",
+          endDate: newBatch.endDate ? format(new Date(newBatch.endDate), "yyyy-MM-dd") : ""
         });
-        toast.success("Batch created successfully!")
+        toast.success("Batch created successfully!");
       }
+  
+      console.log("API response:", response);
       fetchBatchesData();
-    } catch (error) {
-      toast.error("Failed to add the batch. Please try again later.");
+    } catch (error: any) {
+      console.error("Batch creation error:", error.response?.data || error.message);
+      toast.error(`Failed to add the batch: ${error.response?.data?.message || "Please try again later."}`);
     } finally {
       handleModalClose();
     }
   };
 
+  
   const handleDeleteBatch = async () => {
     const token = getToken();
     if (!token) {
-      toast.error("You must be logged in to delete a course.");
+      toast.error("You must be logged in to delete a batch.");
+      return;
+    }
+
+    if (!batchToDelete?.id) {  // Check if ID is valid
+      console.log("Error: Selected batch ID is missing!", batchToDelete);
+      toast.error("Selected Batch not found!");
       return;
     }
 
     try {
-      await deleteBatchApi(newBatch.id);
+      console.log("Attempting to delete batch with ID:", batchToDelete.id); // Log ID before calling API
+      await deleteBatchApi(batchToDelete.id);
+      
       toast.success('Batch deleted successfully!');
       fetchBatchesData();
-      setLoading(true)
+      setLoading(true);
+      setIsDeleteModalOpen(false);
       handleModalClose();
     } catch (error) {
+      console.error("Failed to delete batch", error);
       toast.error('Failed to delete the batch. Please try again later.');
     }
-  }
+};
+
 
   useEffect(() => {
     setColDefs([
@@ -401,10 +462,10 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
 
 
   return (
-    <div className="flex-1 p-4 mt-10 ml-16">
+    <div className="flex-1 p-4 mt-5 ml-20">
       <div className="text-gray-600 text-lg mb-4">
         <Breadcrumb /></div>
-      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1185px]">
+        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             Batches
@@ -455,7 +516,7 @@ const ManageBatches = ({ editable = true }: BatchTableProps) => {
       )}
       <div
         className="ag-theme-quartz text-left font-poppins"
-        style={{ height: "calc(100vh - 180px)", width: "91.5%" }}
+        style={{ height: "calc(100vh - 180px)", width: "91%" }}
       >
         <AgGridReact
           rowSelection="multiple"

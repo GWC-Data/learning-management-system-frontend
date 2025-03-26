@@ -392,7 +392,7 @@ const ManagePermissions = ({ editable = true }: PermissionTableProps) => {
                 </label>
                 <input
                   type="text"
-                  className="w-full h-24 border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
+                  className="w-full h-14 border rounded font-metropolis mt-1 p-2 text-gray-400 font-semibold"
                   value={newPermission.description}
                   onChange={(e) =>
                     setNewPermission({

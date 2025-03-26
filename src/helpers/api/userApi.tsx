@@ -70,3 +70,21 @@ export const deleteUserApi = async (userId: string) => {
     throw error;
   }
 };
+
+
+//Update TraineeUser Api
+export const updateTraineeUserApi = async (userId: string, formData: FormData) => {
+  try {
+    // Use FormData directly without manual file processing
+    const response = await apiClient.put(`/userForTrainee/${userId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Axios will handle this correctly
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("API Error in updateTraineeUserApi:", error);
+    throw error;
+  }
+};

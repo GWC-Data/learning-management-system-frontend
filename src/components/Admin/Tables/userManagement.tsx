@@ -118,7 +118,7 @@ const UserManagement: React.FC = () => {
   const colDefs: ColDef[] = [
     { headerName: "First Name", field: "firstName" },
     { headerName: "Last Name", field: "lastName" },
-    { headerName: "Email", field: "email" },
+    { headerName: "Email", field: "email", width: 260 },
     { headerName: "Role", field: "roleName" },
     {
       headerName: "Date of Birth",

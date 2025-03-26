@@ -4,8 +4,9 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Edit } from "lucide-react";
+import { Edit, Lasso } from "lucide-react";
 import remove from '../../../assets/delete.png';
+import classesImg from '../../../assets/classesImg.png'
 import { ColDef } from "ag-grid-community";
 import Select from 'react-select';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
@@ -17,7 +18,7 @@ import {
   deleteCourseModuleApi,
 } from "@/helpers/api/courseModuleApi";
 import { fetchCourseApi } from "@/helpers/api/courseApi";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // TypeScript types for the component props
 interface CourseModuleTableProps {
@@ -97,6 +98,14 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
     return newErrors;
   };
+
+    const navigate = useNavigate();
+  
+  const viewClass = (data: CourseModuleData) => {
+    navigate(`/admin/class?moduleId=${data.id}`);
+  };
+ 
+
 
   // Fetch course modules and map course names
   const fetchCourseModules = async () => {
@@ -283,7 +292,6 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
   // Define column definitions
   useEffect(() => {
     setColDefs([
-      // { headerName: "Course Name", field: "courseName", editable: false, width: 200  },
       { headerName: "Module Name", field: "moduleName", editable: false, width: 300, rowDrag: true },
       {
         headerName: "Description",
@@ -298,34 +306,47 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
         field: "actions",
         cellRenderer: (params: any) => (
           <div className="flex space-x-2">
-            <TooltipProvider>
-              {/* Edit Button with Tooltip */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => editCourseModule(params.data)}
-                    className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
-                  >
-                    <Edit className="h-6 w-6" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit CourseModule</TooltipContent>
-              </Tooltip>
-
-              {/* Delete Button with Tooltip */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => confirmDeleteCourseModule(params.data)}
-                    className="text-red-600 bg-white p-2 rounded hover:bg-white"
-                  >
-                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete CourseModule</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
+          <TooltipProvider>
+            {/* View Class Button with Tooltip */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={() => viewClass(params.data)} className="text-[#6E2B8B] bg-white hover:bg-white p-2">
+                  <span className="flex items-center space-x-1">
+                    <img src={classesImg} alt="classes Img" className="h-6 w-6 filter  fill-current" />
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View Class</TooltipContent>
+            </Tooltip>
+        
+            {/* Edit Button with Tooltip */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => editCourseModule(params.data)}
+                  className="bg-white text-[#6E2B8B] p-2 rounded hover:bg-white"
+                >
+                  <Edit className="h-6 w-6" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit CourseModule</TooltipContent>
+            </Tooltip>
+        
+            {/* Delete Button with Tooltip */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => confirmDeleteCourseModule(params.data)}
+                  className="text-red-600 bg-white p-2 rounded hover:bg-white"
+                >
+                  <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete CourseModule</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+        
         ),
       },
     ]);
@@ -349,7 +370,6 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
     }));
 
     try {
-      // Update frontend state immediately
       setCourseModules(updatedModules);
 
       // Update the dragged module with its new sequence
@@ -375,12 +395,12 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
   return (
     <>
-      <div className="flex-1 p-4 mt-10 ml-20">
+      <div className="flex-1 p-4 mt-5 ml-20">
         <div className="text-gray-600 text-lg mb-4">
           <Breadcrumb />
         </div>
-        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1120px]">
-          <div className="flex flex-col">
+        <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
+        <div className="flex flex-col">
             <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
               Course Modules
             </h2>
@@ -429,7 +449,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
         <div
           className="ag-theme-quartz font-poppins"
-          style={{ height: "70vh", width: "88%" }}
+          style={{ height: "70vh", width: "91%" }}
         >
           <AgGridReact
             rowSelection="multiple"
@@ -475,7 +495,7 @@ const CourseModuleTable = ({ editable = true }: CourseModuleTableProps) => {
 
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
               <h2 className="text-xl font-metropolis font-semibold mb-4 ">
                 {editing ? "Edit Module" : "Add New Module"}
               </h2>

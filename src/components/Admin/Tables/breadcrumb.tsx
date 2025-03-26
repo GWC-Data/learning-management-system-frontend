@@ -72,12 +72,11 @@ const Breadcrumb: React.FC = () => {
 
   // ✅ Manually Map The Correct Breadcrumb Paths
   const breadcrumbMap: { [key: string]: string } = {
-    'courses': 'Course',
+    courses: 'Course',
+    'course-module': 'Course Module',
+    'class': 'Class',
     'batch-management': 'Batch Management',
     'manage-batch-schedules': 'Manage Schedule',
-    'course-assignment': 'Course Assignment',
-    'attendance': 'Attendance',
-    'course-category': 'Course Category',
   };
 
   // ✅ Handle Navigation

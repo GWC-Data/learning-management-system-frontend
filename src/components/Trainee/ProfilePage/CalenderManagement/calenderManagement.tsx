@@ -627,11 +627,13 @@ const Calendar: React.FC = () => {
                               {/* <div className="font-medium text-lg">
                                 {event.title}
                               </div> */}
-                              <div className="font-medium text-lg">{event.module}</div>
+                              <div className="font-medium text-lg">
+                                {event.module}
+                              </div>
                               <div className="text-sm">
                                 {event.startTime} - {event.endTime}
                               </div>
-                              
+
                               {/* Display attendance status directly for debugging */}
                               {isPastEvent && (
                                 <div className="text-sm mt-1 grid grid-cols-[auto,1fr] gap-x-1">

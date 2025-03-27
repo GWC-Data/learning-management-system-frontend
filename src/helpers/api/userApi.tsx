@@ -28,7 +28,6 @@ export const fetchUsersApi = async () => {
 // Read user by id
 export const fetchUsersbyIdApi = async (userId: string) => {
   try {
-    console.log(`Making API request: /users/${userId}`);
     const response = await apiClient.get(`/users/${userId}`);
     console.log("API Response Data:", response.data);
     return response.data;
@@ -37,37 +36,6 @@ export const fetchUsersbyIdApi = async (userId: string) => {
     return null;
   }
 };
-
-// Update an existing user
-export const updateUserApi = async (userId: number, userData: any) => {
-  try {
-    console.log("userrDataaa", userData);
-    const response = await apiClient.put(`/users/${userId}`, userData);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating user data", error);
-    throw error;
-  }
-};
-
-//Update an existing user for trainee
-// export const updateTraineeUserApi = async(userId: string, userData: FormData) => {
-//   try {
-//     console.log("Sending update request for user ID:", userId);
-    
-//     const response = await apiClient.put(`/userForTrainee/${userId}`, userData, {
-//       headers: {
-//         "Accept": "application/json", 
-//       }
-//     });
-
-//     console.log("Update response:", response.data);
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error updating user data", error);
-//     throw error;
-//   }
-// };
 
 // Update an existing user
 export const updateUserAdminApi = async (userId: string, userData: any) => {
@@ -81,26 +49,18 @@ export const updateUserAdminApi = async (userId: string, userData: any) => {
   }
 };
 
-//Update TraineeUser Api
-export const updateTraineeUserApi = async (userId: string, formData: FormData) => {
+export const updateUserApi = async (userId: string, userData: any) => {
   try {
-    // Use FormData directly without manual file processing
-    const response = await apiClient.put(`/userForTrainee/${userId}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data", // Axios will handle this correctly
-      },
-    });
-
-    console.log("API Response Data:", response.data); // Log the response data
-
-    return response;
+    console.log("userrDataaa", userData);
+    const response = await apiClient.put(`/userForTrainee/${userId}`, userData);
+    return response.data;
   } catch (error) {
-    console.error("API Error in updateTraineeUserApi:", error);
+    console.error("Error updating user data", error);
     throw error;
   }
 };
 
-// Delete a User
+// Delete a course
 export const deleteUserApi = async (userId: string) => {
   try {
     const response = await apiClient.delete(`/users/${userId}`);
@@ -111,3 +71,20 @@ export const deleteUserApi = async (userId: string) => {
   }
 };
 
+
+//Update TraineeUser Api
+export const updateTraineeUserApi = async (userId: string, formData: FormData) => {
+  try {
+    // Use FormData directly without manual file processing
+    const response = await apiClient.put(`/userForTrainee/${userId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Axios will handle this correctly
+      },
+    });
+
+    return response;
+  } catch (error) {
+    console.error("API Error in updateTraineeUserApi:", error);
+    throw error;
+  }
+};

@@ -10,7 +10,7 @@ import { ColDef } from "ag-grid-community";
 import Select from 'react-select';
 import { format } from "date-fns";
 import Breadcrumb from "./breadcrumb";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../ui/tooltip";
 import {
   createBatchClassScheduleApi,
   fetchBatchClassScheduleApi,

@@ -208,7 +208,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchBatchModuleScheduleByBatchIdRequest } from "@/store/batchModuleSchedule/actions";
+import { fetchBatchClassScheduleByBatchIdRequest } from "@/store/batchClassSchedule/actions";
 import { setSelectedModuleId } from "@/store/module/actions";
 import { FaPlay } from "react-icons/fa";
 import { fetchClassByModuleRequest } from "@/store/actions";
@@ -234,7 +234,7 @@ const CourseContent: React.FC<{
     }
 
     console.log("Dispatching fetch action for batchId:", batchId);
-    dispatch(fetchBatchModuleScheduleByBatchIdRequest(batchId));
+    dispatch(fetchBatchClassScheduleByBatchIdRequest(batchId));
   }, [batchId, dispatch]);
 
   // Get batch module schedule from Redux

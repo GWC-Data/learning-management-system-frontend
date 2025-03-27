@@ -17,11 +17,93 @@ const JobCard = () => {
   const [jobDataList, setJobDataList] = useState<JobData[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<JobData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [jobBoardStatus, setJobBoardStatus] = useState<string>("disabled");
+
   const [locationFilter, setLocationFilter] = useState<string>("");
   const [dateFilter, setDateFilter] = useState<string>("");
   const [locations, setLocations] = useState<string[]>([]);
   const [datePeriods, setDatePeriods] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  useEffect(() => {
+    // Check job board status from localStorage
+    const status = localStorage.getItem("jobBoardAccess") || "disabled";
+
+    // Set the status, defaulting to "disabled"
+    setJobBoardStatus(status);
+
+    // If board is explicitly enabled, fetch jobs
+    if (status === "enabled") {
+      jobBoard();
+    }
+  }, []);
+
+  // Disabled Job Board UI
+  const renderDisabledJobBoard = () => {
+    return (
+      <div className="min-h-[600px] flex items-center justify-center bg-gradient-to-b from-white to-gray-50 rounded-xl shadow-xl p-8 mt-10 w-[1200px]">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-xl bg-white p-10 rounded-2xl shadow-2xl border border-gray-100"
+        >
+          <div className="mb-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-20 w-20 mx-auto text-gray-400 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Job Board Unavailable
+            </h2>
+          </div>
+
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            The job board is currently disabled. Please contact your
+            administrator or trainer for more information about accessing job
+            listings.
+          </p>
+
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => {
+                // Option to contact via email (replace with your actual contact method)
+                window.location.href =
+                  "mailto:info@teqcertify.com?subject=Job Board Access Inquiry";
+              }}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center gap-2"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+              Contact Admin
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
+  // If job board is disabled, show disabled UI
+  if (jobBoardStatus !== "enabled") {
+    return renderDisabledJobBoard();
+  }
 
   const jobBoard = async () => {
     setLoading(true);
@@ -111,136 +193,148 @@ const JobCard = () => {
     return postDate;
   };
 
-// This is the modified applyFilters function with the corrected date filter logic
-const applyFilters = () => {
-  let filtered = [...jobDataList];
+  // This is the modified applyFilters function with the corrected date filter logic
+  const applyFilters = () => {
+    let filtered = [...jobDataList];
 
-  // Apply search term filter
-  if (searchTerm) {
-    const term = searchTerm.toLowerCase();
-    filtered = filtered.filter(
-      (job) =>
-        job.jobTitle.toLowerCase().includes(term) ||
-        job.companyName.toLowerCase().includes(term) ||
-        (job.jobDescription &&
-          job.jobDescription.toLowerCase().includes(term))
-    );
-  }
+    // Apply search term filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (job) =>
+          job.jobTitle.toLowerCase().includes(term) ||
+          job.companyName.toLowerCase().includes(term) ||
+          (job.jobDescription &&
+            job.jobDescription.toLowerCase().includes(term))
+      );
+    }
 
-  // Apply location filter
-  if (locationFilter) {
-    filtered = filtered.filter((job) => job.jobLocation === locationFilter);
-  }
+    // Apply location filter
+    if (locationFilter) {
+      filtered = filtered.filter((job) => job.jobLocation === locationFilter);
+    }
 
-  // Apply date filter
-  if (dateFilter && dateFilter !== "All") {
-    const today = new Date();
-    
-    // Set cutoff date based on filter selection
-    switch (dateFilter) {
-      case "This week":
-        // Start of the current week (Sunday)
-        const day = today.getDay(); // 0 for Sunday, 1 for Monday, etc.
-        const cutoffDate = new Date(today);
-        cutoffDate.setDate(today.getDate() - day); // Go back to Sunday
-        cutoffDate.setHours(0, 0, 0, 0);
-        
-        filtered = filtered.filter((job) => {
-          const estimatedPostDate = estimatePostDate(job.datePosted);
-          return estimatedPostDate >= cutoffDate;
-        });
-        break;
-        
-      case "1 week ago":
-        // 1 week ago (not 2 weeks)
-        // Get jobs from exactly 7 days ago, +/- 3 days (4-10 days ago range)
-        const oneWeekAgo = new Date(today);
-        oneWeekAgo.setDate(today.getDate() - 7);
-        
-        const oneWeekAgoStart = new Date(oneWeekAgo);
-        oneWeekAgoStart.setDate(oneWeekAgo.getDate() - 3); // 10 days ago
-        
-        const oneWeekAgoEnd = new Date(oneWeekAgo);
-        oneWeekAgoEnd.setDate(oneWeekAgo.getDate() + 3); // 4 days ago
-        
-        filtered = filtered.filter((job) => {
-          const estimatedPostDate = estimatePostDate(job.datePosted);
-          return estimatedPostDate >= oneWeekAgoStart && estimatedPostDate <= oneWeekAgoEnd;
-        });
-        break;
-        
-      case "2 weeks ago":
-        // 2 weeks ago (not 3 weeks)
-        // Get jobs from exactly 14 days ago, +/- 3 days (11-17 days ago range)
-        const twoWeeksAgo = new Date(today);
-        twoWeeksAgo.setDate(today.getDate() - 14);
-        
-        const twoWeeksAgoStart = new Date(twoWeeksAgo);
-        twoWeeksAgoStart.setDate(twoWeeksAgo.getDate() - 3); // 17 days ago
-        
-        const twoWeeksAgoEnd = new Date(twoWeeksAgo);
-        twoWeeksAgoEnd.setDate(twoWeeksAgo.getDate() + 3); // 11 days ago
-        
-        filtered = filtered.filter((job) => {
-          const estimatedPostDate = estimatePostDate(job.datePosted);
-          return estimatedPostDate >= twoWeeksAgoStart && estimatedPostDate <= twoWeeksAgoEnd;
-        });
-        break;
-        
-      case "3 weeks ago":
-        // 3 weeks ago (not 4 weeks)
-        // Get jobs from exactly 21 days ago, +/- 3 days (18-24 days ago range)
-        const threeWeeksAgo = new Date(today);
-        threeWeeksAgo.setDate(today.getDate() - 21);
-        
-        const threeWeeksAgoStart = new Date(threeWeeksAgo);
-        threeWeeksAgoStart.setDate(threeWeeksAgo.getDate() - 3); // 24 days ago
-        
-        const threeWeeksAgoEnd = new Date(threeWeeksAgo);
-        threeWeeksAgoEnd.setDate(threeWeeksAgo.getDate() + 3); // 18 days ago
-        
-        filtered = filtered.filter((job) => {
-          const estimatedPostDate = estimatePostDate(job.datePosted);
-          return estimatedPostDate >= threeWeeksAgoStart && estimatedPostDate <= threeWeeksAgoEnd;
-        });
-        break;
-      
+    // Apply date filter
+    if (dateFilter && dateFilter !== "All") {
+      const today = new Date();
+
+      // Set cutoff date based on filter selection
+      switch (dateFilter) {
+        case "This week":
+          // Start of the current week (Sunday)
+          const day = today.getDay(); // 0 for Sunday, 1 for Monday, etc.
+          const cutoffDate = new Date(today);
+          cutoffDate.setDate(today.getDate() - day); // Go back to Sunday
+          cutoffDate.setHours(0, 0, 0, 0);
+
+          filtered = filtered.filter((job) => {
+            const estimatedPostDate = estimatePostDate(job.datePosted);
+            return estimatedPostDate >= cutoffDate;
+          });
+          break;
+
+        case "1 week ago":
+          // 1 week ago (not 2 weeks)
+          // Get jobs from exactly 7 days ago, +/- 3 days (4-10 days ago range)
+          const oneWeekAgo = new Date(today);
+          oneWeekAgo.setDate(today.getDate() - 7);
+
+          const oneWeekAgoStart = new Date(oneWeekAgo);
+          oneWeekAgoStart.setDate(oneWeekAgo.getDate() - 3); // 10 days ago
+
+          const oneWeekAgoEnd = new Date(oneWeekAgo);
+          oneWeekAgoEnd.setDate(oneWeekAgo.getDate() + 3); // 4 days ago
+
+          filtered = filtered.filter((job) => {
+            const estimatedPostDate = estimatePostDate(job.datePosted);
+            return (
+              estimatedPostDate >= oneWeekAgoStart &&
+              estimatedPostDate <= oneWeekAgoEnd
+            );
+          });
+          break;
+
+        case "2 weeks ago":
+          // 2 weeks ago (not 3 weeks)
+          // Get jobs from exactly 14 days ago, +/- 3 days (11-17 days ago range)
+          const twoWeeksAgo = new Date(today);
+          twoWeeksAgo.setDate(today.getDate() - 14);
+
+          const twoWeeksAgoStart = new Date(twoWeeksAgo);
+          twoWeeksAgoStart.setDate(twoWeeksAgo.getDate() - 3); // 17 days ago
+
+          const twoWeeksAgoEnd = new Date(twoWeeksAgo);
+          twoWeeksAgoEnd.setDate(twoWeeksAgo.getDate() + 3); // 11 days ago
+
+          filtered = filtered.filter((job) => {
+            const estimatedPostDate = estimatePostDate(job.datePosted);
+            return (
+              estimatedPostDate >= twoWeeksAgoStart &&
+              estimatedPostDate <= twoWeeksAgoEnd
+            );
+          });
+          break;
+
+        case "3 weeks ago":
+          // 3 weeks ago (not 4 weeks)
+          // Get jobs from exactly 21 days ago, +/- 3 days (18-24 days ago range)
+          const threeWeeksAgo = new Date(today);
+          threeWeeksAgo.setDate(today.getDate() - 21);
+
+          const threeWeeksAgoStart = new Date(threeWeeksAgo);
+          threeWeeksAgoStart.setDate(threeWeeksAgo.getDate() - 3); // 24 days ago
+
+          const threeWeeksAgoEnd = new Date(threeWeeksAgo);
+          threeWeeksAgoEnd.setDate(threeWeeksAgo.getDate() + 3); // 18 days ago
+
+          filtered = filtered.filter((job) => {
+            const estimatedPostDate = estimatePostDate(job.datePosted);
+            return (
+              estimatedPostDate >= threeWeeksAgoStart &&
+              estimatedPostDate <= threeWeeksAgoEnd
+            );
+          });
+          break;
+
         case "4 weeks ago":
           // 4 weeks ago
           // Get jobs from exactly 28 days ago, +/- 3 days (25-31 days ago range)
           const fourWeeksAgo = new Date(today);
           fourWeeksAgo.setDate(today.getDate() - 28); // Exactly 28 days ago
-          
+
           const fourWeeksAgoStart = new Date(fourWeeksAgo);
           fourWeeksAgoStart.setDate(fourWeeksAgo.getDate() - 3); // 31 days ago
-          
+
           const fourWeeksAgoEnd = new Date(fourWeeksAgo);
           fourWeeksAgoEnd.setDate(fourWeeksAgo.getDate() + 3); // 25 days ago
-          
+
           filtered = filtered.filter((job) => {
             const estimatedPostDate = estimatePostDate(job.datePosted);
-            return estimatedPostDate >= fourWeeksAgoStart && estimatedPostDate <= fourWeeksAgoEnd;
+            return (
+              estimatedPostDate >= fourWeeksAgoStart &&
+              estimatedPostDate <= fourWeeksAgoEnd
+            );
           });
           break;
 
-      case "1 month ago":
-        // Jobs older than a month
-        const oneMonthAgo = new Date(today);
-        oneMonthAgo.setMonth(today.getMonth() - 1);
-        
-        filtered = filtered.filter((job) => {
-          const estimatedPostDate = estimatePostDate(job.datePosted);
-          return estimatedPostDate <= oneMonthAgo;
-        });
-        break;
-        
-      default:
-        break;
-    }
-  }
+        case "1 month ago":
+          // Jobs older than a month
+          const oneMonthAgo = new Date(today);
+          oneMonthAgo.setMonth(today.getMonth() - 1);
 
-  setFilteredJobs(filtered);
-};
+          filtered = filtered.filter((job) => {
+            const estimatedPostDate = estimatePostDate(job.datePosted);
+            return estimatedPostDate <= oneMonthAgo;
+          });
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    setFilteredJobs(filtered);
+  };
 
   const renderJobType = (title: string) => {
     const title_lower = title.toLowerCase();
@@ -277,8 +371,6 @@ const applyFilters = () => {
 
   return (
     <div className="mt-10 w-full p-6 -ml-10 bg-gradient-to-b from-white to-gray-50 rounded-xl shadow-xl">
-
-
       {/* Search Bar */}
       <div className="mb-6">
         <div className="relative">

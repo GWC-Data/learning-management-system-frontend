@@ -38,6 +38,7 @@ const Login: React.FC<LoginProps> = ({ setIsAuthenticated, setUserName }) => {
       localStorage.setItem("role", user.role);
       localStorage.setItem("userName", `${user.firstName} ${user.lastName}`);
       localStorage.setItem("userId", user.id);
+      localStorage.setItem("jobBoardAccess", user.jobBoardAccess);
 
       // Update application state
       setIsAuthenticated(true);

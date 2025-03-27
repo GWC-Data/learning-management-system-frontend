@@ -22,7 +22,7 @@ export default defineConfig({
 
       "/module": "http://localhost:5050",
 
-      "/batchModuleSchedule": "http://localhost:5050",
+      "/batchClassSchedule": "http://localhost:5050",
 
       "/users": "http://localhost:5050",
 
@@ -36,13 +36,9 @@ export default defineConfig({
 
       "/courseAssignmentRecords":"http://localhost:5050",
 
-      "/assignment-completion":"http://localhost:5050",
+      "/assignment-completion":"http://localhost:5050", 
 
-      "/batchModuleSchedulebyBatch": "http://localhost:5050",
-
-      "/job-board": "http://localhost:5050",
-
-      "/companyinfo": "http://localhost:5050",
+      "/batchClassSchedulebybatch": "http://localhost:5050",
 
       "/batchbyName": "http://localhost:5050",
 

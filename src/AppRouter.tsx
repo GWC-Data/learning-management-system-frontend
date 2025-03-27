@@ -23,7 +23,7 @@ import ManageRoles from "./components/Admin/Tables/rolesTables";
 import PermissionRoles from "./components/Admin/Tables/permissionTables";
 import BatchTable from "./components/Admin/Tables/batchTable";
 import CourseModuleTable from "./components/Admin/Tables/courseModule";
-import BatchClassScheduleTable from "./components/Admin/Tables/manageBatchScheduleModule";
+import BatchClassScheduleTable from "./components/Admin/Tables/manageBatchScheduleClass";
 // import AdminCourseAssignments from "./components/Admin/Tables/courseAssignmentTable";
 import Attendance from "./components/Admin/Tables/attendance";
 // import CompanyInfoTable from "./components/Admin/Tables/companyInfoTable";
@@ -38,7 +38,7 @@ import UserSettings from "./components/Trainee/ProfileSettings/profileSettings";
 import CoursePage from "./components/Trainee/ProfilePage/EnrolledCourses/CoursePage/coursePage";
 import TraineeDashboard from "./components/Trainee/ProfilePage/Dashboard/DashboardPage/dashboardPage";
 import CodeExecutor from "./components/Trainee/ProfilePage/CodeChallenges/codeExecutor";
-import CalendarManagement from "./components/Trainee/ProfilePage/CalenderManagement/calenderManagement";
+// import CalendarManagement from "./components/Trainee/ProfilePage/CalenderManagement/calenderManagement";
 import EnrolledCourses from "./components/Trainee/ProfilePage/EnrolledCourses/enrolledCourses";
 
 import TrainerHelloWorld from "./components/Trainer/TrainerHelloWorld";
@@ -120,7 +120,7 @@ const AppRouter: React.FC<AppRouterProps> = ({
           <Route path="dashboard" element={<TraineeDashboard />} />
           <Route path="code-challenges" element={<CodeExecutor />} />
           <Route path="job-boards" element={<JobBoard />} />
-          <Route path="calendar-view" element={<CalendarManagement />} />
+          {/* <Route path="calendar-view" element={<CalendarManagement />} /> */}
           <Route path="settings" element={<UserSettings />} />
         </Route>
 

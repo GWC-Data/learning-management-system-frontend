@@ -2,18 +2,18 @@ import { call, put, takeLatest, all } from "redux-saga/effects";
 import * as types from "./actionTypes";
 import * as actions from "./actions";
 import {
-  createBatchModuleScheduleApi,
-  fetchBatchModuleScheduleApi,
-  fetchBatchModuleScheduleByBatchIdApi,
-  fetchBatchModuleScheduleByIdApi,
-  updateBatchModuleScheduleApi,
-  deleteBatchModuleScheduleApi,
-} from "../../helpers/api/batchModuleScheduleApi";
+  createBatchClassScheduleApi,
+  fetchBatchClassScheduleApi,
+  fetchBatchClassScheduleByBatchIdApi,
+  fetchBatchClassScheduleByIdApi,
+  updateBatchClassScheduleApi,
+  deleteBatchClassScheduleApi,
+} from "../../helpers/api/batchClassScheduleApi";
 
 // ✅ GET ALL BATCH MODULE SCHEDULES
 export function* fetchBatchModuleSchedulesSaga(): Generator<any, void, any> {
   try {
-    const response: any = yield call(fetchBatchModuleScheduleApi);
+    const response: any = yield call(fetchBatchClassScheduleApi);
     console.log("Fetched Batch Module Schedules:", response);
     yield put(actions.fetchBatchModuleScheduleSuccess(response));
   } catch (error: unknown) {
@@ -31,7 +31,7 @@ export function* fetchBatchModuleScheduleByIdSaga(action: {
     payload: string;
   }): Generator<any, void, any> {
     try {
-      const response: any = yield call(fetchBatchModuleScheduleByIdApi, action.payload);
+      const response: any = yield call(fetchBatchClassScheduleByIdApi, action.payload);
       console.log("Fetched Batch Module Schedule by ID:", response);
       yield put(actions.fetchBatchModuleScheduleByIdSuccess(response));
     } catch (error: unknown) {
@@ -50,7 +50,7 @@ export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
 }): Generator<any, void, any> {
   try {
     console.log('batchId',action.payload);
-    const response: any = yield call(fetchBatchModuleScheduleByBatchIdApi, action.payload);
+    const response: any = yield call(fetchBatchClassScheduleByBatchIdApi, action.payload);
     console.log("Fetched Batch Module Schedule by Batch ID:", response);
     yield put({
       type: types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_SUCCESS,
@@ -74,7 +74,7 @@ export function* addBatchModuleScheduleSaga(action: {
   payload: any;
 }): Generator<any, void, any> {
   try {
-    const response: any = yield call(createBatchModuleScheduleApi, action.payload);
+    const response: any = yield call(createBatchClassScheduleApi, action.payload);
     yield put(actions.createBatchModuleScheduleSuccess(response));
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -91,7 +91,7 @@ export function* updateBatchModuleScheduleSaga(action: {
   payload: any;
 }): Generator<any, void, any> {
   try {
-    const response: any = yield call(updateBatchModuleScheduleApi, action.payload.id, action.payload);
+    const response: any = yield call(updateBatchClassScheduleApi, action.payload.id, action.payload);
     yield put(actions.updateBatchModuleScheduleSuccess(response));
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -108,7 +108,7 @@ export function* deleteBatchModuleScheduleSaga(action: {
   payload: string;
 }): Generator<any, void, any> {
   try {
-    yield call(deleteBatchModuleScheduleApi, action.payload);
+    yield call(deleteBatchClassScheduleApi, action.payload);
     yield put(actions.deleteBatchModuleScheduleSuccess(action.payload));
   } catch (error: unknown) {
     if (error instanceof Error) {

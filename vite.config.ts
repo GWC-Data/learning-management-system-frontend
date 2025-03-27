@@ -26,6 +26,8 @@ export default defineConfig({
 
       "/users": "http://localhost:5050",
 
+      "/userForAdmin": "http://localhost:5050",
+
       "/userForTrainee": "http://localhost:5050",
       
       "/batchTrainee": "http://localhost:5050", 

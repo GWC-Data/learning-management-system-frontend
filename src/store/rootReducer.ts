@@ -7,7 +7,7 @@ import companyInfosReducer from './companyInfo/reducers';
 import jobBoardsReducer from './jobBoard/reducers';
 import batchTraineeReducer from './batchTrainee/reducers';
 import { moduleReducer } from "./module/reducers"; // ✅ Import moduleReducer
-import batchModuleScheduleReducer from './batchModuleSchedule/reducers';
+import batchModuleScheduleReducer from './batchClassSchedule/reducers';
 import classForModuleReducer from './classForModule/reducers';
 
 const rootReducer = combineReducers({

@@ -15,12 +15,12 @@ export function* fetchBatchModuleSchedulesSaga(): Generator<any, void, any> {
   try {
     const response: any = yield call(fetchBatchClassScheduleApi);
     console.log("Fetched Batch Module Schedules:", response);
-    yield put(actions.fetchBatchModuleScheduleSuccess(response));
+    yield put(actions.fetchBatchClassScheduleSuccess(response));
   } catch (error: unknown) {
     if (error instanceof Error) {
-      yield put(actions.fetchBatchModuleScheduleFailure(error.message));
+      yield put(actions.fetchBatchClassScheduleFailure(error.message));
     } else {
-      yield put(actions.fetchBatchModuleScheduleFailure("An unknown error occurred"));
+      yield put(actions.fetchBatchClassScheduleFailure("An unknown error occurred"));
     }
   }
 }
@@ -33,12 +33,12 @@ export function* fetchBatchModuleScheduleByIdSaga(action: {
     try {
       const response: any = yield call(fetchBatchClassScheduleByIdApi, action.payload);
       console.log("Fetched Batch Module Schedule by ID:", response);
-      yield put(actions.fetchBatchModuleScheduleByIdSuccess(response));
+      yield put(actions.fetchBatchClassScheduleByIdSuccess(response));
     } catch (error: unknown) {
       if (error instanceof Error) {
-        yield put(actions.fetchBatchModuleScheduleByIdFailure(error.message));
+        yield put(actions.fetchBatchClassScheduleByIdFailure(error.message));
       } else {
-        yield put(actions.fetchBatchModuleScheduleByIdFailure("An unknown error occurred"));
+        yield put(actions.fetchBatchClassScheduleByIdFailure("An unknown error occurred"));
       }
     }
   }
@@ -53,7 +53,7 @@ export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
     const response: any = yield call(fetchBatchClassScheduleByBatchIdApi, action.payload);
     console.log("Fetched Batch Module Schedule by Batch ID:", response);
     yield put({
-      type: types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_SUCCESS,
+      type: types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_SUCCESS,
       payload: {
         batchId: action.payload, // ✅ Send batchId correctly
         batchModuleSchedules: response, // ✅ Send schedules using correct key
@@ -61,9 +61,9 @@ export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
-      yield put(actions.fetchBatchModuleScheduleByBatchIdFailure(error.message));
+      yield put(actions.fetchBatchClassScheduleByBatchIdFailure(error.message));
     } else {
-      yield put(actions.fetchBatchModuleScheduleByBatchIdFailure("An unknown error occurred"));
+      yield put(actions.fetchBatchClassScheduleByBatchIdFailure("An unknown error occurred"));
     }
   }
 }
@@ -75,12 +75,12 @@ export function* addBatchModuleScheduleSaga(action: {
 }): Generator<any, void, any> {
   try {
     const response: any = yield call(createBatchClassScheduleApi, action.payload);
-    yield put(actions.createBatchModuleScheduleSuccess(response));
+    yield put(actions.createBatchClassScheduleSuccess(response));
   } catch (error: unknown) {
     if (error instanceof Error) {
-      yield put(actions.createBatchModuleScheduleFailure(error.message));
+      yield put(actions.createBatchClassScheduleFailure(error.message));
     } else {
-      yield put(actions.createBatchModuleScheduleFailure("An unknown error occurred"));
+      yield put(actions.createBatchClassScheduleFailure("An unknown error occurred"));
     }
   }
 }
@@ -92,12 +92,12 @@ export function* updateBatchModuleScheduleSaga(action: {
 }): Generator<any, void, any> {
   try {
     const response: any = yield call(updateBatchClassScheduleApi, action.payload.id, action.payload);
-    yield put(actions.updateBatchModuleScheduleSuccess(response));
+    yield put(actions.updateBatchClassScheduleSuccess(response));
   } catch (error: unknown) {
     if (error instanceof Error) {
-      yield put(actions.updateBatchModuleScheduleFailure(error.message));
+      yield put(actions.updateBatchClassScheduleFailure(error.message));
     } else {
-      yield put(actions.updateBatchModuleScheduleFailure("An unknown error occurred"));
+      yield put(actions.updateBatchClassScheduleFailure("An unknown error occurred"));
     }
   }
 }
@@ -109,12 +109,12 @@ export function* deleteBatchModuleScheduleSaga(action: {
 }): Generator<any, void, any> {
   try {
     yield call(deleteBatchClassScheduleApi, action.payload);
-    yield put(actions.deleteBatchModuleScheduleSuccess(action.payload));
+    yield put(actions.deleteBatchClassScheduleSuccess(action.payload));
   } catch (error: unknown) {
     if (error instanceof Error) {
-      yield put(actions.deleteBatchModuleScheduleFailure(error.message));
+      yield put(actions.deleteBatchClassScheduleFailure(error.message));
     } else {
-      yield put(actions.deleteBatchModuleScheduleFailure("An unknown error occurred"));
+      yield put(actions.deleteBatchClassScheduleFailure("An unknown error occurred"));
     }
   }
 }
@@ -122,11 +122,11 @@ export function* deleteBatchModuleScheduleSaga(action: {
 // ✅ WATCHER SAGA
 export function* batchModuleScheduleWatcherSaga(): Generator<any, void, any> {
   yield all([
-    takeLatest(types.FETCH_BATCH_MODULE_SCHEDULE_REQUEST, fetchBatchModuleSchedulesSaga),
-    takeLatest(types.FETCH_BATCH_MODULE_SCHEDULE_BY_ID_REQUEST, fetchBatchModuleScheduleByIdSaga),
-    takeLatest(types.FETCH_BATCH_MODULE_SCHEDULE_BY_BATCH_ID_REQUEST, fetchBatchModuleScheduleByBatchIdSaga),
-    takeLatest(types.CREATE_BATCH_MODULE_SCHEDULE_REQUEST, addBatchModuleScheduleSaga),
-    takeLatest(types.UPDATE_BATCH_MODULE_SCHEDULE_REQUEST, updateBatchModuleScheduleSaga),
-    takeLatest(types.DELETE_BATCH_MODULE_SCHEDULE_REQUEST, deleteBatchModuleScheduleSaga),
+    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_REQUEST, fetchBatchModuleSchedulesSaga),
+    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_BY_ID_REQUEST, fetchBatchModuleScheduleByIdSaga),
+    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_REQUEST, fetchBatchModuleScheduleByBatchIdSaga),
+    takeLatest(types.CREATE_BATCH_CLASS_SCHEDULE_REQUEST, addBatchModuleScheduleSaga),
+    takeLatest(types.UPDATE_BATCH_CLASS_SCHEDULE_REQUEST, updateBatchModuleScheduleSaga),
+    takeLatest(types.DELETE_BATCH_CLASS_SCHEDULE_REQUEST, deleteBatchModuleScheduleSaga),
   ]);
 }

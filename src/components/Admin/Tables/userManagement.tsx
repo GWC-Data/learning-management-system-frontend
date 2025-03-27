@@ -4,7 +4,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import { ColDef } from "ag-grid-community";
 import { toast } from "react-toastify";
-import { Edit, Eye } from "lucide-react";
+import { Edit } from "lucide-react";
 import remove from '../../../assets/delete.png';
 import { Button } from "../../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
@@ -13,7 +13,6 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import {
   fetchUsersApi,
-  updateUserApi,
   deleteUserApi,
 } from "@/helpers/api/userApi";
 import { fetchRolesApi } from "@/helpers/api/roleApi";

@@ -12,6 +12,6 @@ export * from './batchTrainee/actions';
 
 export * from './module/actions';
 
-export * from './batchModuleSchedule/actions';
+export * from './batchClassSchedule/actions';
 
 export * from './classForModule/actions';

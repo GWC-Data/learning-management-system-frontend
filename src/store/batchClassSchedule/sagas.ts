@@ -10,8 +10,8 @@ import {
   deleteBatchClassScheduleApi,
 } from "../../helpers/api/batchClassScheduleApi";
 
-// ✅ GET ALL BATCH MODULE SCHEDULES
-export function* fetchBatchModuleSchedulesSaga(): Generator<any, void, any> {
+// ✅ GET ALL BATCH class SCHEDULES
+export function* fetchBatchClassSchedulesSaga(): Generator<any, void, any> {
   try {
     const response: any = yield call(fetchBatchClassScheduleApi);
     console.log("Fetched Batch Module Schedules:", response);
@@ -25,8 +25,8 @@ export function* fetchBatchModuleSchedulesSaga(): Generator<any, void, any> {
   }
 }
 
-// ✅ Saga to fetch batch module schedule by ID
-export function* fetchBatchModuleScheduleByIdSaga(action: {
+// ✅ Saga to fetch batch class schedule by ID
+export function* fetchClassModuleScheduleByIdSaga(action: {
     type: string;
     payload: string;
   }): Generator<any, void, any> {
@@ -43,8 +43,8 @@ export function* fetchBatchModuleScheduleByIdSaga(action: {
     }
   }
 
-// ✅ GET BATCH MODULE SCHEDULES BY BATCH ID
-export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
+// ✅ GET BATCH class SCHEDULES BY BATCH ID
+export function* fetchBatchClassScheduleByBatchIdSaga(action: {
   type: string;
   payload: string;
 }): Generator<any, void, any> {
@@ -56,7 +56,7 @@ export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
       type: types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_SUCCESS,
       payload: {
         batchId: action.payload, // ✅ Send batchId correctly
-        batchModuleSchedules: response, // ✅ Send schedules using correct key
+        batchClassSchedules: response, // ✅ Send schedules using correct key
       },
     });
   } catch (error: unknown) {
@@ -68,8 +68,8 @@ export function* fetchBatchModuleScheduleByBatchIdSaga(action: {
   }
 }
 
-// ✅ POST (ADD) BATCH MODULE SCHEDULE
-export function* addBatchModuleScheduleSaga(action: {
+// ✅ POST (ADD) BATCH Class SCHEDULE
+export function* addBatchClassScheduleSaga(action: {
   type: string;
   payload: any;
 }): Generator<any, void, any> {
@@ -85,8 +85,8 @@ export function* addBatchModuleScheduleSaga(action: {
   }
 }
 
-// ✅ PUT (UPDATE) BATCH MODULE SCHEDULE
-export function* updateBatchModuleScheduleSaga(action: {
+// ✅ PUT (UPDATE) BATCH class SCHEDULE
+export function* updateBatchClassScheduleSaga(action: {
   type: string;
   payload: any;
 }): Generator<any, void, any> {
@@ -102,8 +102,8 @@ export function* updateBatchModuleScheduleSaga(action: {
   }
 }
 
-// ✅ DELETE BATCH MODULE SCHEDULE
-export function* deleteBatchModuleScheduleSaga(action: {
+// ✅ DELETE BATCH Class SCHEDULE
+export function* deleteBatchClassScheduleSaga(action: {
   type: string;
   payload: string;
 }): Generator<any, void, any> {
@@ -120,13 +120,13 @@ export function* deleteBatchModuleScheduleSaga(action: {
 }
 
 // ✅ WATCHER SAGA
-export function* batchModuleScheduleWatcherSaga(): Generator<any, void, any> {
+export function* batchClassScheduleWatcherSaga(): Generator<any, void, any> {
   yield all([
-    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_REQUEST, fetchBatchModuleSchedulesSaga),
-    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_BY_ID_REQUEST, fetchBatchModuleScheduleByIdSaga),
-    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_REQUEST, fetchBatchModuleScheduleByBatchIdSaga),
-    takeLatest(types.CREATE_BATCH_CLASS_SCHEDULE_REQUEST, addBatchModuleScheduleSaga),
-    takeLatest(types.UPDATE_BATCH_CLASS_SCHEDULE_REQUEST, updateBatchModuleScheduleSaga),
-    takeLatest(types.DELETE_BATCH_CLASS_SCHEDULE_REQUEST, deleteBatchModuleScheduleSaga),
+    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_REQUEST, fetchBatchClassSchedulesSaga),
+    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_BY_ID_REQUEST, fetchClassModuleScheduleByIdSaga),
+    takeLatest(types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_REQUEST, fetchBatchClassScheduleByBatchIdSaga),
+    takeLatest(types.CREATE_BATCH_CLASS_SCHEDULE_REQUEST, addBatchClassScheduleSaga),
+    takeLatest(types.UPDATE_BATCH_CLASS_SCHEDULE_REQUEST, updateBatchClassScheduleSaga),
+    takeLatest(types.DELETE_BATCH_CLASS_SCHEDULE_REQUEST, deleteBatchClassScheduleSaga),
   ]);
 }

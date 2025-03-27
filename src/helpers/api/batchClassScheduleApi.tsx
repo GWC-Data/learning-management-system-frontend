@@ -33,10 +33,10 @@ export const fetchBatchClassScheduleByBatchIdApi = async (id: string) => {
   try {
     console.log("Fetching schedule for batch ID:", id);
     const response = await apiClient.get(`/batchClassSchedulebybatch/${id}`);
-    console.log("response", response.data.batchClassSchedule);
+    console.log("responswe", response.data.batchClassSchedule);
     return response.data.batchClassSchedule || [];
   } catch (error) {
-    console.error("Failed to fetch batch module schedule by batch id", error);
+    console.error("Failed to fetch batch class schedule by batch id", error);
     throw error;
   }
 };

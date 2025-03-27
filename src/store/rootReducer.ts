@@ -7,7 +7,7 @@ import companyInfosReducer from './companyInfo/reducers';
 import jobBoardsReducer from './jobBoard/reducers';
 import batchTraineeReducer from './batchTrainee/reducers';
 import { moduleReducer } from "./module/reducers"; // ✅ Import moduleReducer
-import batchModuleScheduleReducer from './batchClassSchedule/reducers';
+import batchClassScheduleReducer from './batchClassSchedule/reducers';
 import classForModuleReducer from './classForModule/reducers';
 
 const rootReducer = combineReducers({
@@ -18,7 +18,7 @@ const rootReducer = combineReducers({
   jobBoard:jobBoardsReducer,
   batchTrainee:batchTraineeReducer,
   module: moduleReducer, // ✅ Add moduleReducer to store
-  batchModuleSchedule: batchModuleScheduleReducer,
+  batchClassSchedule: batchClassScheduleReducer,
   classForModule: classForModuleReducer,
 });
 

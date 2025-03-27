@@ -4,9 +4,9 @@ export const fetchBatchClassScheduleRequest = () => ({
   type: types.FETCH_BATCH_CLASS_SCHEDULE_REQUEST,
 });
 
-export const fetchBatchClassScheduleSuccess = (batchModuleSchedules: any) => ({
+export const fetchBatchClassScheduleSuccess = (batchClassSchedules: any) => ({
   type: types.FETCH_BATCH_CLASS_SCHEDULE_SUCCESS,
-  payload: batchModuleSchedules,
+  payload: batchClassSchedules,
 });
 
 export const fetchBatchClassScheduleFailure = (error: any) => ({
@@ -41,10 +41,10 @@ export const fetchBatchClassScheduleByBatchIdRequest = (batchId: string) => {
 
 export const fetchBatchClassScheduleByBatchIdSuccess = (
   batchId: string,
-  batchModuleSchedules: any
+  batchClassSchedules: any
 ) => ({
   type: types.FETCH_BATCH_CLASS_SCHEDULE_BY_BATCH_ID_SUCCESS,
-  payload: { batchId, batchModuleSchedules },
+  payload: { batchId, batchClassSchedules },
 });
 
 export const fetchBatchClassScheduleByBatchIdFailure = (error: any) => ({
@@ -54,15 +54,15 @@ export const fetchBatchClassScheduleByBatchIdFailure = (error: any) => ({
 
 // Create
 export const createBatchClassScheduleRequest = (
-  newBatchModuleSchedule: any
+  newBatchClassSchedule: any
 ) => ({
   type: types.CREATE_BATCH_CLASS_SCHEDULE_REQUEST,
-  payload: newBatchModuleSchedule,
+  payload: newBatchClassSchedule,
 });
 
-export const createBatchClassScheduleSuccess = (batchModuleSchedule: any) => ({
+export const createBatchClassScheduleSuccess = (batchClassSchedule: any) => ({
   type: types.CREATE_BATCH_CLASS_SCHEDULE_SUCCESS,
-  payload: batchModuleSchedule,
+  payload: batchClassSchedule,
 });
 
 export const createBatchClassScheduleFailure = (error: any) => ({
@@ -73,17 +73,17 @@ export const createBatchClassScheduleFailure = (error: any) => ({
 // Update
 export const updateBatchClassScheduleRequest = (
   id: string,
-  updatedBatchModuleSchedule: any
+  updatedBatchClassSchedule: any
 ) => ({
   type: types.UPDATE_BATCH_CLASS_SCHEDULE_REQUEST,
-  payload: { id, updatedBatchModuleSchedule },
+  payload: { id, updatedBatchClassSchedule },
 });
 
 export const updateBatchClassScheduleSuccess = (
-  updatedBatchModuleSchedule: any
+  updatedBatchClassSchedule: any
 ) => ({
   type: types.UPDATE_BATCH_CLASS_SCHEDULE_SUCCESS,
-  payload: updatedBatchModuleSchedule,
+  payload: updatedBatchClassSchedule,
 });
 
 export const updateBatchClassScheduleFailure = (error: any) => ({

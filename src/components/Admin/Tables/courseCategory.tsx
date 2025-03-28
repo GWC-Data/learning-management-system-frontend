@@ -260,13 +260,14 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
           </div>
         ),
         editable: false,
+        width: 170,
       },
     ]);
   }, [categoryData]);
 
   return (
     <div className="flex-1 p-4 mt-10 ml-24">
-      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1147px]">
+      <div className="flex items-center justify-between bg-[#6E2B8B] text-white px-6 py-4 rounded-lg shadow-lg mb-6 w-[1159px]">
         <div className="flex flex-col">
           <h2 className="text-2xl font-metropolis font-semibold tracking-wide">
             Course Categories
@@ -284,7 +285,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
       </div>
       <div
         className="ag-theme-quartz text-left font-poppins"
-        style={{ height: "calc(100vh - 180px)", width: "88%" }}
+        style={{ height: "70vh", width: "92%" }}
       >
         <AgGridReact
           rowSelection="multiple"
@@ -409,11 +410,13 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
           </div>
         </div>
       )}
+
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96">
             <h2 className="text-xl font-metropolis font-semibold mb-4">
-              {editing ? "Edit Category" : "Add New Category"}
+              {editing ? "Edit Category" : "Add NewCategory"}
             </h2>
             <form>
               <div className="mb-4">
@@ -454,7 +457,7 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
                 </label>
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded p-4 mt-2 h-28 text-center cursor-pointer 
+                  className={`border-2 border-dashed rounded p-4 mt-2 h-30 text-center cursor-pointer 
       ${isDragActive ? "border-blue-500" : "border-gray-300"}`}
                 >
                   <input {...getInputProps()} />
@@ -493,20 +496,20 @@ const CourseCategoryTable = ({ editable = true }: CourseCategoryTableProps) => {
               </div>
               <div className="flex justify-end space-x-2">
                 <Button
+                  onClick={handleFormSubmit}
+                  type="submit"
+                  className="bg-[#6E2B8B] hover:bg-[#8536a7] text-white px-4 py-2 
+                transition-all duration-500 ease-in-out 
+               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
+                >
+                  {editing ? "Update" : "Create"}
+                </Button>
+                <Button
                   onClick={handleModalClose}
                   className="bg-red-500 text-white hover:bg-red-600 px-4 py-2 transition-all duration-500 ease-in-out 
                rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
                 >
                   Cancel
-                </Button>
-                <Button
-                  onClick={handleFormSubmit}
-                  type="submit"
-                  className="bg-custom-gradient-btn text-white px-4 py-2 
-                transition-all duration-500 ease-in-out 
-               rounded-tl-3xl hover:rounded-tr-none hover:rounded-br-none hover:rounded-bl-none hover:rounded"
-                >
-                  {editing ? "Update" : "Create"}
                 </Button>
               </div>
             </form>

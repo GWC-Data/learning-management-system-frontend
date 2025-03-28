@@ -97,7 +97,7 @@ export function* updateBatchSaga(action: { type: string; payload: any }): Genera
 }
 
 // DELETE
-export function* deleteBatchSaga(action: { type: string; payload: number }): Generator<any, void, any> {
+export function* deleteBatchSaga(action: { type: string; payload: string }): Generator<any, void, any> {
   try {
     yield call(deleteBatchApi, action.payload);
     yield put(actions.deleteBatchSuccess(action.payload));

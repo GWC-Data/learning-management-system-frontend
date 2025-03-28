@@ -184,12 +184,12 @@ const Sidebar: React.FC = () => {
                   isActive={location.pathname === "/admin/manage-batch-schedules"}
                 />  */}
 
-                 {/* <SidebarButton
+                 <SidebarButton
                   icon={<BriefcaseBusiness  />} 
                   label="Job Board"
                   to="/admin/job-board"
                   isActive={location.pathname === "/admin/job-board"}
-                />  */}
+                /> 
 
               </div>
             )}

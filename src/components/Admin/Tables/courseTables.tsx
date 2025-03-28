@@ -414,6 +414,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
           animateRows
         />
       </div>
+
       {/* Pagination Controls */}
       <div className="flex justify-center items-center mt-4">
         <button
@@ -436,6 +437,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
           Next
         </button>
       </div>
+
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[450px]">
@@ -490,7 +492,7 @@ const CourseTable = ({ editable = true }: CourseTableProps) => {
                         ? selectedOptions.map((option) => option.value) // Extract values correctly
                         : [],
                     });
-                  }}                  
+                  }}
                   className="w-full rounded mt-1 font-metropolis text-gray-700"
                   placeholder="Select Categories"
                   isSearchable={true}

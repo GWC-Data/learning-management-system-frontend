@@ -10,11 +10,10 @@ import { Button } from "../../ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "../../../components/ui/tooltip";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
-import axios from "axios";
 import {
   fetchUsersApi,
-  updateUserApi,
   deleteUserApi,
+  updateUserAdminApi,
 } from "@/helpers/api/userApi";
 import { fetchRolesApi } from "@/helpers/api/roleApi";
 
@@ -23,19 +22,18 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
-  dateOfBirth?: string;
+  dateOfBirth?: string | { value: string };
   phoneNumber?: string;
   password?: string;
   address?: string;
   qualification?: string;
   profilePic?: string;
-  dateOfJoining?: string;
+  dateOfJoining?: string | { value: string };
   accountStatus: "active" | "suspended" | "inactive";
   lastLogin?: string;
   roleId: string;
   roleName: string;
 }
-
 interface Role {
   id: string;
   name: string;
@@ -51,6 +49,7 @@ const UserManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false)
 
   const getToken = () => localStorage.getItem("authToken");
 
@@ -175,7 +174,7 @@ const UserManagement: React.FC = () => {
                       onClick={() => confirmDeleteUser(data)}
                       className="bg-white text-red-600 p-2 rounded hover:bg-white"
                     >
-                    <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
+                      <img src={remove} alt="Remove Icon" className="h-6 w-6 filter fill-current text-[#6E2B8B]" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Delete User</TooltipContent>
@@ -192,6 +191,11 @@ const UserManagement: React.FC = () => {
     setSelectedUser(user);
     setFormData({
       ...user,
+      dateOfBirth: user.dateOfBirth
+        ? (typeof user.dateOfBirth === 'object' && 'value' in user.dateOfBirth
+          ? user.dateOfBirth.value
+          : user.dateOfBirth)
+        : '',
     });
     setIsModalOpen(true); // Open the modal
   };
@@ -199,65 +203,74 @@ const UserManagement: React.FC = () => {
   // Handle form field changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => prev ? { ...prev, [name]: value } : null);
+    setFormData((prev) => {
+      if (!prev) return null;
+
+      // Special handling for date fields to ensure string value
+      if (name === 'dateOfBirth' || name === 'dateOfJoining') {
+        return {
+          ...prev,
+          [name]: typeof value === 'object' && value !== null && 'value' in value
+            ? (value as { value: string }).value
+            : value
+        };
+      }
+
+      return { ...prev, [name]: value };
+    });
   };
 
-  const editUser = (userToEdit: User) => {
-    if (!formData) {
-      toast.error("Form data is missing!");
-      return;
+  const editUser = async (userToEdit: User) => {
+    try {
+      // Validate form data
+      if (!formData) {
+        toast.error("Form data is missing!");
+        return;
+      }
+
+      // Prepare updated user data with the formData
+      const updatedUser = {
+        lastName: formData?.lastName || userToEdit.lastName,
+        firstName: formData?.firstName || userToEdit.firstName,
+        email: formData?.email || userToEdit.email,
+        dateOfBirth: formData?.dateOfBirth,
+        phoneNumber: formData?.phoneNumber,
+        address: formData?.address,
+        qualification: formData?.qualification,
+        accountStatus: formData?.accountStatus,
+        dateOfJoining: formData?.dateOfJoining,
+        roleId: formData?.roleId || userToEdit.roleId, // Added to preserve role
+      };
+
+      // Call the API to update user
+      const updatedUserData = await updateUserAdminApi(userToEdit.id, updatedUser);
+      console.log("updateUserdata", updatedUserData);
+
+      setLoading(true);
+
+      // Update local state on successful update
+      toast.success("User updated successfully!");
+      setUserData((prevData) =>
+        prevData.map((user) =>
+          user.id === userToEdit.id ? { ...user, ...updatedUserData } : user
+        )
+      );
+
+      // Reset selection and close modal
+      setSelectedUser(null);
+      setIsModalOpen(false);
+
+    } catch (error) {
+      console.error("Error updating user:", error);
+
+      // Handle different error scenarios
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Failed to update user";
+
+      toast.error(errorMessage);
+      setLoading(false);
     }
-
-    console.log('Form Data:', formData);
-
-    // Prepare updated user data with the formData
-    const updatedUser = {
-      ...userToEdit,
-      lastName: formData?.lastName || userToEdit.lastName,
-      firstName: formData?.firstName || userToEdit.firstName,
-      email: formData?.email || userToEdit.email,
-      dateOfBirth: formData?.dateOfBirth,
-      phoneNumber: formData?.phoneNumber,
-      address: formData?.address,
-      qualification: formData?.qualification,
-      accountStatus: formData?.accountStatus,
-      dateOfJoining: formData?.dateOfJoining,
-    };
-
-    const token = getToken();
-    if (!token) {
-      toast.error("Authorization token not found!");
-      return;
-    }
-
-    console.log("Updating user with ID:", userToEdit.id);
-    console.log("Request Payload:", updatedUser);
-
-    axios
-      .put(`/userForAdmin/${userToEdit.id}`, updatedUser, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        console.log("User updated:", response.data);
-        toast.success("User updated successfully!");
-        setUserData((prevData) =>
-          prevData.map((user) =>
-            user.id === userToEdit.id ? { ...user, ...updatedUser } : user
-          )
-        );
-        setSelectedUser(null);
-        setIsModalOpen(false); // Close the modal after saving
-      })
-      .catch((error) => {
-        console.error("Error updating user:", error);
-        if (error.response?.status === 404) {
-          toast.error("User not found or endpoint does not exist.");
-        } else {
-          toast.error(error.response?.data?.message || "Failed to update user.");
-        }
-      });
   };
 
   // Function to open the delete confirmation modal
@@ -385,7 +398,11 @@ const UserManagement: React.FC = () => {
                   <input
                     type="date"
                     name="dateOfBirth"
-                    value={formData?.dateOfBirth || ""}
+                    value={
+                      typeof formData?.dateOfBirth === 'object' && 'value' in formData.dateOfBirth
+                        ? formData.dateOfBirth.value
+                        : formData?.dateOfBirth || ""
+                    }
                     onChange={handleInputChange}
                     className="border p-2 rounded w-full font-metropolis text-gray-400 font-semibold"
                   />

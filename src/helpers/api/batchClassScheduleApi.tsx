@@ -36,50 +36,50 @@ export const fetchBatchClassScheduleByBatchIdApi = async (id: string) => {
     console.log("response", response.data.batchClassSchedule);
     return response.data.batchClassSchedule || [];
   } catch (error) {
-    console.error("Failed to fetch batch module schedule by batch id", error);
+    console.error("Failed to fetch batch class schedule by batch id", error);
     throw error;
   }
 };
 
-// Read a batch module schedule by id
-export const fetchBatchClassScheduleByIdApi = async (id: number) => {
+// Read a batch class schedule by id
+export const fetchBatchClassScheduleByIdApi = async (id: string) => {
   try {
     const userId = parseInt(id.toString(), 10); // Convert id to integer
     console.log("Fetching schedule for user ID:", userId);
     const response = await apiClient.get(`/batchClassSchedule/${userId}`);
     return response.data || [];
   } catch (error) {
-    console.error("Failed to fetch batch module schedule by id", error);
+    console.error("Failed to fetch batch class schedule by id", error);
     throw error;
   }
 };
 
-// Update an batch module schedule
+// Update an batch class schedule
 export const updateBatchClassScheduleApi = async (
   id: string,
   newBatchClassSchedule: any
 ) => {
   try {
-    console.log("updatedCourseModule", newBatchClassSchedule);
+    console.log("updatedCourseClass", newBatchClassSchedule);
     const response = await apiClient.put(
       `/batchClassSchedule/${id}`,
       newBatchClassSchedule
     );
-    console.log("response batch module", response.data.data);
+    console.log("response batch class", response.data.data);
     return response.data;
   } catch (error) {
-    console.error("Error updating course module", error);
+    console.error("Error updating course class", error);
     throw error;
   }
 };
 
-// Delete a batch module schedule
+// Delete a batch class schedule
 export const deleteBatchClassScheduleApi = async (id: string) => {
   try {
     const response = await apiClient.delete(`/batchClassSchedule/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to delete course module", error);
+    console.error("Failed to delete course class", error);
     throw error;
   }
 };

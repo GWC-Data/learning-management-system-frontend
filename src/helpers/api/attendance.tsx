@@ -22,8 +22,8 @@ export const getAttendanceByUserIdApi = async (userId: string) => {
       params: { userId }, // Pass userId as a query parameter
     });
 
-    console.log('response', response.data.attendanceRecords);
-    return response.data.attendanceRecords;
+    console.log('responseattendance', response.data.attendance);
+    return response.data.attendance;
   } catch (error) {
     console.error('Error getting attendance user by id', error);
     throw error;
